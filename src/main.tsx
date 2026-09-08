@@ -5,6 +5,7 @@ import App from './App'
 import { initializePlatform } from './platform'
 import './styles.css'
 import './responsive.css'
+import './dark-theme.css'
 
 initializePlatform()
 createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><App /></BrowserRouter></StrictMode>)
