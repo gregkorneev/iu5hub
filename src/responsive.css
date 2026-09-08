@@ -1,0 +1,6 @@
+@media (max-width: 620px) {
+  header { gap: 12px; padding-inline: 12px; }
+  .brand { gap: 8px; font-size: 1rem; }
+  .brand img { width: 32px; height: 32px; }
+  nav { gap: 12px; font-size: .88rem; }
+}
