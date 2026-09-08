@@ -2,7 +2,7 @@
 
 ## Context
 
-Student Hub должен работать в browser и Telegram Mini App без расхождения функциональности и UI.
+«ИУ5 Архив» должен работать в browser и Telegram Mini App без расхождения функциональности и UI.
 
 ## Decision
 
