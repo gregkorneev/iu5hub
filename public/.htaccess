@@ -1,0 +1,7 @@
+Options -MultiViews
+RewriteEngine On
+
+# Serve existing static files directly; hand all application routes to React.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
