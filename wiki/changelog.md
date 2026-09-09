@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-09
+
+- Published the validated static MVP as a private web deployment.
+
 ## Unreleased
 
 ### Added
