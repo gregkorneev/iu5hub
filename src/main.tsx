@@ -1,11 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import App from './App'
-import { initializePlatform } from './platform'
+import { initializeTelegram } from './telegram/init'
 import './styles.css'
 import './responsive.css'
 import './dark-theme.css'
 
-initializePlatform()
-createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><App /></BrowserRouter></StrictMode>)
+initializeTelegram()
+createRoot(document.getElementById('root')!).render(<StrictMode><HashRouter><App /></HashRouter></StrictMode>)

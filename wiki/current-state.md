@@ -1,12 +1,12 @@
 # Current state
 
-- **Project status:** MVP implemented and validated locally.
-- **Current milestone:** MVP: каталог материалов для Web и Telegram Mini App.
-- **Completed:** React/Vite SPA, routing, static materials repository, Web/Telegram platform adapter, responsive UI, Wiki/ADR, CI, unit tests and local browser smoke test.
-- **In progress:** preparation of the Beget FreeHosting release and integration with the real catalog.
-- **Next:** upload the validated `dist/` contents to Beget after hosting access is supplied; replace demo Yandex Disk links with the real catalog; configure the HTTPS custom-domain URL in Telegram Mini App and bot credentials.
-- **Known blockers:** нет опубликованной ссылки/каталога Яндекс.Диска и Telegram bot credentials; MVP использует безопасные демонстрационные записи и не требует их.
-- **Important architecture facts:** один SPA frontend; UI зависит только от `MaterialsRepository` и `PlatformAdapter`; тяжёлые файлы остаются на Яндекс.Диске.
+- **Project status:** Telegram-only MVP мигрирован и validated locally; внешний production release ожидает доступы и настройки.
+- **Current milestone:** Telegram Mini App: каталог материалов, Cloud.ru Evolution Object Storage deployment и реальный каталог Яндекс.Диска.
+- **Completed:** React/Vite SPA, routing, статический `MaterialsRepository`, responsive UI, CI, unit tests и локальный browser smoke test. Эти результаты требуют адаптации к новой Telegram-only границе, а не считаются production validation в Telegram.
+- **In progress:** подготовка внешнего Cloud.ru deployment, BotFather Mini App URL и реального каталога Яндекс.Диска.
+- **Next:** заменить demo-ссылки реальным каталогом Яндекс.Диска; создать HTTPS endpoint static website в Cloud.ru; задать URL Mini App в BotFather/боте; добавить GitHub Actions Secrets и включить deploy после успешного verify.
+- **Known blockers:** для внешнего release нужны Cloud.ru Object Storage credentials/configuration, Telegram bot access и реальный каталог Яндекс.Диска. Ни один secret не должен попадать в Git или frontend bundle.
+- **Important architecture facts:** один статически собираемый React/TypeScript/Vite frontend существует только внутри Telegram Mini App; UI зависит от `MaterialsRepository` и централизованного Telegram integration layer; Cloud.ru — заменяемый technical host; тяжёлые файлы остаются на Яндекс.Диске.
 - **Team workflow:** постоянная небольшая команда; новые роли создаются только для действительно новой специализации, а обычные задачи направляются существующим агентам.
-- **Last significant change:** 2026-09-08 — navigation now exposes four courses (semesters 1–8); the header retains protected horizontal insets at narrow widths, and the footer includes a styled placeholder for the future source Yandex Disk catalog link. The visual theme remains aligned to the official BMSTU palette (#006CDC, #002C5B, #8CC5F4, #E1EFFB), supports automatic light/dark appearance through `prefers-color-scheme`, and retains the animated, reduced-motion-safe interface.
-- **Deployment policy:** 2026-09-09 — the target is Beget FreeHosting; `public/.htaccess` provides the SPA fallback and `.env.example` documents `VITE_APP_PUBLIC_URL`. A previous private Sites preview is not a production endpoint and must not be shared.
+- **Last significant change:** 2026-09-11 — принята целевая Telegram-only архитектура: Telegram Bot является постоянной публичной точкой входа, Cloud.ru Evolution Object Storage — только техническим hosting, Яндекс.Диск — файловым хранилищем (ADR-0003). Документация старого Beget/Web решения помечена superseded.
+- **Deployment policy:** production artifact — содержимое `dist/`, публикуемое в Cloud.ru Evolution Object Storage со Static Website Hosting и HTTPS. Технический Cloud.ru URL не распространяется студентам; Bot/Mini App URL остаётся пользовательским входом.

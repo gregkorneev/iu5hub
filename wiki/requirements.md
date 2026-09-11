@@ -11,7 +11,8 @@
 - Материал: название, предмет, категория, описание (если есть), внешняя ссылка.
 - Поиск по названию, предмету, категории и ключевым словам.
 - Responsive/mobile-first, доступная keyboard-навигация, видимые focus states, понятные empty/error states.
-- Один frontend для browser и Telegram; Telegram-особенности скрыты за адаптером.
+- Единственный пользовательский интерфейс — Telegram Mini App, открываемый из Student Hub Bot. Отдельный публичный Web-сайт и экран выбора Web/Telegram не входят в продукт.
+- Telegram-особенности скрыты за централизованным integration layer; UI не зависит от глобального API или hosting URL.
 
 ## Constraints
 

@@ -2,7 +2,7 @@
 
 ## Context
 
-«ИУ5 Архив» должен работать в browser и Telegram Mini App без расхождения функциональности и UI.
+На момент решения «ИУ5 Архив» должен был работать в browser и Telegram Mini App без расхождения функциональности и UI.
 
 ## Decision
 
@@ -16,6 +16,10 @@
 
 Общий routing и бизнес-слой проще проверять и выпускать. Telegram adapter обязан безопасно деградировать за пределами Telegram. Добавление платформы потребует новой реализации, а не переписывания UI.
 
+## Superseded by
+
+ADR-0003-telegram-only-cloudru-yandex-disk.md. Новый продукт не поддерживает отдельный публичный Web runtime, поэтому `WebPlatformAdapter` больше не является целевой границей. Принцип централизации browser/Telegram API в UI сохраняется и развивается в Telegram integration layer.
+
 ## Status
 
-Accepted — 2026-09-08.
+Superseded — 2026-09-11 (historical record retained).

@@ -7,17 +7,18 @@
 ## Minimum automated coverage
 
 - repository: поиск по title/subject/category/keywords и пустой результат;
-- platform: web fallback и Telegram detection без `window.Telegram`;
+- Telegram integration: безопасная инициализация, theme/navigation/link abstraction и developer fallback без `window.Telegram`;
 - routes: known material/subject и not-found/empty states.
 
 ## Manual smoke matrix
 
-| Scenario | Web desktop | Mobile/Telegram |
+| Scenario | Local developer browser | Telegram iOS/Android/Desktop/Web |
 | --- | --- | --- |
-| Home → semester → subject → material | required | required |
-| Search, empty and long query | required | required |
-| Direct deep link / refresh | required | required where supported |
-| External material link | required | required |
-| Keyboard/focus and touch targets | required | required |
+| Home → semester → subject → material | useful | required |
+| Search, empty and long query | useful | required |
+| Internal route / reopen | useful | required where supported |
+| External Yandex Disk link | useful | required |
+| Theme, viewport, safe areas, BackButton | n/a | required |
+| Keyboard/focus and touch targets | useful | required |
 
 Записывайте невыполнимые проверки и причину в `known-issues.md`.

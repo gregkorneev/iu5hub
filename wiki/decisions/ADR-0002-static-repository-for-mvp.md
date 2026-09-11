@@ -2,7 +2,7 @@
 
 ## Context
 
-Beget FreeHosting подходит для статического frontend, но не для обязательного backend/sync процесса; контент Диска ещё не предоставлен.
+На момент решения Beget FreeHosting рассматривался как static frontend hosting, а контент Диска ещё не был предоставлен. В новой архитектуре Cloud.ru Evolution Object Storage заменяет Beget; необходимость статического каталога для MVP сохраняется.
 
 ## Decision
 
@@ -16,6 +16,10 @@ MVP хранит компактный каталог в versioned local JSON/Typ
 
 Каталог запускается без секретов, оплаты и backend. При появлении API требуется новая repository implementation; UI contract не меняется. Автосинхронизация остаётся P3.
 
+## Superseded by
+
+ADR-0003-telegram-only-cloudru-yandex-disk.md заменяет hosting и product-entry assumptions. Решение использовать static `MaterialsRepository` до появления backend/sync остаётся актуальным и повторно подтверждено новым ADR.
+
 ## Status
 
-Accepted — 2026-09-08.
+Superseded in part — 2026-09-11 (historical record retained; repository decision remains reaffirmed by ADR-0003).

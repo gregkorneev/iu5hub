@@ -1,0 +1,11 @@
+{
+    "schema_version": 2,
+    "commit": "50ea36274802d166eecb5ca538422c344a966f9d",
+    "indexed_at": "2026-09-11T17:30:51Z",
+    "project": "Users-korneev-Desktop-iu5hub",
+    "nodes": 256,
+    "edges": 343,
+    "original_size": 2097152,
+    "compressed_size": 142599,
+    "compression_level": 3
+}
