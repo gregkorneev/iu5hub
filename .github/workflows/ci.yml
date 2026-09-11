@@ -41,7 +41,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDRU_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ru-central-1
       AWS_EC2_METADATA_DISABLED: 'true'
-      CLOUDRU_BUCKET: ${{ vars.CLOUDRU_BUCKET }}
+      CLOUDRU_BUCKET: ${{ secrets.CLOUDRU_BUCKET }}
       CLOUDRU_PREFIX: ${{ vars.CLOUDRU_PREFIX }}
       CLOUDRU_S3_ENDPOINT: https://s3.cloud.ru
 
@@ -55,6 +55,7 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+      - run: cp dist/index.html dist/error.html
 
       - name: Validate deployment configuration
         shell: bash
@@ -63,9 +64,11 @@ jobs:
           test -n "$AWS_ACCESS_KEY_ID"
           test -n "$AWS_SECRET_ACCESS_KEY"
           test -n "$CLOUDRU_BUCKET"
-          if [ -n "$CLOUDRU_PREFIX" ] && ! [[ "$CLOUDRU_PREFIX" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]] || [[ "$CLOUDRU_PREFIX" == *..* ]]; then
-            echo 'CLOUDRU_PREFIX must be a relative object-key prefix without ..'
-            exit 1
+          if [ -n "$CLOUDRU_PREFIX" ]; then
+            if ! [[ "$CLOUDRU_PREFIX" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]] || [[ "$CLOUDRU_PREFIX" == *..* ]]; then
+              echo 'CLOUDRU_PREFIX must be a relative object-key prefix without ..'
+              exit 1
+            fi
           fi
 
       - name: Publish static build to Cloud.ru Object Storage
@@ -74,5 +77,7 @@ jobs:
           set -euo pipefail
           target="s3://$CLOUDRU_BUCKET"
           if [ -n "$CLOUDRU_PREFIX" ]; then target="$target/$CLOUDRU_PREFIX"; fi
-          aws s3 sync dist/ "$target/" --endpoint-url "$CLOUDRU_S3_ENDPOINT" --delete --exclude index.html --only-show-errors
+          aws --version
+          aws s3 sync dist/assets/ "$target/assets/" --endpoint-url "$CLOUDRU_S3_ENDPOINT" --delete --cache-control 'public, max-age=31536000, immutable' --only-show-errors
+          aws s3 sync dist/ "$target/" --endpoint-url "$CLOUDRU_S3_ENDPOINT" --delete --exclude 'assets/*' --exclude index.html --cache-control 'no-cache' --only-show-errors
           aws s3 cp dist/index.html "$target/index.html" --endpoint-url "$CLOUDRU_S3_ENDPOINT" --cache-control 'no-cache, no-store, must-revalidate' --only-show-errors
