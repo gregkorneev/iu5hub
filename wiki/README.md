@@ -11,6 +11,7 @@
 | продукте и MVP | `requirements.md`, `roadmap.md` |
 | материалах и их источнике | `data-model.md` |
 | Telegram Mini App и integration layer | `telegram.md` |
+| локальном Telegram development через Quick Tunnel | `local-telegram-development.md` |
 | выпуске, проверках | `deployment.md`, `testing.md` |
 | рисках и временном контексте | `known-issues.md`, `agent-handoffs.md` |
 

@@ -25,6 +25,12 @@
 
 Записывайте невыполнимые проверки и причину в `known-issues.md`.
 
+## Local Telegram development check
+
+`npm run dev:telegram` — optional development aid, not a release gate. Он запускает loopback Vite и временный Cloudflare Quick Tunnel с HTTP/2. Для текущей сессии допускается вручную направить designated dev-test bot `@iu5_archive_bot` на напечатанный temporary URL, если есть доступ к его настройке; не фиксировать URL/token в Git и не считать это подтверждённым WebView test без фактической проверки.
+
+После изменения UI HMR в Telegram WebView может не обновиться из-за transport/WebSocket behavior. В этом случае reload/reopen Mini App — допустимая проверка. Остановить tunnel после теста; новая сессия всегда требует нового URL. Полная инструкция: `local-telegram-development.md`.
+
 ## Production smoke after deploy
 
 - GitHub Actions: `verify` и `deploy-cloudru` completed successfully; в deploy log подтверждены target bucket/prefix без раскрытия secrets.
