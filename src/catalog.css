@@ -48,7 +48,7 @@
 .subject-card, .material-card, .disk-item, .course-grid a, .semester-button { min-width:0; overflow-wrap:anywhere }
 .subject-card__content { flex:1 1 auto; min-width:0 }
 .subject-card__arrow { flex:0 0 auto }
-.disk-item strong, .disk-item small, .course-grid strong, .course-grid small, .semester-button strong, .semester-button small { min-width:0; overflow-wrap:anywhere }
+.disk-item:not(.disk-item--folder) strong, .disk-item:not(.disk-item--folder) small, .course-grid strong, .course-grid small, .semester-button strong, .semester-button small { min-width:0; overflow-wrap:anywhere }
 .brand,.breadcrumb a,nav a { display:inline-flex; align-items:center; min-height:44px }
 .stats-page { max-width:860px }
 .stats-page > h1 { margin-bottom:20px }

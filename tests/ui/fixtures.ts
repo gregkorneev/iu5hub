@@ -15,6 +15,10 @@ const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 
     { name: 'Лекция 1.pdf', path: '1 семестр/Лекция 1.pdf', type: 'file' },
     { name: 'Лекции Грибов АФ.pdf', path: '1 семестр/Лекции Грибов АФ.pdf', type: 'file' },
   ],
+  'course-1:1 Семестр': [
+    { name: 'Модели данных', path: '1 Семестр/Модели данных', type: 'dir' },
+    { name: 'Электротехника', path: '1 Семестр/Электротехника', type: 'dir' },
+  ],
   'course-1:Математический анализ': [{ name: 'Пределы.pdf', path: 'Математический анализ/Пределы.pdf', type: 'file' }],
   'course-1:Архив': [{ name: '2026', path: 'Архив/2026', type: 'dir' }],
   'course-1:Архив/2026': [{ name: 'ИУ5', path: 'Архив/2026/ИУ5', type: 'dir' }],
