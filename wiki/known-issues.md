@@ -8,3 +8,6 @@
 | Open | Нет подтверждённого Telegram WebView launch | `@iu5_archive_bot` назначен только для local dev testing. Temporary Quick Tunnel URL можно задать вручную на одну сессию при доступе к bot settings, но конфигурация и реальный WebView test ещё не подтверждены. Bot token и URL не должны попадать в Git. |
 | Open | Нет согласованного каталога Яндекс.Диска | Использовать demo data; заменить через repository/data source после появления ссылок. |
 | Open (P3) | Обычный browser fallback может логировать Telegram SDK warning about unsupported BackButton version | Это не runtime exception и не влияет на fixture-based integration; real Telegram smoke remains the authority for SDK-version behavior. Browser tests should fail on exceptions and failed responses, not on this known SDK warning. |
+# Поиск на Яндекс.Диске
+
+Поиск рекурсивно обходит публичные папки Яндекс.Диска. Внешний API может быть медленным или недоступным, поэтому поиск ограничен общим дедлайном в 10 секунд и затем показывает пользователю ошибку. Это намеренная деградация: каталог и другие действия Mini App остаются доступными.

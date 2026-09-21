@@ -15,6 +15,10 @@ export interface MaterialsRepository {
 }
 
 const normalize = (value: string) => value.normalize('NFC').trim().toLocaleLowerCase('ru')
+// The total search deadline must win before an individual folder timeout can
+// be swallowed as an empty folder by the resilient recursive traversal.
+const diskSearchTimeoutMs = 10_000
+const diskRequestTimeoutMs = 12_000
 const yandexDownloadHosts = new Set(['disk.yandex.ru', 'downloader.disk.yandex.ru'])
 const isYandexDownloadUrl = (value: string) => {
   try { const url = new URL(value); return url.protocol === 'https:' && yandexDownloadHosts.has(url.hostname) } catch { return false }
@@ -26,7 +30,7 @@ const apiUrl = (endpoint: string, publicUrl: string, path?: string) => {
 }
 const fetchWithTimeout = (url: string) => {
   const controller = new AbortController()
-  const timeout = globalThis.setTimeout(() => controller.abort(), 10_000)
+  const timeout = globalThis.setTimeout(() => controller.abort(), diskRequestTimeoutMs)
   return fetch(url, { signal: controller.signal }).finally(() => globalThis.clearTimeout(timeout))
 }
 const courseById = (id: string) => courses.find((course) => course.id === id)
@@ -73,11 +77,18 @@ export const yandexDiskRepository = {
       return results
     }
     const configured = courses.filter((course) => isYandexDiskUrl(course.publicUrl))
-    return new Promise((resolve) => {
+    const search = new Promise<DiskSearchResult[]>((resolve) => {
       let remaining = configured.length
       if (!remaining) resolve([])
       configured.forEach((course) => { void searchCourse(course).then((results) => { if (results.length) resolve(results); else if (--remaining === 0) resolve([]) }).catch(() => { if (--remaining === 0) resolve([]) }) })
     })
+    let timeout: ReturnType<typeof globalThis.setTimeout> | undefined
+    try {
+      return await Promise.race([
+        search,
+        new Promise<never>((_, reject) => { timeout = globalThis.setTimeout(() => reject(new Error('Поиск на Яндекс.Диске занял слишком много времени.')), diskSearchTimeoutMs) }),
+      ])
+    } finally { if (timeout) globalThis.clearTimeout(timeout) }
   },
 }
 

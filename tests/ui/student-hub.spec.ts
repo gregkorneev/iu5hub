@@ -49,6 +49,18 @@ test.describe('Student Hub critical UI', () => {
     await expect(page.getByText('Ничего не найдено')).toBeVisible()
   })
 
+  test('ends a stalled live Disk search with an error instead of an endless loader', async ({ page }) => {
+    test.setTimeout(20_000)
+    await page.unroute('https://cloud-api.yandex.net/**')
+    await page.route('**/v1/disk/public/resources**', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 11_000))
+      await route.fulfill({ json: { _embedded: { items: [] } } })
+    })
+    await page.goto('/#/search?q=%D0%9C%D0%B0%D1%82%D0%B5%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%B0%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7')
+    await expect(page.getByText('Не удалось выполнить поиск по Яндекс.Диску.')).toBeVisible({ timeout: 13_000 })
+    await expect(page.getByText('Ищем в папках и файлах…')).toBeHidden()
+  })
+
   test('keeps home search suggestions tappable above the course catalog on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/#/')
