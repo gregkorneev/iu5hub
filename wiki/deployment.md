@@ -131,4 +131,4 @@ To roll back application code, revert to the last-known-good commit on `main`; a
 
 ## Limitations
 
-Cloud.ru Object Storage is frontend hosting, not a backend. Authentication, server-side Telegram `initData` validation, Yandex Disk API access, notifications, databases and admin functions remain future services and are not part of the MVP.
+Cloudflare Pages is static frontend hosting, not the analytics backend. Private analytics additionally requires the Worker, D1 binding/migrations, Worker-only secrets and protected Telegram webhook described in `analytics.md`. Deploy and smoke-test it independently of a Pages artifact: a successful Pages deployment alone does not enable `/stats`, authentication, D1 or admin functions. When the Worker has its own hostname, set the public Pages build variable `VITE_ANALYTICS_API_BASE` to that HTTPS origin; it contains no credential and is protected by the Worker's origin allowlist and server-side Telegram validation.

@@ -1,6 +1,7 @@
 export interface TelegramUser { id: number; first_name: string; username?: string; language_code?: string }
 
 export interface TelegramWebApp {
+  initData?: string
   initDataUnsafe?: { user?: TelegramUser }
   themeParams?: Record<string, string>
   viewportHeight?: number

@@ -46,6 +46,14 @@ async function trackEvent(db, userHash, event, now) {
 
 async function queryOne(db, sql, ...bindings) { return db.prepare(sql).bind(...bindings).first() }
 async function queryAll(db, sql, ...bindings) { return (await db.prepare(sql).bind(...bindings).all()).results }
+async function activity(db, now, start) {
+  const rows = await queryAll(db, `SELECT strftime('%Y-%m-%d', created_at, 'unixepoch') AS date, COUNT(DISTINCT user_hash) AS users, SUM(event_type = 'app_open') AS launches FROM events WHERE created_at >= ? GROUP BY date ORDER BY date`, Math.max(start, startOfUtcDay(now) - 29 * 86_400))
+  const byDate = new Map(rows.map((row) => [row.date, row]))
+  return Array.from({ length: 30 }, (_, index) => {
+    const date = new Date((startOfUtcDay(now) - (29 - index) * 86_400) * 1000).toISOString().slice(0, 10)
+    return byDate.get(date) ?? { date, users: 0, launches: 0 }
+  })
+}
 
 async function summary(db, now, period) {
   const start = periodStart(period, now)
@@ -64,8 +72,9 @@ async function summary(db, now, period) {
 }
 
 async function telegramStats(env, chatId) {
-  const metrics = await summary(env.ANALYTICS_DB, unixNow(), '7d')
-  const text = `📊 Статистика «Студент ИУ5»\n\n👥 Пользователи\nВсего: ${metrics.users.total}\nСегодня: ${metrics.users.today}\n7 дней: ${metrics.users.days7}\n30 дней: ${metrics.users.days30}\n\n🚀 Запуски\n7 дней: ${metrics.launches}\n\n📚 Открытий материалов за 7 дней: ${metrics.activity.materialOpens}\n🔎 Поисков за 7 дней: ${metrics.activity.searches}`
+  const now = unixNow()
+  const [today, week] = await Promise.all([summary(env.ANALYTICS_DB, now, 'today'), summary(env.ANALYTICS_DB, now, '7d')])
+  const text = `📊 Статистика «Студент ИУ5»\n\n👥 Пользователи\nВсего: ${today.users.total}\nСегодня: ${today.users.today}\n7 дней: ${today.users.days7}\n30 дней: ${today.users.days30}\n\n🚀 Запуски\nСегодня: ${today.launches}\n7 дней: ${week.launches}\n\n📚 Открытий материалов сегодня: ${today.activity.materialOpens}\n🔎 Поисков сегодня: ${today.activity.searches}\n↗️ Переходов на Яндекс.Диск сегодня: ${today.activity.yandexDiskOpens}`
   const body = { chat_id: chatId, text }
   if (env.ADMIN_DASHBOARD_URL) body.reply_markup = { inline_keyboard: [[{ text: 'Открыть полную статистику', web_app: { url: env.ADMIN_DASHBOARD_URL } }]] }
   await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
@@ -103,7 +112,7 @@ async function handle(request, env) {
     if (!(period in periods)) return json({ error: 'Invalid period' }, 400)
     const now = unixNow(), start = periodStart(period, now)
     if (url.pathname === '/api/admin/stats/summary' && request.method === 'GET') return json(await summary(env.ANALYTICS_DB, now, period))
-    if (url.pathname === '/api/admin/stats/activity' && request.method === 'GET') return json({ period, days: await queryAll(env.ANALYTICS_DB, `SELECT strftime('%Y-%m-%d', created_at, 'unixepoch') AS date, COUNT(DISTINCT user_hash) AS users, SUM(event_type = 'app_open') AS launches FROM events WHERE created_at >= ? GROUP BY date ORDER BY date`, Math.max(start, startOfUtcDay(now) - 29 * 86_400)) })
+    if (url.pathname === '/api/admin/stats/activity' && request.method === 'GET') return json({ period, days: await activity(env.ANALYTICS_DB, now, start) })
     const field = url.pathname.endsWith('/subjects') ? 'subject_id' : url.pathname.endsWith('/materials') ? 'material_id' : null
     if (field) return json({ period, items: await queryAll(env.ANALYTICS_DB, `SELECT ${field} AS id, COUNT(*) AS count FROM events WHERE ${field} != '' AND created_at >= ? GROUP BY ${field} ORDER BY count DESC, id LIMIT 10`, start) })
     return new Response('Not found', { status: 404 })

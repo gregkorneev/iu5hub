@@ -31,3 +31,16 @@
 ## URL safety
 
 Ссылки материалов — абсолютные `https:` ссылки на доверенный источник. Некорректная/отсутствующая ссылка не должна открываться; показывается понятное состояние.
+
+## Private analytics data (D1)
+
+Analytics D1 is independent of the read-only materials repository and contains no Telegram profile record.
+
+| Table | Fields | Purpose |
+| --- | --- | --- |
+| `users` | `user_hash` PK, `first_seen_at`, `last_seen_at`, `launch_count` | one pseudonymous row per validated Telegram user; a repeat open updates it |
+| `events` | `id` PK, `user_hash`, `event_type`, `subject_id` nullable, `material_id` nullable, `event_minute`, `created_at` | compact allowlisted activity events; minute bucket supports event deduplication |
+
+`user_hash` is `HMAC-SHA-256(verified Telegram user.id, ANALYTICS_HMAC_SECRET)`, encoded for storage. Raw Telegram IDs are used only during Worker processing and are neither stored nor returned. Plain SHA-256 is prohibited because a Telegram ID is enumerable.
+
+Only `app_open`, `search`, `subject_open`, `material_open`, and `yandex_disk_open` are valid types. IDs are optional only where an event needs none, are strictly limited internal repository IDs, and never duplicate a title or Disk URL. `search` has no query-text field. The shipped migration indexes `events(created_at)` plus subject/material popularity fields; add an index on `users(last_seen_at)` only if query-plan evidence requires it.

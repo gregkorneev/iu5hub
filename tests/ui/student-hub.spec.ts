@@ -78,4 +78,25 @@ test.describe('Student Hub critical UI', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()
     await page.screenshot({ path: testInfo.outputPath('course-mobile.png'), fullPage: true })
   })
+
+  test('keeps a direct admin route closed for a student', async ({ page }) => {
+    await page.goto('/#/admin/stats')
+    await expect(page.getByRole('heading', { name: 'Статистика недоступна' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Статистика' })).toBeHidden()
+  })
+
+  test('renders protected statistics, switches periods and tolerates long names', async ({ page }) => {
+    await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: true } }))
+    await page.route('**/api/admin/stats/summary?period=*', (route) => route.fulfill({ json: { users: { total: 428, today: 37, days7: 186, days30: 349 }, launches: 94, activity: { searches: 43, materialOpens: 71, yandexDiskOpens: 8 } } }))
+    await page.route('**/api/admin/stats/activity?period=*', (route) => route.fulfill({ json: { days: [{ date: '2026-09-20', users: 2, launches: 4 }, { date: '2026-09-21', users: 37, launches: 94 }] } }))
+    await page.route('**/api/admin/stats/subjects?period=*', (route) => route.fulfill({ json: { items: [{ id: 'mathematical-analysis', count: 99 }] } }))
+    await page.route('**/api/admin/stats/materials?period=*', (route) => route.fulfill({ json: { items: [{ id: 'Очень длинное название материала которое не должно ломать мобильную вёрстку', count: 17 }] } }))
+    await page.goto('/#/admin/stats')
+    await expect(page.getByRole('heading', { name: 'Статистика' })).toBeVisible()
+    await expect(page.getByText('428')).toBeVisible()
+    await expect(page.getByRole('img', { name: /График/ })).toBeVisible()
+    await page.getByRole('button', { name: '7 дней' }).click()
+    await expect(page.getByRole('button', { name: '7 дней' })).toHaveClass(/active/)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()
+  })
 })

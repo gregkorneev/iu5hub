@@ -27,7 +27,7 @@ export const test = base.extend<{ telegram: TelegramState }>({
       const state = { ready: 0, visible: false, opened: [] as string[] }
       ;(window as Window & { __telegram: typeof state }).__telegram = state
       ;(window as Window & { Telegram: unknown }).Telegram = { WebApp: {
-        initDataUnsafe: { user: { id: 1, first_name: 'Студент с очень длинным именем для проверки адаптивной вёрстки', username: 'student' } },
+        initData: 'query_id=test&user=%7B%22id%22%3A1%7D&auth_date=1&hash=test', initDataUnsafe: { user: { id: 1, first_name: 'Студент с очень длинным именем для проверки адаптивной вёрстки', username: 'student' } },
         themeParams: { bg_color: '#f6faff', text_color: '#1a1a19' }, colorScheme: 'light', viewportHeight: 844, viewportStableHeight: 844,
         safeAreaInset: { top: 0, right: 0, bottom: 0, left: 0 }, contentSafeAreaInset: { top: 0, right: 0, bottom: 0, left: 0 },
         ready: () => { state.ready += 1 }, expand: () => {}, openLink: (url: string) => { state.opened.push(url) }, onEvent: () => {}, offEvent: () => {},
@@ -43,6 +43,8 @@ export const test = base.extend<{ telegram: TelegramState }>({
       if (items === undefined) return route.fulfill({ status: 404, json: { message: 'not found' } })
       await route.fulfill({ json: { _embedded: { items } } })
     })
+    await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: false } }))
+    await page.route('**/api/analytics/**', (route) => route.fulfill({ status: 204 }))
     await use(page)
   },
   telegram: async ({ page }, use) => { await use(await page.evaluate(() => (window as Window & { __telegram: TelegramState }).__telegram)) },
