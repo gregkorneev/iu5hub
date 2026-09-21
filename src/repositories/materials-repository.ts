@@ -15,6 +15,9 @@ export interface MaterialsRepository {
 }
 
 const normalize = (value: string) => value.normalize('NFC').trim().toLocaleLowerCase('ru')
+const transliterateRussian = (value: string) => value
+  .replace(/shch/g, 'щ').replace(/yo/g, 'ё').replace(/zh/g, 'ж').replace(/kh/g, 'х').replace(/ts/g, 'ц').replace(/ch/g, 'ч').replace(/sh/g, 'ш').replace(/yu/g, 'ю').replace(/ya/g, 'я')
+  .replace(/[a-z]/g, (letter) => ({ a: 'а', b: 'б', c: 'к', d: 'д', e: 'е', f: 'ф', g: 'г', h: 'х', i: 'и', j: 'й', k: 'к', l: 'л', m: 'м', n: 'н', o: 'о', p: 'п', q: 'к', r: 'р', s: 'с', t: 'т', u: 'у', v: 'в', w: 'в', x: 'кс', y: 'ы', z: 'з' })[letter] ?? letter)
 // The total search deadline must win before an individual folder timeout can
 // be swallowed as an empty folder by the resilient recursive traversal.
 const diskSearchTimeoutMs = 10_000
@@ -60,6 +63,7 @@ export const yandexDiskRepository = {
   async searchDisk(query: string): Promise<DiskSearchResult[]> {
     const term = normalize(query)
     if (!term) return []
+    const terms = [term, transliterateRussian(term)].filter((value, index, values) => value && values.indexOf(value) === index)
     const searchCourse = async (course: Course) => {
       const results: DiskSearchResult[] = []
       const pending = [{ path: '' }]
@@ -69,7 +73,7 @@ export const yandexDiskRepository = {
         paths.forEach(({ path }) => visited.add(path))
         const folders = await Promise.all(paths.map(({ path }) => yandexDiskRepository.getFolder(course.id, path).catch(() => [])))
         for (const items of folders) for (const item of items) {
-          const matches = normalize(item.name).includes(term)
+          const matches = terms.some((value) => normalize(item.name).includes(value))
           if (matches && !results.some((result) => result.path === item.path)) results.push({ ...item, courseId: course.id, courseTitle: course.title })
           if (item.type === 'dir' && !visited.has(item.path)) {
             if (matches) pending.unshift({ path: item.path })

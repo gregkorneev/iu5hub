@@ -72,7 +72,7 @@ test.describe('Student Hub critical UI', () => {
   test('keeps home search suggestions tappable above the course catalog on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/#/')
-    await page.getByRole('searchbox', { name: 'Поиск в папках и файлах' }).fill('мат')
+    await page.getByRole('searchbox', { name: 'Поиск в папках и файлах' }).fill('ma')
     const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Математический анализ/ })
     await expect(suggestion).toBeVisible()
     expect(await suggestion.evaluate((element) => {

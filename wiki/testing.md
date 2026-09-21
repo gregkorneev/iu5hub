@@ -14,6 +14,7 @@
 - Cloudflare Pages config: required token/account/project values and a valid project name.
 - Playwright critical UI suite: startup, courses/folders/files, direct HashRouter route, Russian/empty search, Telegram BackButton fixture, mobile overflow and serious/critical axe violations. Vite starts automatically through Playwright `webServer`; no tunnel or Telegram login is required.
 - Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
+- Home search also accepts a Latin transliteration of a Russian query (for example, `ma` finds `Математический анализ`); the mobile regression covers this input before checking the suggestion's tappability.
 - Header navigation: the home route hides only its redundant Catalog and Search links; inner routes preserve them. The server-confirmed admin Statistics link is above the hero layer and its click opens `/#/admin/stats` on desktop, mobile Chromium and WebKit.
 - Disk search: a stalled Yandex Disk traversal is bounded to 10 seconds total and must turn into the existing visible search error rather than leaving `Ищем в папках и файлах…` indefinitely.
 - Disk search follows a matching folder before returning, so a matching file in a deeper nested folder (including the `УТП` fixture) is returned alongside the folder without a fixed depth limit.
@@ -28,6 +29,8 @@
 The test fixture intercepts Yandex Disk API and injects a development-only `window.Telegram.WebApp` with user, theme/viewport/safe-area, `ready`, `openLink` and BackButton lifecycle. It never changes production code or relaxes the Yandex/HTTPS allowlists. Browser exploration must inspect console/page exceptions, unsuccessful responses, interaction outcome and horizontal overflow at 320px, mobile portrait, tablet and desktop.
 
 After a meaningful UI change, run the critical suite and an adversarial smoke pass. For larger route/catalog/Telegram changes, repeat the complete browser matrix and document P3 limitations in `known-issues.md`.
+
+2026-09-21: после исправления латинского ввода `Ma` прошли `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` и полный `npm run test:ui` (36 проверок: Chromium, mobile Chromium и WebKit); новых P3-ограничений не выявлено.
 
 ## Analytics adversarial checks
 
