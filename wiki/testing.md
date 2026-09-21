@@ -13,6 +13,7 @@
 - routes: known material/subject и not-found/empty states.
 - Cloudflare Pages config: required token/account/project values and a valid project name.
 - Playwright critical UI suite: startup, courses/folders/files, direct HashRouter route, Russian/empty search, Telegram BackButton fixture, mobile overflow and serious/critical axe violations. Vite starts automatically through Playwright `webServer`; no tunnel or Telegram login is required.
+- Header branding uses the single public asset `/logo-iu5.jpeg`; the browser suite verifies it loads on the home route.
 - Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
 - Home search also accepts a Latin transliteration of a Russian query (for example, `ma` finds `Математический анализ`); the mobile regression covers this input before checking the suggestion's tappability.
 - Home is locked to the Telegram viewport in portrait: the mobile regression verifies both axes cannot scroll. In landscape the page allows vertical scrolling for content that no longer fits, while the horizontal axis stays locked; catalog and search routes remain normally scrollable.

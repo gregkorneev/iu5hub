@@ -8,6 +8,8 @@ test.describe('Student Hub critical UI', () => {
     await page.goto('/#/')
     await expect(page.getByRole('heading', { name: 'Материалы на Яндекс.Диске' })).toBeVisible()
     await expect(page.getByRole('link', { name: /Курс 1/ })).toBeVisible()
+    await expect(page.getByAltText('Логотип Студент ИУ5')).toHaveAttribute('src', '/logo-iu5.jpeg')
+    expect(await page.getByAltText('Логотип Студент ИУ5').evaluate((image: HTMLImageElement) => image.naturalWidth > 0)).toBeTruthy()
     await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toBeHidden()
     await expect.poll(() => page.evaluate(() => (window as Window & { __telegram: { ready: number } }).__telegram.ready)).toBe(1)
     const results = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
@@ -111,12 +113,11 @@ test.describe('Student Hub critical UI', () => {
   test('scrolls the home page vertically without horizontal overflow in landscape', async ({ page }) => {
     await page.setViewportSize({ width: 844, height: 390 })
     await page.goto('/#/')
-    expect(await page.evaluate(() => {
-      window.scrollTo(0, 100)
-      return document.documentElement.scrollWidth <= innerWidth
-        && document.documentElement.scrollHeight > innerHeight
-        && scrollX === 0 && scrollY > 0
-    })).toBeTruthy()
+    await expect(page.getByRole('link', { name: /Курс 1/ })).toBeVisible()
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight > innerHeight)).toBeTruthy()
+    await page.evaluate(() => window.scrollTo(0, 100))
+    await expect.poll(() => page.evaluate(() => scrollY > 0)).toBeTruthy()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && scrollX === 0)).toBeTruthy()
   })
 
   test('supports direct hash routes and Telegram BackButton navigation', async ({ page }) => {
