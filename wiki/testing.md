@@ -2,7 +2,7 @@
 
 ## Required release gate
 
-Если инструменты настроены, до commit/push должны пройти `lint`, `typecheck`, `test`, `build`.
+До commit/push должны пройти `lint`, `typecheck`, `test`, `build` и `test:ui`.
 
 `verify` — обязательный GitHub Actions gate для всех push и pull request. Static deploy jobs are not proof of readiness until their own enabled `main` run succeeds: `deploy-cloudru` uses `CLOUDRU_DEPLOY_ENABLED == 'true'`; `deploy-cloudflare-pages` uses `CLOUDFLARE_PAGES_DEPLOY_ENABLED == 'true'`.
 
@@ -12,6 +12,15 @@
 - Telegram integration: безопасная инициализация, theme/navigation/link abstraction и developer fallback без `window.Telegram`;
 - routes: known material/subject и not-found/empty states.
 - Cloudflare Pages config: required token/account/project values and a valid project name.
+- Playwright critical UI suite: startup, courses/folders/files, direct HashRouter route, Russian/empty search, Telegram BackButton fixture, mobile overflow and serious/critical axe violations. Vite starts automatically through Playwright `webServer`; no tunnel or Telegram login is required.
+
+## UI adversarial QA
+
+`npm run test:ui` runs Chromium, iPhone-like Chromium and local WebKit where installed. `npm run test:ui:headed` and `npm run test:ui:debug` are for diagnosis; `npm run qa` is the complete local gate. CI runs the Chromium project after build and keeps report/trace/video artifacts only for a failure.
+
+The test fixture intercepts Yandex Disk API and injects a development-only `window.Telegram.WebApp` with user, theme/viewport/safe-area, `ready`, `openLink` and BackButton lifecycle. It never changes production code or relaxes the Yandex/HTTPS allowlists. Browser exploration must inspect console/page exceptions, unsuccessful responses, interaction outcome and horizontal overflow at 320px, mobile portrait, tablet and desktop.
+
+After a meaningful UI change, run the critical suite and an adversarial smoke pass. For larger route/catalog/Telegram changes, repeat the complete browser matrix and document P3 limitations in `known-issues.md`.
 
 ## Manual smoke matrix
 

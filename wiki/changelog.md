@@ -8,6 +8,7 @@
 
 ### Added
 
+- 2026-09-21: добавлены project skill `ui-adversarial-qa`, Playwright 1.63 + axe, deterministic Telegram/Yandex browser fixtures, Chromium/iPhone-like/WebKit matrix и CI Chromium UI gate с failure artifacts.
 - 2026-09-21: первый production build опубликован в Cloudflare Pages Direct Upload: `https://iu5hub.pages.dev`; публичная главная страница проверена в Safari.
 - 2026-09-11: принят ADR-0003: Студент ИУ5 стал Telegram-first и Telegram-only; Cloud.ru Evolution Object Storage выбран заменяемым technical frontend-hosting, а Яндекс.Диск — хранилищем материалов.
 - 2026-09-11: GitHub Actions получил disabled-by-default `deploy-cloudru`: после `verify` он выпускает `dist/` только на push в `main`, через production environment и явный enable variable.
@@ -15,6 +16,7 @@
 
 ### Changed
 
+- 2026-09-21: устранены ARIA listbox defect в поисковых подсказках, отсутствующий H1 на home и stale folder state при быстрых переходах; добавлены browser regressions.
 - 2026-09-21: исправлен поиск по Яндекс.Диску: перед сравнением имена приводятся к Unicode NFC (поэтому «Математический» находит папку с декомпозированным `й`); запросы к API ограничены 10 секундами, а сбой одной папки не блокирует поиск. На главной показаны до пяти живых подсказок после ввода двух символов.
 - 2026-09-21: поиск переведён с demo-материалов на подключённые публичные каталоги Яндекс.Диска; результат-папка открывается в Mini App, результат-файл скачивается напрямую.
 - 2026-09-21: с главной страницы удалён блок «Последние материалы» и его неиспользуемые стили.
