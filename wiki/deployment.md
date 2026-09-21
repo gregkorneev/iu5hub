@@ -50,7 +50,7 @@ On 2026-09-21 the production build was published by Cloudflare Pages Direct Uplo
 
 The Telegram Web App SDK script must remain in `<head>` before the Vite module script. This lets `initializeTelegram()` call `Telegram.WebApp.ready()` when the Mini App starts and prevents Telegram's native loading indicator from remaining on screen.
 
-The GitHub App integration is installed with access limited to `gregkorneev/iu5hub`, but the repository import was not completed in the Cloudflare wizard. Until that link is finished, release manually: `npm run build` → **Workers & Pages → iu5hub → Create deployment** → upload `dist/`. The disabled GitHub Actions job remains an optional later automation path and requires its documented Cloudflare API secrets before it can be enabled.
+The GitHub App integration is connected to `gregkorneev/iu5hub`; the production branch is `main` and automatic deployments are enabled. A push to `main` runs the Pages build with its production build variables. The disabled GitHub Actions job remains an optional later automation path and requires its documented Cloudflare API secrets before it can be enabled.
 
 ## GitHub Environment configuration
 
@@ -132,3 +132,5 @@ To roll back application code, revert to the last-known-good commit on `main`; a
 ## Limitations
 
 Cloudflare Pages is static frontend hosting, not the analytics backend. Private analytics additionally requires the Worker, D1 binding/migrations, Worker-only secrets and protected Telegram webhook described in `analytics.md`. Deploy and smoke-test it independently of a Pages artifact: a successful Pages deployment alone does not enable `/stats`, authentication, D1 or admin functions. When the Worker has its own hostname, set the public Pages build variable `VITE_ANALYTICS_API_BASE` to that HTTPS origin; it contains no credential and is protected by the Worker's origin allowlist and server-side Telegram validation.
+
+On 2026-09-21 the production Worker `iu5hub-analytics` was published on its `workers.dev` HTTPS origin, bound to D1 `iu5hub-analytics`, and its protected Telegram webhook was configured. The Pages production environment has `VITE_ANALYTICS_API_BASE` set to that origin. A subsequent Pages build is required whenever this build-time variable is changed.
