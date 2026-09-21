@@ -22,7 +22,7 @@
 .course-actions { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 18px }
 .course-actions .in-app-back { margin:0 }
 .course-root-link { display:inline-flex; align-items:center; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--accent-dark); font-weight:700 }
-.disk-item { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; width:100%; padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); color:var(--ink); text-align:left }
+.disk-item { display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 12px; width:100%; padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); color:var(--ink); text-align:left }
 .disk-item:hover { border-color:var(--accent); transform:translateY(-2px) }
 .disk-item > span { grid-row:span 2; font-size:1.3rem }
 .disk-item small { color:var(--muted) }
@@ -48,7 +48,6 @@
 .subject-card, .material-card, .disk-item, .course-grid a, .semester-button { min-width:0; overflow-wrap:anywhere }
 .subject-card__content { flex:1 1 auto; min-width:0 }
 .subject-card__arrow { flex:0 0 auto }
-.disk-item { grid-template-columns:auto minmax(0,1fr) }
 .disk-item strong, .disk-item small, .course-grid strong, .course-grid small, .semester-button strong, .semester-button small { min-width:0; overflow-wrap:anywhere }
 .brand,.breadcrumb a,nav a { display:inline-flex; align-items:center; min-height:44px }
 .stats-page { max-width:860px }

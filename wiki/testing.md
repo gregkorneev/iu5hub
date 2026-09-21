@@ -16,6 +16,7 @@
 - Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
 - Home search also accepts a Latin transliteration of a Russian query (for example, `ma` finds `Математический анализ`); the mobile regression covers this input before checking the suggestion's tappability.
 - Home is locked to the Telegram viewport: mobile regression verifies both axes cannot scroll; catalog and search routes remain normally scrollable.
+- File cards use a fixed download-control column: the browser regression checks equal right alignment for short and long file names in both catalog and search results, in every viewport engine.
 - Header navigation: the home route hides only its redundant Catalog and Search links; inner routes preserve them. The server-confirmed admin Statistics link is above the hero layer and its click opens `/#/admin/stats` on desktop, mobile Chromium and WebKit.
 - Disk search: a stalled Yandex Disk traversal is bounded to 10 seconds total and must turn into the existing visible search error rather than leaving `Ищем в папках и файлах…` indefinitely.
 - Disk search follows a matching folder before returning, so a matching file in a deeper nested folder (including the `УТП` fixture) is returned alongside the folder without a fixed depth limit.

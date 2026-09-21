@@ -13,6 +13,7 @@ const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 
   'course-1:1 семестр': [
     { name: 'Алгебра', path: '1 семестр/Алгебра', type: 'dir' },
     { name: 'Лекция 1.pdf', path: '1 семестр/Лекция 1.pdf', type: 'file' },
+    { name: 'Лекции Грибов АФ.pdf', path: '1 семестр/Лекции Грибов АФ.pdf', type: 'file' },
   ],
   'course-1:Математический анализ': [{ name: 'Пределы.pdf', path: 'Математический анализ/Пределы.pdf', type: 'file' }],
   'course-1:Архив': [{ name: '2026', path: 'Архив/2026', type: 'dir' }],

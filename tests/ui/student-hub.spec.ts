@@ -28,6 +28,22 @@ test.describe('Student Hub critical UI', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()
   })
 
+  test('aligns every file download control to the same card edge', async ({ page }) => {
+    for (const route of ['/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80', '/#/search?q=pdf']) {
+      await page.goto(route)
+      await expect(page.getByRole('button', { name: 'Скачать Лекция 1.pdf' })).toBeVisible()
+      expect(await page.locator('.disk-file').evaluateAll((cards) => {
+        const edges = cards.map((card) => {
+          const cardBox = card.getBoundingClientRect()
+          const buttonBox = card.querySelector<HTMLButtonElement>('.download-button')!.getBoundingClientRect()
+          return { inset: cardBox.right - buttonBox.right, buttonRight: buttonBox.right }
+        })
+        return edges.every(({ inset }) => Math.abs(inset - edges[0].inset) < 1)
+          && edges.every(({ buttonRight }) => Math.abs(buttonRight - edges[0].buttonRight) < 1)
+      })).toBeTruthy()
+    }
+  })
+
   test('does not show a stale download error after navigation', async ({ page }) => {
     await page.goto('/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
     await page.route('**/resources/download?**', async (route) => {
