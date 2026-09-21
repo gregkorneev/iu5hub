@@ -9,7 +9,11 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
-    "test": "vitest run && node --test scripts/*.node-test.mjs"
+    "test": "vitest run --exclude 'tests/ui/**' && node --test scripts/*.node-test.mjs",
+    "test:ui": "playwright test",
+    "test:ui:headed": "playwright test --headed",
+    "test:ui:debug": "playwright test --debug",
+    "qa": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:ui"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",

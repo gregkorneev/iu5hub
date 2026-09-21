@@ -12,6 +12,9 @@ dist/
 *.log
 .eslintcache
 coverage/
+playwright-report/
+test-results/
+blob-report/
 
 # Editor and OS metadata
 .DS_Store
