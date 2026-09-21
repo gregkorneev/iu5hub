@@ -25,6 +25,18 @@ test.describe('Student Hub critical UI', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()
   })
 
+  test('does not show a stale download error after navigation', async ({ page }) => {
+    await page.goto('/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
+    await page.route('**/resources/download?**', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 150))
+      await route.fulfill({ status: 500, json: { message: 'temporary failure' } })
+    })
+    await page.getByRole('button', { name: 'Скачать Лекция 1.pdf' }).click()
+    await page.getByRole('link', { name: 'К корню курса' }).click()
+    await expect(page.getByRole('heading', { name: 'Курс 1' })).toBeVisible()
+    await expect(page.getByText('Каталог пока недоступен')).toBeHidden()
+  })
+
   test('searches Russian text, handles no results and clears stale suggestions', async ({ page }) => {
     await page.goto('/#/search')
     const input = page.getByRole('searchbox', { name: 'Поиск в папках и файлах' })

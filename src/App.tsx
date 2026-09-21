@@ -46,7 +46,7 @@ function CoursePage() {
     })
     return () => { active = false }
   }, [id, key, path])
-  const downloadFile = (item: DiskItem) => { void repository.getFileUrl(id, item.path).then((url) => downloadExternalFile(url, item.name)).catch((reason: unknown) => setCatalog((previous) => ({ ...previous, error: reason instanceof Error ? reason.message : 'Не удалось скачать файл.' }))) }
+  const downloadFile = (item: DiskItem) => { void repository.getFileUrl(id, item.path).then((url) => downloadExternalFile(url, item.name)).catch((reason: unknown) => setCatalog((previous) => previous.key === key ? { ...previous, error: reason instanceof Error ? reason.message : 'Не удалось скачать файл.' } : previous)) }
   const catalogItems = currentCatalog.items.map((item) => ({ item, semester: !path && item.type === 'dir' ? semesterFromFolderName(item.name) : undefined }))
   const semesterFolder = semesterFromFolderName(path.split('/').pop() ?? '')
   if (!course) return courses.length ? <EmptyState title="Курс не найден">Проверьте адрес страницы.</EmptyState> : <p className="lead">Загружаем курс…</p>
