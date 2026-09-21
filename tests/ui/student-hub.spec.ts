@@ -52,6 +52,11 @@ test.describe('Student Hub critical UI', () => {
     await expect(page.getByText('Ничего не найдено')).toBeVisible()
   })
 
+  test('finds a file below a matching folder at deep nesting', async ({ page }) => {
+    await page.goto('/#/search?q=%D0%A3%D0%A2%D0%9F')
+    await expect(page.getByText('УТП-файл.pdf')).toBeVisible()
+  })
+
   test('ends a stalled live Disk search with an error instead of an endless loader', async ({ page }) => {
     test.setTimeout(20_000)
     await page.unroute('https://cloud-api.yandex.net/**')

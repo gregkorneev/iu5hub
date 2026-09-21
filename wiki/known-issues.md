@@ -10,4 +10,4 @@
 | Open (P3) | Обычный browser fallback может логировать Telegram SDK warning about unsupported BackButton version | Это не runtime exception и не влияет на fixture-based integration; real Telegram smoke remains the authority for SDK-version behavior. Browser tests should fail on exceptions and failed responses, not on this known SDK warning. |
 # Поиск на Яндекс.Диске
 
-Поиск рекурсивно обходит публичные папки Яндекс.Диска. Внешний API может быть медленным или недоступным, поэтому поиск ограничен общим дедлайном в 10 секунд и затем показывает пользователю ошибку. Это намеренная деградация: каталог и другие действия Mini App остаются доступными.
+Поиск рекурсивно обходит публичные папки Яндекс.Диска, углубляясь в совпавшую папку для поиска подходящего файла. Внешний API может быть медленным или недоступным, поэтому поиск ограничен общим дедлайном в 10 секунд и затем показывает пользователю ошибку. Это намеренная деградация: каталог и другие действия Mini App остаются доступными.

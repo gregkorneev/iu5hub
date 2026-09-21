@@ -62,17 +62,21 @@ export const yandexDiskRepository = {
     if (!term) return []
     const searchCourse = async (course: Course) => {
       const results: DiskSearchResult[] = []
-      const pending = [{ path: '', depth: 0 }]
+      const pending = [{ path: '' }]
       const visited = new Set<string>()
       while (pending.length) {
         const paths = pending.splice(0, 8).filter(({ path }) => !visited.has(path))
         paths.forEach(({ path }) => visited.add(path))
         const folders = await Promise.all(paths.map(({ path }) => yandexDiskRepository.getFolder(course.id, path).catch(() => [])))
-        for (const [index, items] of folders.entries()) for (const item of items) {
-          if (normalize(item.name).includes(term)) results.push({ ...item, courseId: course.id, courseTitle: course.title })
-          if (item.type === 'dir' && paths[index].depth < 3 && !visited.has(item.path)) pending.push({ path: item.path, depth: paths[index].depth + 1 })
+        for (const items of folders) for (const item of items) {
+          const matches = normalize(item.name).includes(term)
+          if (matches && !results.some((result) => result.path === item.path)) results.push({ ...item, courseId: course.id, courseTitle: course.title })
+          if (item.type === 'dir' && !visited.has(item.path)) {
+            if (matches) pending.unshift({ path: item.path })
+            else pending.push({ path: item.path })
+          }
         }
-        if (results.length) return results
+        if (results.some(({ type }) => type === 'file')) return results
       }
       return results
     }

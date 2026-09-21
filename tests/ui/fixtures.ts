@@ -7,6 +7,7 @@ const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 
   'course-1:': [
     { name: '1 семестр', path: '1 семестр', type: 'dir' },
     { name: 'Математический анализ', path: 'Математический анализ', type: 'dir' },
+    { name: 'Архив', path: 'Архив', type: 'dir' },
     { name: 'Очень длинное название папки для проверки переноса текста на маленьком экране', path: 'long', type: 'dir' },
   ],
   'course-1:1 семестр': [
@@ -14,6 +15,10 @@ const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 
     { name: 'Лекция 1.pdf', path: '1 семестр/Лекция 1.pdf', type: 'file' },
   ],
   'course-1:Математический анализ': [{ name: 'Пределы.pdf', path: 'Математический анализ/Пределы.pdf', type: 'file' }],
+  'course-1:Архив': [{ name: '2026', path: 'Архив/2026', type: 'dir' }],
+  'course-1:Архив/2026': [{ name: 'ИУ5', path: 'Архив/2026/ИУ5', type: 'dir' }],
+  'course-1:Архив/2026/ИУ5': [{ name: 'УТП', path: 'Архив/2026/ИУ5/УТП', type: 'dir' }],
+  'course-1:Архив/2026/ИУ5/УТП': [{ name: 'УТП-файл.pdf', path: 'Архив/2026/ИУ5/УТП/УТП-файл.pdf', type: 'file' }],
   'course-1:long': [],
   'course-2:': [{ name: '2 семестр', path: '2 семестр', type: 'dir' }],
   'course-2:2 семестр': [],

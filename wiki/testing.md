@@ -16,6 +16,7 @@
 - Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
 - Header navigation: the home route hides only its redundant Catalog and Search links; inner routes preserve them, and the server-confirmed admin Statistics link remains available wherever it was previously shown.
 - Disk search: a stalled Yandex Disk traversal is bounded to 10 seconds total and must turn into the existing visible search error rather than leaving `Ищем в папках и файлах…` indefinitely.
+- Disk search follows a matching folder before returning, so a matching file in a deeper nested folder (including the `УТП` fixture) is returned alongside the folder without a fixed depth limit.
 - Analytics Worker: valid/invalid/expired Telegram `initData`, keyed user hashing, first/repeated open, event allowlist and ID validation, D1 total/DAU/WAU/MAU aggregates, and idempotent retention cleanup.
 - Authorization: admin allowlist success, direct non-admin admin API/route denial, `/stats` admin/non-admin handling, and webhook secret-header rejection.
 - Dashboard UI: empty/loading/error states, summary cards, period switching, zero-filled 30-day graph, popular subject/material long titles, and admin versus student mock users.

@@ -59,4 +59,15 @@ describe('Yandex Disk public repository', () => {
     }))
     await expect(yandexDiskRepository.searchDisk('Математический')).resolves.toMatchObject([{ name: 'Математический анализ' }])
   })
+
+  it('follows matching folders until it finds a nested matching file', async () => {
+    courses[0].publicUrl = 'https://disk.yandex.ru/d/course-one'
+    courses[1].publicUrl = ''
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      const path = new URL(url).searchParams.get('path') ?? ''
+      const items = path === '' ? [{ name: 'Архив', path: '/Архив', type: 'dir' }] : path === '/Архив' ? [{ name: 'УТП', path: '/Архив/УТП', type: 'dir' }] : [{ name: 'УТП.pdf', path: '/Архив/УТП/УТП.pdf', type: 'file' }]
+      return Promise.resolve(new Response(JSON.stringify({ _embedded: { items } })))
+    }))
+    await expect(yandexDiskRepository.searchDisk('утп')).resolves.toMatchObject([{ name: 'УТП' }, { name: 'УТП.pdf' }])
+  })
 })
