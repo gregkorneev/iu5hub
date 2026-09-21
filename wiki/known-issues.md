@@ -2,6 +2,7 @@
 
 | Status | Issue | Impact / resolution |
 | --- | --- | --- |
+| Resolved | В landscape главная страница растягивалась, но не прокручивалась | Ограничение home viewport действует только в portrait; в landscape вертикальная прокрутка возвращена, горизонтальная остаётся запрещённой. Playwright проверяет этот сценарий. |
 | Resolved | Кнопки скачивания в карточках файлов располагались на разной горизонтали | Общее правило `disk-item` больше не переопределяет fixed column у `disk-file`; Playwright сравнивает правые края кнопок короткого и длинного имени во всех browser engines. |
 | Resolved | Главную страницу Mini App можно было прокручивать по вертикали и горизонтали | Для маршрута `/` контейнер фиксирован по фактической Telegram viewport height, а документ не создаёт scroll area; mobile Playwright regression проверяет обе оси. Каталог и поиск не ограничены. |
 | Resolved | Hero на главной перехватывал касание ссылки «Статистика» | Шапка получила отдельный stacking layer; Playwright нажимает ссылку администратора на desktop, mobile Chromium и WebKit и ожидает защищённый dashboard. |

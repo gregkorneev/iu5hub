@@ -108,6 +108,17 @@ test.describe('Student Hub critical UI', () => {
     })).toBeTruthy()
   })
 
+  test('scrolls the home page vertically without horizontal overflow in landscape', async ({ page }) => {
+    await page.setViewportSize({ width: 844, height: 390 })
+    await page.goto('/#/')
+    expect(await page.evaluate(() => {
+      window.scrollTo(0, 100)
+      return document.documentElement.scrollWidth <= innerWidth
+        && document.documentElement.scrollHeight > innerHeight
+        && scrollX === 0 && scrollY > 0
+    })).toBeTruthy()
+  })
+
   test('supports direct hash routes and Telegram BackButton navigation', async ({ page }) => {
     await page.goto('/#/course/course-1')
     await expect.poll(() => page.evaluate(() => (window as Window & { __telegram: { visible: boolean } }).__telegram.visible)).toBe(true)

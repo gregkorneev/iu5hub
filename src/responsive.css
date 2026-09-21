@@ -7,6 +7,11 @@ footer { margin-top: auto; }
 .app--home { height: var(--tg-viewport-height); overflow: hidden; }
 html:has(.app--home), body:has(.app--home) { overflow: hidden; }
 
+@media (orientation: landscape) {
+  .app--home { height: auto; overflow: visible; }
+  html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: auto; }
+}
+
 @media (max-width: 620px) {
   body { min-width: 0; }
   header { min-height: 58px; gap: 10px; padding-inline: 8px; }
