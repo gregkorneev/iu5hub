@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
-    "test": "vitest run --exclude 'tests/ui/**' && node --test scripts/*.node-test.mjs",
+    "test": "vitest run --exclude 'tests/ui/**' --exclude 'worker/test/**' && node --test scripts/*.node-test.mjs worker/test/*.test.mjs",
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed",
     "test:ui:debug": "playwright test --debug",

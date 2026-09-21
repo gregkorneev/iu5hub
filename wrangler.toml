@@ -1,0 +1,20 @@
+name = "iu5hub-analytics"
+main = "worker/src/index.mjs"
+compatibility_date = "2026-09-21"
+workers_dev = true
+
+[vars]
+ANALYTICS_ALLOWED_ORIGIN = "https://iu5hub.pages.dev"
+ADMIN_DASHBOARD_URL = "https://iu5hub.pages.dev/#/admin/stats"
+
+# Provision the D1 database and replace this binding through `wrangler d1 create` before deployment.
+# Secrets are never declared here: ANALYTICS_HMAC_SECRET, TELEGRAM_BOT_TOKEN,
+# TELEGRAM_WEBHOOK_SECRET and ADMIN_TELEGRAM_IDS must be set with `wrangler secret put`.
+[[d1_databases]]
+binding = "ANALYTICS_DB"
+database_name = "iu5hub-analytics"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "worker/migrations"
+
+[triggers]
+crons = ["17 3 * * *"]
