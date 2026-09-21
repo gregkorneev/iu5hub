@@ -4,6 +4,8 @@ body { min-height: var(--tg-viewport-height); }
 .app { display: flex; flex-direction: column; min-height: var(--tg-viewport-height); }
 main { flex: 1 0 auto; }
 footer { margin-top: auto; }
+.app--home { height: var(--tg-viewport-height); overflow: hidden; }
+html:has(.app--home), body:has(.app--home) { overflow: hidden; }
 
 @media (max-width: 620px) {
   body { min-width: 0; }

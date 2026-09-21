@@ -2,6 +2,7 @@
 
 | Status | Issue | Impact / resolution |
 | --- | --- | --- |
+| Resolved | Главную страницу Mini App можно было прокручивать по вертикали и горизонтали | Для маршрута `/` контейнер фиксирован по фактической Telegram viewport height, а документ не создаёт scroll area; mobile Playwright regression проверяет обе оси. Каталог и поиск не ограничены. |
 | Resolved | Hero на главной перехватывал касание ссылки «Статистика» | Шапка получила отдельный stacking layer; Playwright нажимает ссылку администратора на desktop, mobile Chromium и WebKit и ожидает защищённый dashboard. |
 | Resolved | На iPhone подсказка поиска скрывалась под каталогом курсов | `hero` перестал обрезать overlay, а Playwright mobile regression проверяет, что центр подсказки является верхним tappable element. |
 | Resolved | Латинский ввод (`Ma`) не давал подсказок для кириллических названий | Disk-поиск сопоставляет транслитерацию с именами на кириллице; Playwright mobile regression вводит `ma` и ожидает подсказку `Математический анализ`. |
