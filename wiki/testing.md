@@ -14,7 +14,7 @@
 - Cloudflare Pages config: required token/account/project values and a valid project name.
 - Playwright critical UI suite: startup, courses/folders/files, direct HashRouter route, Russian/empty search, Telegram BackButton fixture, mobile overflow and serious/critical axe violations. Vite starts automatically through Playwright `webServer`; no tunnel or Telegram login is required.
 - Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
-- Header navigation: the home route hides only its redundant Catalog and Search links; inner routes preserve them, and the server-confirmed admin Statistics link remains available wherever it was previously shown.
+- Header navigation: the home route hides only its redundant Catalog and Search links; inner routes preserve them. The server-confirmed admin Statistics link is above the hero layer and its click opens `/#/admin/stats` on desktop, mobile Chromium and WebKit.
 - Disk search: a stalled Yandex Disk traversal is bounded to 10 seconds total and must turn into the existing visible search error rather than leaving `Ищем в папках и файлах…` indefinitely.
 - Disk search follows a matching folder before returning, so a matching file in a deeper nested folder (including the `УТП` fixture) is returned alongside the folder without a fixed depth limit.
 - Analytics Worker: valid/invalid/expired Telegram `initData`, keyed user hashing, first/repeated open, event allowlist and ID validation, D1 total/DAU/WAU/MAU aggregates, and idempotent retention cleanup.

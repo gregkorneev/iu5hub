@@ -120,4 +120,16 @@ test.describe('Student Hub critical UI', () => {
     await expect(page.getByRole('button', { name: '7 дней' })).toHaveClass(/active/)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()
   })
+
+  test('opens statistics from the administrator home screen', async ({ page }) => {
+    await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: true } }))
+    await page.route('**/api/admin/stats/summary?period=*', (route) => route.fulfill({ json: { users: { total: 0, today: 0, days7: 0, days30: 0 }, launches: 0, activity: { searches: 0, materialOpens: 0, yandexDiskOpens: 0 } } }))
+    await page.route('**/api/admin/stats/activity?period=*', (route) => route.fulfill({ json: { days: [] } }))
+    await page.route('**/api/admin/stats/subjects?period=*', (route) => route.fulfill({ json: { items: [] } }))
+    await page.route('**/api/admin/stats/materials?period=*', (route) => route.fulfill({ json: { items: [] } }))
+    await page.goto('/#/')
+    await page.getByRole('link', { name: 'Статистика' }).click()
+    await expect(page).toHaveURL(/#\/admin\/stats$/)
+    await expect(page.getByRole('heading', { name: 'Статистика' })).toBeVisible()
+  })
 })
