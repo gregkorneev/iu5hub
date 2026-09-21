@@ -8,6 +8,7 @@ test.describe('Student Hub critical UI', () => {
     await page.goto('/#/')
     await expect(page.getByRole('heading', { name: 'Материалы на Яндекс.Диске' })).toBeVisible()
     await expect(page.getByRole('link', { name: /Курс 1/ })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toBeHidden()
     await expect.poll(() => page.evaluate(() => (window as Window & { __telegram: { ready: number } }).__telegram.ready)).toBe(1)
     const results = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
     expect(results.violations.filter(({ impact }) => impact === 'critical' || impact === 'serious')).toEqual([])
@@ -17,6 +18,8 @@ test.describe('Student Hub critical UI', () => {
 
   test('navigates folders, downloads an allowlisted file, and keeps no horizontal overflow', async ({ page }) => {
     await page.goto('/#/course/course-1')
+    await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toContainText('Каталог')
+    await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toContainText('Поиск')
     await page.getByRole('link', { name: /1 семестр/ }).click()
     await expect(page.getByRole('button', { name: 'Лекция 1.pdf Скачать файл' })).toBeVisible()
     const downloadCall = page.waitForRequest((request) => request.url().includes('/download'))
@@ -105,6 +108,7 @@ test.describe('Student Hub critical UI', () => {
     await page.route('**/api/admin/stats/materials?period=*', (route) => route.fulfill({ json: { items: [{ id: 'Очень длинное название материала которое не должно ломать мобильную вёрстку', count: 17 }] } }))
     await page.goto('/#/admin/stats')
     await expect(page.getByRole('heading', { name: 'Статистика' })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Статистика' })).toBeVisible()
     await expect(page.getByText('428')).toBeVisible()
     await expect(page.getByRole('img', { name: /График/ })).toBeVisible()
     await page.getByRole('button', { name: '7 дней' }).click()
