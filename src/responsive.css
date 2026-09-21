@@ -35,6 +35,9 @@ html:has(.app--home), body:has(.app--home) { overflow: hidden; }
   .course-grid b { margin-top: 4px; font-size: .68rem; }
   .semester-button { min-height: 132px; padding: 18px; }
   .disk-item { min-height: 72px; padding: 14px; }
+  .semester-subject-grid .disk-item--folder { grid-template-columns:minmax(0,1fr); gap:4px; }
+  .semester-subject-grid .disk-item--folder > span { grid-row:auto; }
+  .semester-subject-grid .disk-item--folder strong { min-width:0; max-inline-size:100%; font-size:clamp(.625rem, 3.5vw, .9rem); }
   .filters a { min-height: 40px; display:inline-flex; align-items:center; }
   .material-detail dl { gap: 10px; margin: 24px 0; }
   .user-greeting { margin: 14px 8px -2px; }

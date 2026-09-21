@@ -53,17 +53,23 @@ test.describe('Student Hub critical UI', () => {
   })
 
   test('uses two-column semester tiles for Russian names without breaking words', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/#/course/course-1?path=1%20%D0%A1%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
-    const tiles = page.locator('.semester-subject-grid .disk-item--folder')
-    await expect(tiles).toHaveCount(2)
-    expect(await tiles.evaluateAll((items) => {
-      const [first, second] = items.map((item) => item.getBoundingClientRect())
-      const title = items[0].querySelector<HTMLElement>('strong')!
-      const style = getComputedStyle(title)
-      return first.top === second.top && first.left < second.left
-        && style.overflowWrap === 'normal' && style.wordBreak === 'normal'
-    })).toBeTruthy()
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 })
+      await page.goto('/#/course/course-1?path=1%20%D0%A1%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
+      const tiles = page.locator('.semester-subject-grid .disk-item--folder')
+      await expect(tiles).toHaveCount(3)
+      expect(await tiles.evaluateAll((items) => {
+        const [first, second] = items.map((item) => item.getBoundingClientRect())
+        const titlesFit = items.every((item) => {
+          const title = item.querySelector<HTMLElement>('strong')!
+          const style = getComputedStyle(title)
+          return title.scrollWidth <= title.clientWidth
+            && style.overflowWrap === 'normal' && style.wordBreak === 'normal'
+        })
+        return first.top === second.top && first.left < second.left
+          && titlesFit
+      })).toBeTruthy()
+    }
   })
 
   test('does not show a stale download error after navigation', async ({ page }) => {
