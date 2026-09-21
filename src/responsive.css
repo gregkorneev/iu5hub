@@ -1,6 +1,50 @@
+/* Telegram changes this value for Compact, Fullsize and Fullscreen. */
+:root { --tg-viewport-stable-height: 100dvh; }
+body { min-height: var(--tg-viewport-height); }
+.app { display: flex; flex-direction: column; min-height: var(--tg-viewport-height); }
+main { flex: 1 0 auto; }
+footer { margin-top: auto; }
+
 @media (max-width: 620px) {
-  header { gap: 12px; padding-inline: 12px; }
+  body { min-width: 0; }
+  header { min-height: 58px; gap: 10px; padding-inline: 8px; }
   .brand { gap: 8px; font-size: 1rem; }
   .brand img { width: 32px; height: 32px; }
-  nav { gap: 12px; font-size: .88rem; }
+  nav { gap: 4px; font-size: .86rem; }
+  nav a { min-height: 44px; display:inline-flex; align-items:center; padding-inline:8px; }
+  main { padding-top: 20px; }
+  .hero { margin-bottom: 20px; padding: 18px; border-radius: 16px; }
+  .hero > p:not(.eyebrow) { margin: 0; font-size: .92rem; }
+  .search { margin-top: 12px; }
+  .search button { min-width: 88px; }
+  .section-title { margin-bottom: 12px; }
+  section + section { margin-top: 34px; }
+  .home-courses { margin-top: 0; }
+  .course-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .course-grid a { min-height: 108px; padding: 13px; }
+  .course-grid span { font-size: 2rem; }
+  .course-grid strong { font-size: .92rem; }
+  .course-grid small { display: none; }
+  .course-grid b { margin-top: 4px; font-size: .68rem; }
+  .semester-button { min-height: 132px; padding: 18px; }
+  .disk-item { min-height: 72px; padding: 14px; }
+  .filters a { min-height: 40px; display:inline-flex; align-items:center; }
+  .material-detail dl { gap: 10px; margin: 24px 0; }
+  .user-greeting { margin: 14px 8px -2px; }
+  .course-actions { margin-bottom: 14px; }
+}
+
+@media (max-width: 380px) {
+  .brand { font-size: .92rem; }
+  nav a { padding-inline: 5px; }
+  .search { flex-direction: column; }
+  .search button { width: 100%; }
+}
+
+@media (max-width: 300px) {
+  header { gap: 4px; padding-inline: 5px; }
+  .brand { gap: 5px; font-size: .78rem; }
+  .brand img { width: 27px; height: 27px; }
+  nav { font-size: .76rem; }
+  nav a { padding-inline: 3px; }
 }

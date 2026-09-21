@@ -8,8 +8,10 @@ export const initializeTelegram = () => {
   const refresh = () => { applyTelegramTheme(); applyTelegramViewport() }
   refresh()
   app.ready()
-  app.expand()
   app.onEvent('themeChanged', refresh)
   app.onEvent('viewportChanged', refresh)
+  app.onEvent('safeAreaChanged', refresh)
+  app.onEvent('contentSafeAreaChanged', refresh)
+  app.onEvent('fullscreenChanged', refresh)
   document.documentElement.dataset.platform = 'telegram'
 }

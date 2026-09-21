@@ -3,17 +3,20 @@
 ## Integration rules
 
 - Telegram Mini App — единственный поддерживаемый пользовательский runtime. Это не означает, что UI-компоненты могут обращаться к Telegram API напрямую.
-- Определять и инициализировать Telegram WebApp один раз в централизованном integration layer. Он вызывает `ready()` и, когда это улучшает mobile UX, `expand()`.
-- Integration layer применяет theme params, viewport/safe area и BackButton; компонентам не разрешены прямые `window.Telegram.WebApp...` calls.
-- React navigation и Telegram BackButton синхронизируются: возврат с материала ведёт к предмету, а не создаёт loop или конфликтующую историю.
+- Определять и инициализировать Telegram WebApp один раз в централизованном integration layer. Он вызывает `ready()`, но не вызывает автоматически `expand()` или fullscreen API: режим отображения выбирает пользователь и Telegram-клиент.
+- Поддерживаются Compact, Fullsize и Fullscreen. Один и тот же UI использует фактические viewport height и safe-area insets; переход между режимами не сбрасывает маршрут, форму поиска или состояние каталога.
+- Integration layer применяет theme params, viewport/safe area и BackButton; он подписывается на `viewportChanged` (а при наличии — fullscreen/safe-area events) и обновляет CSS-переменные. Компонентам не разрешены прямые `window.Telegram.WebApp...` calls.
+- React navigation и Telegram BackButton синхронизируются: BackButton показывается вне главной страницы и возвращает на предыдущий внутренний маршрут; если истории Mini App нет, он ведёт на главную. Поэтому возврат из вложенной папки курса идёт к предыдущему уровню, а не закрывает приложение или создаёт loop.
 - Внешние ссылки на Яндекс.Диск проходят URL validation и открываются Telegram-compatible методом (`openLink`/подходящий API), выбранным внутри integration layer.
+- Кнопки четырёх курсов и вложенных каталогов ведут только по внутренней React-навигации; внешний переход выполняется лишь для конечного файла или явного действия «открыть папку на Диске».
+- Для узкого viewport курс, семестры и карточки перестраиваются в одну колонку; заголовок, навигация и safe areas сохраняют доступность без горизонтальной прокрутки.
 - Поддерживаемые клиенты: Telegram iOS, Android, Desktop и Web. Локальный browser запуск допустим только для разработки и automated checks, не как продуктовый режим.
 - Haptic — необязательное улучшение для явных пользовательских действий, без функциональной зависимости от него.
 
 ## Security
 
-`initData` и пользователь из client JavaScript недостоверны. Пока нет backend validation, использовать их только для оформления, языка и локальной UI-персонализации, не для прав, авторизации или хранения персональных данных. Если появится backend, он обязан валидировать `initData` server-side.
+`initData` и пользователь из client JavaScript недостоверны. Пока нет backend validation, использовать их только для оформления, языка и локальной UI-персонализации, не для прав, авторизации или хранения персональных данных. Если появится backend, он обязан валидировать `initData` server-side. OAuth-токен Яндекс.Диска никогда не передаётся в Mini App, не хранится в Vite-переменных и не попадает в URL/логи.
 
 ## Manual checks
 
-Проверить iOS/Android/Desktop/Web Telegram: launch, theme (light/dark), viewport и safe areas, BackButton, внешнюю Yandex Disk ссылку, внутреннюю навигацию, long titles, empty/error states и slow-network поведение. В локальном browser проверять лишь безопасный developer fallback, не пользовательский Web mode.
+Проверить iOS/Android/Desktop/Web Telegram: launch в Compact, Fullsize и доступном Fullscreen; theme (light/dark), viewport и safe areas, переходы между режимами без автоматического расширения или потери состояния, BackButton (в том числе переход «курс → подпапка → назад» и fallback на главную), внешнюю Yandex Disk ссылку, внутреннюю навигацию, long titles, empty/error states и slow-network поведение. На узком экране проверить одну колонку и отсутствие горизонтального скролла. В локальном browser проверять лишь безопасный developer fallback, не пользовательский Web mode.

@@ -2,9 +2,9 @@
 
 ## Current target and public entry
 
-Production frontend is a static React + TypeScript + Vite build on **Cloud.ru Evolution Object Storage** with Static Website Hosting and an HTTPS endpoint. Cloud.ru serves only the `dist/` artifact: `index.html`, compiled JS/CSS assets, `logo-iu5.jpeg` and other small static assets. The current catalog is bundled into the frontend; PDFs, presentations, archives, video and other study files stay on Yandex Disk.
+Production frontend is a static React + TypeScript + Vite build on **Cloudflare Pages**. The current public project is [`iu5hub`](https://iu5hub.pages.dev), deployed from `dist/`: `index.html`, compiled JS/CSS assets, `logo-iu5.jpeg` and other small static assets. The current catalog is bundled into the frontend; PDFs, presentations, archives, video and other study files stay on Yandex Disk.
 
-Student-facing entry is Student Hub Bot (`https://t.me/<bot_username>`), which opens the Telegram Mini App. The Cloud.ru HTTPS endpoint is a technical URL configured in BotFather/the bot. Do not distribute it in student chats, QR codes, presentations, handbooks or social posts.
+Student-facing entry is the bot «Студент ИУ5» (`https://t.me/<bot_username>`), which opens the Telegram Mini App. The Cloudflare Pages HTTPS endpoint is the technical URL to configure in BotFather/the bot.
 
 The Mini App uses `HashRouter`; client routes are URLs such as `/#/material/<id>`. No provider-specific SPA fallback is needed for them. Static Website Hosting must return `index.html` for the base endpoint and should use generated `error.html` as its error document.
 
@@ -19,10 +19,10 @@ verify: npm ci → lint → typecheck → test → build
   ↓ (only direct push to main, only when explicitly enabled)
 deploy-cloudru: npm ci → build → validate config → publish dist/
   ↓
-Cloud.ru HTTPS endpoint → Student Hub Bot → Telegram Mini App
+Cloud.ru HTTPS endpoint → бот «Студент ИУ5» → Telegram Mini App
 ```
 
-`verify` runs on every push and pull request. `deploy-cloudru` is deliberately disabled by default and runs only when all conditions are true:
+`verify` runs on every push and pull request. `deploy-cloudru` and `deploy-cloudflare-pages` are deliberately disabled by default; each runs only after `verify` on a direct push to `main` when its own enable variable is literal `true`. They are independent static-host deploy targets and neither deploys a bot backend.
 
 - event is `push` to `main`;
 - `verify` succeeded;
@@ -30,6 +30,27 @@ Cloud.ru HTTPS endpoint → Student Hub Bot → Telegram Mini App
 - the `cloudru-production` environment can supply the required secrets and variables.
 
 The deploy job uses a production concurrency group, so production deploys never overlap. It rebuilds rather than reusing the `verify` artifact. This keeps the workflow simple, but both jobs must use the same lockfile and Node 22 setup; `npm ci` makes the dependency install deterministic.
+
+## Optional Cloudflare Pages deployment
+
+`deploy-cloudflare-pages` publishes only `dist/` to Cloudflare Pages with `npx --yes wrangler@4 pages deploy`. It has its own `cloudflare-pages-production` concurrency group and runs only when `CLOUDFLARE_PAGES_DEPLOY_ENABLED=true` on a push to `main` after `verify` succeeds.
+
+Provision it as follows:
+
+1. Create the Cloudflare Pages project for this Mini App and record its lowercase project name.
+2. Add repository secrets `CLOUDFLARE_API_TOKEN` (least-privilege Pages deploy token) and `CLOUDFLARE_ACCOUNT_ID`.
+3. Add repository variable `CLOUDFLARE_PAGES_PROJECT` with the project name and keep `CLOUDFLARE_PAGES_DEPLOY_ENABLED=false` until review is complete.
+4. Push a verified commit to `main`, set the enable variable to literal `true`, then confirm the job validates all three values and deploys `dist/` to the `main` branch.
+
+The Pages URL is a technical HTTPS endpoint for the Telegram Mini App. Do not make it the public product entry or include Telegram credentials in Cloudflare Pages settings.
+
+## Current Cloudflare Pages release
+
+On 2026-09-21 the production build was published by Cloudflare Pages Direct Upload at [`https://iu5hub.pages.dev`](https://iu5hub.pages.dev), configured as both the Main App and menu-button URL in BotFather, and verified by opening it in Telegram. It contains only generated `dist/` files; no Telegram token, bot relay, or support backend is included.
+
+The Telegram Web App SDK script must remain in `<head>` before the Vite module script. This lets `initializeTelegram()` call `Telegram.WebApp.ready()` when the Mini App starts and prevents Telegram's native loading indicator from remaining on screen.
+
+The GitHub App integration is installed with access limited to `gregkorneev/iu5hub`, but the repository import was not completed in the Cloudflare wizard. Until that link is finished, release manually: `npm run build` → **Workers & Pages → iu5hub → Create deployment** → upload `dist/`. The disabled GitHub Actions job remains an optional later automation path and requires its documented Cloudflare API secrets before it can be enabled.
 
 ## GitHub Environment configuration
 
@@ -42,6 +63,8 @@ The `cloudru-production` Environment exists and its `CLOUDRU_DEPLOY_ENABLED` var
 | Secret | `CLOUDRU_BUCKET` | yes | dedicated production frontend bucket name |
 | Variable | `CLOUDRU_PREFIX` | no | relative object-key prefix; leave empty for the bucket root |
 | Variable | `CLOUDRU_DEPLOY_ENABLED` | yes, to deploy | set to literal `true` only after the remaining configuration is ready |
+
+Cloudflare Pages uses separate repository configuration: secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; variables `CLOUDFLARE_PAGES_PROJECT`, `CLOUDFLARE_PAGES_DEPLOY_ENABLED`. The validator rejects missing values and project names outside lowercase letters, digits and hyphens.
 
 The workflow uses `https://s3.cloud.ru`, `ru-central-1`, disables EC2 metadata discovery and has repository token permission `contents: read`. It prints `aws --version` before publishing. No bot token, Cloud.ru secret or `VITE_*` secret belongs in the repository or frontend bundle. `.env.example` intentionally contains no runtime value.
 
@@ -97,6 +120,8 @@ To roll back application code, revert to the last-known-good commit on `main`; a
 | Symptom | Check / resolution |
 | --- | --- |
 | `deploy-cloudru` is skipped | Confirm a push (not pull request) reached `main`, `verify` passed, and `CLOUDRU_DEPLOY_ENABLED` is the literal `true`. |
+| `deploy-cloudflare-pages` is skipped | Confirm a push reached `main`, `verify` passed, and `CLOUDFLARE_PAGES_DEPLOY_ENABLED` is the literal `true`. |
+| Cloudflare Pages configuration validation fails | Set both Cloudflare secrets and a valid lowercase `CLOUDFLARE_PAGES_PROJECT`; do not print their values while diagnosing. |
 | Configuration validation fails | Populate the three required secrets, including `CLOUDRU_BUCKET`; ensure `CLOUDRU_PREFIX` is empty or matches the workflow's relative-key validation and contains no `..`. |
 | `aws` command or S3 request fails | The job expects AWS CLI on `ubuntu-latest`. Check runner output, endpoint `https://s3.cloud.ru`, region, credentials and the service-account policy; do not print secrets for diagnosis. |
 | Unexpected files disappear | Disable deployment, inspect the exact bucket/prefix, restore versioned objects, then correct the target. `--delete` is intentional only for a dedicated deploy target. |

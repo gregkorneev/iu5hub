@@ -23,3 +23,13 @@ export const openExternalLink = (url: string) => {
   }
   window.open(url, '_blank', 'noopener,noreferrer')
 }
+
+export const downloadExternalFile = (url: string, filename: string) => {
+  if (!isExternalHttpUrl(url)) return
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  link.click()
+}

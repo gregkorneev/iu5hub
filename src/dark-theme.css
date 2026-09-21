@@ -8,9 +8,25 @@
   .source-link-placeholder { background:#0d345dcc; color:#d9edff }
   .semester-grid a,.course-grid a { background:linear-gradient(135deg,#082b50,#0d3b69); box-shadow:inset 0 1px #8cc5f426 }
   .subject-card,.material-card { background:var(--surface); box-shadow:0 6px 20px #0008 }
+  .disk-item--folder { background:#0d345d; color:var(--platform-text); box-shadow:0 6px 20px #0008 }
+  .semester-button { background:linear-gradient(135deg,#082b50,#0d3b69); color:#d9edff; box-shadow:inset 0 1px #8cc5f426 }
+  .semester-button small { color:var(--muted) }
+  .in-app-back { background:#f3f8ff; color:#002c5b }
+  .course-root-link,.download-button { border-color:var(--line); color:#d9edff }
   .tag { background:#164f82; color:#e1effb!important }
+  .tag.tag--lecture { background:#123f70; color:#bde0ff!important }
+  .tag.tag--lab { background:#0d513a; color:#baf3d4!important }
+  .tag.tag--practice { background:#6c480d; color:#ffe4a3!important }
+  .tag.tag--methodical { background:#4c2875; color:#e2caff!important }
+  .tag.tag--presentation { background:#722344; color:#ffd0e2!important }
+  .tag.tag--video { background:#714018; color:#ffd6b9!important }
+  .tag.tag--book { background:#303e75; color:#d8e0ff!important }
+  .tag.tag--additional { background:#0c5454; color:#bdf5f3!important }
+  .tag.tag--other { background:#3a464d; color:#d9e2e7!important }
   .filters a,.material-detail dl div,.button--quiet { background:var(--soft); color:var(--platform-text) }
   .search { background:#f6faff; border-color:#8cc5f4 }
+  .search:not(.search--compact) input { color:#1a1a19 }
+  .search:not(.search--compact) input::placeholder { color:#687786 }
   .search--compact { background:#082b50; border-color:var(--line) }
   .search--compact input { color:var(--platform-text) }
   .search--compact input::placeholder { color:#b9c9d9 }

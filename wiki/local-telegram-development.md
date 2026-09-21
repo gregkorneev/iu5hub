@@ -2,9 +2,9 @@
 
 ## Scope
 
-This is a **development-only** path for opening the local Vite application through Telegram. It does not deploy anything to Cloud.ru, create a permanent URL, configure a bot, or replace production release checks.
+This is a **development-only** path for opening the local Vite application through Telegram. It does not deploy anything to Cloudflare Pages, create a permanent URL, configure a bot, or replace production release checks.
 
-The designated development test bot is `@iu5_archive_bot`. Its current Mini App URL is deliberately not recorded here and must not be inferred as configured. The production Student Hub Bot and its technical Cloud.ru endpoint remain separate.
+The designated development test bot is `@iu5_archive_bot`. Its current Mini App URL is deliberately not recorded here and must not be inferred as configured. The production bot «Студент ИУ5» and its Cloudflare Pages endpoint remain separate.
 
 ## Start
 
@@ -23,7 +23,7 @@ The URL is ephemeral. It changes after every tunnel restart and must never be co
 - The tunnel command explicitly uses `cloudflared tunnel --protocol http2`. This is the HTTP/2 fallback/compatibility path for local testing when the default tunnel transport is unsuitable; the script does not silently change production networking.
 - Vite remains bound to loopback (`127.0.0.1`), so it is not exposed directly on the LAN.
 - Vite's `server.allowedHosts` allows only the `.trycloudflare.com` host suffix required for the Quick Tunnel. Do not broaden this list for convenience.
-- Cloudflare Quick Tunnels are not a production hosting service. Use Cloud.ru only for production artifacts and the permanent technical Mini App URL.
+- Cloudflare Quick Tunnels are not a production hosting service. Use Cloudflare Pages only for production artifacts and the permanent technical Mini App URL.
 
 ## Telegram test flow
 

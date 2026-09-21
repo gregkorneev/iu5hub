@@ -5,13 +5,15 @@ export interface TelegramWebApp {
   themeParams?: Record<string, string>
   viewportHeight?: number
   viewportStableHeight?: number
+  isExpanded?: boolean
+  isFullscreen?: boolean
   safeAreaInset?: { top: number; right: number; bottom: number; left: number }
   contentSafeAreaInset?: { top: number; right: number; bottom: number; left: number }
   ready(): void
   expand(): void
   openLink(url: string): void
-  onEvent(event: 'themeChanged' | 'viewportChanged', listener: () => void): void
-  offEvent(event: 'themeChanged' | 'viewportChanged', listener: () => void): void
+  onEvent(event: 'themeChanged' | 'viewportChanged' | 'safeAreaChanged' | 'contentSafeAreaChanged' | 'fullscreenChanged', listener: () => void): void
+  offEvent(event: 'themeChanged' | 'viewportChanged' | 'safeAreaChanged' | 'contentSafeAreaChanged' | 'fullscreenChanged', listener: () => void): void
   BackButton?: { show(): void; hide(): void; onClick(listener: () => void): void; offClick(listener: () => void): void }
   HapticFeedback?: { impactOccurred(type: 'light' | 'medium' | 'heavy'): void }
 }

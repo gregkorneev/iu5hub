@@ -8,13 +8,22 @@
 
 ### Added
 
-- 2026-09-11: принят ADR-0003: Student Hub стал Telegram-first и Telegram-only; Cloud.ru Evolution Object Storage выбран заменяемым technical frontend-hosting, а Яндекс.Диск — хранилищем материалов.
+- 2026-09-21: первый production build опубликован в Cloudflare Pages Direct Upload: `https://iu5hub.pages.dev`; публичная главная страница проверена в Safari.
+- 2026-09-11: принят ADR-0003: Студент ИУ5 стал Telegram-first и Telegram-only; Cloud.ru Evolution Object Storage выбран заменяемым technical frontend-hosting, а Яндекс.Диск — хранилищем материалов.
 - 2026-09-11: GitHub Actions получил disabled-by-default `deploy-cloudru`: после `verify` он выпускает `dist/` только на push в `main`, через production environment и явный enable variable.
 - 2026-09-11: добавлен development-only workflow `npm run dev:telegram`: loopback Vite публикуется во временный Cloudflare Quick Tunnel с HTTP/2 для ручного Telegram test session; production deployment не меняется.
 
 ### Changed
 
-- 2026-09-11: Wiki migrated from superseded Web + Telegram / Beget / custom-domain architecture to Telegram Mini App via Student Hub Bot. Старые ADR сохранены как historical decisions и помечены superseded, где применимо.
+- 2026-09-21: исправлен поиск по Яндекс.Диску: перед сравнением имена приводятся к Unicode NFC (поэтому «Математический» находит папку с декомпозированным `й`); запросы к API ограничены 10 секундами, а сбой одной папки не блокирует поиск. На главной показаны до пяти живых подсказок после ввода двух символов.
+- 2026-09-21: поиск переведён с demo-материалов на подключённые публичные каталоги Яндекс.Диска; результат-папка открывается в Mini App, результат-файл скачивается напрямую.
+- 2026-09-21: с главной страницы удалён блок «Последние материалы» и его неиспользуемые стили.
+- 2026-09-21: файлы из реального каталога Яндекс.Диска загружаются стандартной browser-download ссылкой вместо `Telegram.WebApp.openLink`, обходя 403 Telegram external viewer.
+- 2026-09-21: 4-й курс убран из каталога; 1-й курс подключён к публичной папке Яндекс.Диска; 3-й остаётся в каталоге без ссылки до появления материалов.
+- 2026-09-21: выполнен адаптивный аудит на ширинах 320, 390, 768 и 1440 px; устранены малые зоны нажатия логотипа, навигации и breadcrumb.
+- 2026-09-21: подсказки поиска больше не перекрывают следующий блок страницы и не исчезают при касании в Telegram WebView; выбор подсказки ведёт к материалу или предмету.
+- 2026-09-21: Cloudflare Pages URL configured in BotFather; Mini App opened successfully from Telegram. Исправлен порядок загрузки Telegram SDK, из-за которого нативный loader Telegram не закрывался.
+- 2026-09-11: Wiki migrated from superseded Web + Telegram / Beget / custom-domain architecture to Telegram Mini App via бота «Студент ИУ5». Старые ADR сохранены как historical decisions и помечены superseded, где применимо.
 - 2026-09-08: базовая Wiki, архитектурная карта, roadmap, требования, тестовый и deployment контекст.
 - 2026-09-08: React/Vite MVP: каталог, семестры, предметы, категории, карточки материалов, поиск и responsive UI.
 - 2026-09-08: `MaterialsRepository`, Web/Telegram `PlatformAdapter`, allowlist `http(s)` for external links, unit tests and GitHub Actions CI.
