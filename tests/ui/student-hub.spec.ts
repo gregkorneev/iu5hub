@@ -10,6 +10,13 @@ test.describe('Student Hub critical UI', () => {
     await expect(page.getByRole('link', { name: /Курс 1/ })).toBeVisible()
     await expect(page.getByAltText('Логотип Студент ИУ5')).toHaveAttribute('src', '/logo-iu5.jpeg')
     expect(await page.getByAltText('Логотип Студент ИУ5').evaluate((image: HTMLImageElement) => image.naturalWidth > 0)).toBeTruthy()
+    expect(await page.evaluate(async () => {
+      await document.fonts.load('16px "ALS Sector"')
+      await document.fonts.load('700 16px "ALS Sector"')
+      return document.fonts.check('16px "ALS Sector"')
+        && document.fonts.check('700 16px "ALS Sector"')
+        && getComputedStyle(document.documentElement).fontFamily.includes('ALS Sector')
+    })).toBeTruthy()
     await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toBeHidden()
     await expect.poll(() => page.evaluate(() => (window as Window & { __telegram: { ready: number } }).__telegram.ready)).toBe(1)
     const results = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
