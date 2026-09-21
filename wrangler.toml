@@ -13,7 +13,7 @@ ADMIN_DASHBOARD_URL = "https://iu5hub.pages.dev/#/admin/stats"
 [[d1_databases]]
 binding = "ANALYTICS_DB"
 database_name = "iu5hub-analytics"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "62098e84-7f66-4c6d-9460-5c76a65e2b8f"
 migrations_dir = "worker/migrations"
 
 [triggers]
