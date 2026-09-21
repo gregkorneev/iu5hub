@@ -49,6 +49,18 @@ test.describe('Student Hub critical UI', () => {
     await expect(page.getByText('Ничего не найдено')).toBeVisible()
   })
 
+  test('keeps home search suggestions tappable above the course catalog on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/')
+    await page.getByRole('searchbox', { name: 'Поиск в папках и файлах' }).fill('мат')
+    const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Математический анализ/ })
+    await expect(suggestion).toBeVisible()
+    expect(await suggestion.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      return element.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
+    })).toBeTruthy()
+  })
+
   test('supports direct hash routes and Telegram BackButton navigation', async ({ page }) => {
     await page.goto('/#/course/course-1')
     await expect.poll(() => page.evaluate(() => (window as Window & { __telegram: { visible: boolean } }).__telegram.visible)).toBe(true)

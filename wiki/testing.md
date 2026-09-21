@@ -13,6 +13,7 @@
 - routes: known material/subject и not-found/empty states.
 - Cloudflare Pages config: required token/account/project values and a valid project name.
 - Playwright critical UI suite: startup, courses/folders/files, direct HashRouter route, Russian/empty search, Telegram BackButton fixture, mobile overflow and serious/critical axe violations. Vite starts automatically through Playwright `webServer`; no tunnel or Telegram login is required.
+- Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
 
 ## UI adversarial QA
 
