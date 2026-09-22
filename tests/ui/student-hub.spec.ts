@@ -72,6 +72,25 @@ test.describe('Student Hub critical UI', () => {
     }
   })
 
+  test('renders a semester file as a full-width download card', async ({ page }) => {
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 })
+      await page.goto('/#/course/course-1?path=1%20%D0%A1%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
+      const file = page.locator('.semester-subject-grid .disk-file')
+      await expect(file).toHaveCount(1)
+      expect(await file.evaluate((card) => {
+        const grid = card.parentElement!.getBoundingClientRect()
+        const box = card.getBoundingClientRect()
+        const title = card.querySelector<HTMLElement>('strong')!
+        const download = card.querySelector<HTMLElement>('.download-button')!
+        return Math.abs(box.left - grid.left) < 1
+          && Math.abs(box.right - grid.right) < 1
+          && title.scrollWidth <= title.clientWidth
+          && download.getBoundingClientRect().right <= box.right
+      })).toBeTruthy()
+    }
+  })
+
   test('does not show a stale download error after navigation', async ({ page }) => {
     await page.goto('/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
     await page.route('**/resources/download?**', async (route) => {
