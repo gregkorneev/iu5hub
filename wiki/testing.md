@@ -6,6 +6,8 @@
 
 `verify` — обязательный GitHub Actions gate для всех push и pull request. Static deploy jobs are not proof of readiness until their own enabled `main` run succeeds: `deploy-cloudru` uses `CLOUDRU_DEPLOY_ENABLED == 'true'`; `deploy-cloudflare-pages` uses `CLOUDFLARE_PAGES_DEPLOY_ENABLED == 'true'`.
 
+Search metadata checks run in CI using the checked-in CSV inventory: `npm run search:validate` and `npm run search:build:check`. They must not call Yandex Disk. `npm run search:sync` is a manual network command and is deliberately excluded from CI.
+
 ## Minimum automated coverage
 
 - repository: поиск по title/subject/category/keywords и пустой результат;

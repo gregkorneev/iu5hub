@@ -9,10 +9,16 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
-    "test": "vitest run --exclude 'tests/ui/**' --exclude 'worker/test/**' && node --test scripts/*.node-test.mjs worker/test/*.test.mjs",
+    "test": "vitest run --exclude 'tests/ui/**' --exclude 'worker/test/**' && node --test scripts/*.node-test.mjs scripts/search/*.node-test.mjs worker/test/*.test.mjs",
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed",
     "test:ui:debug": "playwright test --debug",
+    "search:sync": "node scripts/search/sync-yandex.mjs",
+    "search:validate": "node scripts/search/validate.mjs",
+    "search:build": "node scripts/search/build.mjs",
+    "search:build:check": "node scripts/search/build.mjs --check",
+    "search:coverage": "node scripts/search/coverage.mjs",
+    "search:prepare": "npm run search:sync && npm run search:validate && npm run search:build && npm run search:coverage",
     "qa": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:ui"
   },
   "dependencies": {

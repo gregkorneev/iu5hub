@@ -12,6 +12,12 @@
 
 `category`: `lecture`, `lab`, `practice`, `methodical`, `presentation`, `video`, `book`, `additional`, `other`.
 
+## Search metadata (preparation stage)
+
+Ручные теги будущего интеллектуального поиска хранятся в version-controlled CSV (`data/search/search-tags.csv` и `search-synonyms.csv`), а не в production D1. Объект каталога идентифицируется `object_key`; текущая стратегия использует стабильный ID только если публичный Yandex Disk API его подтверждает как пригодный для rename/move, иначе — детерминированный ключ от `course_id + path`. Поэтому rename/move может потребовать ручного переноса тегов. См. [search.md](search.md).
+
+Будущая D1 mapping: `search_metadata(object_key, course_id, type, path, name, aliases, keywords, priority, enabled, notes, source_status)` и отдельная `search_synonyms(term, synonyms, enabled, notes)`. Это схема-план; миграции и поисковой D1 сейчас нет.
+
 ## Four-course Disk catalog
 
 Конфигурация MVP задаёт ровно четыре `Course` с независимыми корневыми папками Яндекс.Диска. Они образуют постоянные кнопки первого экрана. Всё ниже корня не описывается вручную в UI: подпапки показываются как вложенные каталоги, а файлы — как материалы. Следовательно, добавление папки или файла в корневую структуру Диска должно отразиться после следующего обновления каталога без изменения React-компонентов.

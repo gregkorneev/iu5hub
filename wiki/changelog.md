@@ -2,6 +2,8 @@
 
 ## 2026-09-23
 
+- Added the CSV-based preparation workflow for manually curated search aliases/keywords, with offline validation/build checks in CI; production search is unchanged.
+
 - Поиск по публичному Яндекс.Диску объединяет совпадения из всех подключённых курсов и при общем дедлайне отдаёт уже найденное; добавлены unit и browser regressions.
 - Analytics Worker атомарно создаёт пользователя при первом событии, отправляет `/stats` только в личный чат администратора, считает 7/30-дневные метрики по скользящим суткам, ограничивает административные GET-маршруты и прекращает чтение тела события после лимита.
 - Опциональные CI deploy jobs получают `VITE_ANALYTICS_API_BASE` из GitHub repository variable и проверяют HTTPS origin до сборки. Документация уточняет, что `CLOUDRU_DEPLOY_ENABLED` тоже должна быть repository variable.
