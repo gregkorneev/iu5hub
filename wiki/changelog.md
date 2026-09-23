@@ -3,6 +3,7 @@
 ## 2026-09-23
 
 - Added the CSV-based preparation workflow for manually curated search aliases/keywords, with offline validation/build checks in CI; production search is unchanged.
+- Added a 141-folder tagging queue and guarded apply workflow; folder metadata inheritance is represented as source references in the generated index and is not enabled in production search.
 
 - Поиск по публичному Яндекс.Диску объединяет совпадения из всех подключённых курсов и при общем дедлайне отдаёт уже найденное; добавлены unit и browser regressions.
 - Analytics Worker атомарно создаёт пользователя при первом событии, отправляет `/stats` только в личный чат администратора, считает 7/30-дневные метрики по скользящим суткам, ограничивает административные GET-маршруты и прекращает чтение тела события после лимита.

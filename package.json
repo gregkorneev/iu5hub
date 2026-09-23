@@ -18,7 +18,10 @@
     "search:build": "node scripts/search/build.mjs",
     "search:build:check": "node scripts/search/build.mjs --check",
     "search:coverage": "node scripts/search/coverage.mjs",
-    "search:prepare": "npm run search:sync && npm run search:validate && npm run search:build && npm run search:coverage",
+    "search:tagging-queue": "node scripts/search/tagging-queue.mjs",
+    "search:tagging-queue:check": "node scripts/search/tagging-queue.mjs --check",
+    "search:apply-tags": "node scripts/search/apply-tags.mjs",
+    "search:prepare": "npm run search:sync && npm run search:tagging-queue && npm run search:validate && npm run search:build && npm run search:coverage",
     "qa": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:ui"
   },
   "dependencies": {

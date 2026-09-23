@@ -1,6 +1,6 @@
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { manualColumns, objectKeyForPath, parseCsv, readCourses, tagColumns, writeTable } from './common.mjs'
+import { defaultInherit, manualColumns, objectKeyForPath, parseCsv, readCourses, tagColumns, writeTable } from './common.mjs'
 
 const output = resolve(new URL('../../data/search/search-tags.csv', import.meta.url).pathname)
 const api = 'https://cloud-api.yandex.net/v1/disk/public/resources'
@@ -48,9 +48,9 @@ export function mergeInventory(current, inventory) {
   const seen = new Set()
   const merged = inventory.map((object) => {
     const old = previous.get(object.object_key); seen.add(object.object_key)
-    return { ...object, ...Object.fromEntries(manualColumns.map((field) => [field, old?.[field] ?? (field === 'priority' ? '0' : field === 'enabled' ? 'TRUE' : '')])), source_status: 'active' }
+    return { ...object, ...Object.fromEntries(manualColumns.map((field) => [field, old?.[field] ?? (field === 'priority' ? '0' : field === 'enabled' ? 'TRUE' : field === 'inherit' ? defaultInherit(object.type) : '')])), source_status: 'active' }
   })
-  for (const row of current) if (!seen.has(row.object_key)) merged.push({ ...row, source_status: 'missing' })
+  for (const row of current) if (!seen.has(row.object_key)) merged.push({ ...row, inherit: row.inherit ?? defaultInherit(row.type), source_status: 'missing' })
   return merged
 }
 
@@ -58,7 +58,12 @@ export async function sync({ fetcher = fetch, input = output } = {}) {
   const courses = await readCourses()
   const active = courses.filter(({ publicUrl }) => /^https:\/\/disk\.yandex\.(?:ru|com)\/(?:d|i)\//.test(publicUrl))
   if (!active.length) throw new Error('No valid public Yandex Disk course links found')
-  const prior = parseCsv(await import('node:fs/promises').then(({ readFile }) => readFile(input, 'utf8')))
+  const priorBytes = await import('node:fs/promises').then(({ readFile }) => readFile(input))
+  const prior = parseCsv(new TextDecoder('utf-8', { fatal: true }).decode(priorBytes))
+  const legacyColumns = tagColumns.filter((column) => column !== 'inherit')
+  if (prior.headers.join('\0') !== tagColumns.join('\0') && prior.headers.join('\0') !== legacyColumns.join('\0')) {
+    throw new Error(`search-tags.csv must have the current columns or the supported legacy columns: ${legacyColumns.join(', ')}`)
+  }
   const existing = prior.records
   const inventory = (await Promise.all(active.map((course) => inventoryCourse(course, fetcher)))).flat()
   const merged = mergeInventory(existing, inventory)

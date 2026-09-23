@@ -28,6 +28,7 @@ export async function validate(directory = dataDir) {
       if (keys.has(row.object_key)) errors.push(`${label}: duplicate object_key "${row.object_key}"`); keys.add(row.object_key)
       if (!/^\d+$/.test(row.priority) || !Number.isSafeInteger(Number(row.priority))) errors.push(`${label}: priority must be a non-negative integer`)
       try { parseBoolean(row.enabled) } catch { errors.push(`${label}: enabled must be TRUE or FALSE`) }
+      try { parseBoolean(row.inherit) } catch { errors.push(`${label}: inherit must be TRUE or FALSE`) }
       checkList(row.aliases, `${label} aliases`, errors); checkList(row.keywords, `${label} keywords`, errors)
       for (const field of tagColumns) if (controls.test(row[field] ?? '')) errors.push(`${label}: ${field} contains a control character`)
       if (row.path.length > 1000) errors.push(`${label}: path exceeds 1000 characters`)

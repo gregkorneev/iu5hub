@@ -1,9 +1,9 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 
-export const tagColumns = ['object_key', 'course_id', 'course_title', 'type', 'path', 'name', 'aliases', 'keywords', 'priority', 'enabled', 'notes', 'source_status']
+export const tagColumns = ['object_key', 'course_id', 'course_title', 'type', 'path', 'name', 'aliases', 'keywords', 'priority', 'enabled', 'inherit', 'notes', 'source_status']
 export const synonymColumns = ['term', 'synonyms', 'enabled', 'notes']
-export const manualColumns = ['aliases', 'keywords', 'priority', 'enabled', 'notes']
+export const manualColumns = ['aliases', 'keywords', 'priority', 'enabled', 'inherit', 'notes']
 
 export function parseCsv(text) {
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1)
@@ -41,16 +41,17 @@ export const csvCell = (value) => {
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
 }
 export function stringifyCsv(headers, records) {
-  return `${[headers, ...records.map((record) => headers.map((header) => record[header] ?? ''))].map((row) => row.map(csvCell).join(',')).join('\r\n')}\r\n`
+  return `${[headers, ...records.map((record) => headers.map((header) => record[header] ?? ''))].map((row) => row.map(csvCell).join(',')).join('\n')}\n`
 }
 export const objectKeyForPath = (courseId, path) => `${courseId}:${createHash('sha256').update(`${courseId}\0${path}`).digest('hex').slice(0, 16)}`
 export const splitList = (value) => value.split(';').map((item) => item.trim()).filter(Boolean)
 export const normalize = (value) => value.normalize('NFC').trim().toLocaleLowerCase('ru')
 export const parseBoolean = (value) => {
-  if (/^(true|1|yes)$/i.test(value.trim())) return true
-  if (/^(false|0|no)$/i.test(value.trim())) return false
+  if (/^true$/i.test(value.trim())) return true
+  if (/^false$/i.test(value.trim())) return false
   throw new Error(`Expected TRUE or FALSE, got "${value}"`)
 }
+export const defaultInherit = (type) => type === 'folder' ? 'TRUE' : 'FALSE'
 
 // The config is intentionally read from courses.ts so the sync uses the same source as the app.
 export async function readCourses() {
