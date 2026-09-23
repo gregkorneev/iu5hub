@@ -14,7 +14,7 @@ The Worker stores only `HMAC-SHA-256(verified user.id, ANALYTICS_HMAC_SECRET)`. 
 | Admin allowlist | restricted Worker secret/config binding | React authorization, public runtime config |
 | D1 binding | Worker configuration | frontend code/public API |
 
-Use least-privilege deploy credentials, parameterized D1 statements, body/ID/event validation, and identity-aware rate limits. Errors and observability must redact secrets and full initData.
+Use least-privilege deploy credentials, parameterized D1 statements, body/ID/event validation, and configure an edge rate limit for analytics writes. The rate limit is not currently configured; see `known-issues.md`. Errors and observability must redact secrets and full initData.
 
 ## Required review checks
 

@@ -4,7 +4,7 @@ import { courses } from '../data/courses'
 
 describe('Yandex Disk public repository', () => {
   const originalCourseUrls = courses.map(({ publicUrl }) => publicUrl)
-  afterEach(() => { vi.unstubAllGlobals(); courses.forEach((course, index) => { course.publicUrl = originalCourseUrls[index] }) })
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); courses.forEach((course, index) => { course.publicUrl = originalCourseUrls[index] }) })
 
   it('uses the configured public key and encodes nested paths', async () => {
     courses[0].publicUrl = 'https://disk.yandex.ru/d/course-one'
@@ -35,6 +35,35 @@ describe('Yandex Disk public repository', () => {
       return Promise.resolve(new Response(JSON.stringify({ _embedded: { items } })))
     }))
     await expect(yandexDiskRepository.searchDisk('конспект')).resolves.toEqual([{ name: 'Конспект.pdf', path: '/Математика/Конспект.pdf', type: 'file', modified: undefined, courseId: 'course-1', courseTitle: 'Курс 1' }])
+  })
+
+  it('includes matches from every configured course', async () => {
+    courses[0].publicUrl = 'https://disk.yandex.ru/d/course-one'
+    courses[1].publicUrl = 'https://disk.yandex.ru/d/course-two'
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      const key = new URL(url).searchParams.get('public_key')
+      const path = key?.endsWith('course-one') ? '/first.pdf' : '/second.pdf'
+      return Promise.resolve(new Response(JSON.stringify({ _embedded: { items: [{ name: 'Лекция.pdf', path, type: 'file' }] } })))
+    }))
+
+    await expect(yandexDiskRepository.searchDisk('лекция')).resolves.toMatchObject([
+      { courseId: 'course-1', path: '/first.pdf' },
+      { courseId: 'course-2', path: '/second.pdf' },
+    ])
+  })
+
+  it('returns completed course matches when another course exceeds the search deadline', async () => {
+    vi.useFakeTimers()
+    courses[0].publicUrl = 'https://disk.yandex.ru/d/course-one'
+    courses[1].publicUrl = 'https://disk.yandex.ru/d/course-two'
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      if (new URL(url).searchParams.get('public_key')?.endsWith('course-two')) return new Promise<Response>(() => undefined)
+      return Promise.resolve(new Response(JSON.stringify({ _embedded: { items: [{ name: 'Лекция.pdf', path: '/first.pdf', type: 'file' }] } })))
+    }))
+
+    const search = yandexDiskRepository.searchDisk('лекция')
+    await vi.advanceTimersByTimeAsync(10_000)
+    await expect(search).resolves.toMatchObject([{ courseId: 'course-1', path: '/first.pdf' }])
   })
 
   it('continues searching when one folder request fails', async () => {

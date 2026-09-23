@@ -23,8 +23,11 @@
 - Header navigation: the home route hides only its redundant Catalog and Search links; inner routes preserve them. The server-confirmed admin Statistics link is above the hero layer and its click opens `/#/admin/stats` on desktop, mobile Chromium and WebKit.
 - Disk search: a stalled Yandex Disk traversal is bounded to 10 seconds total and must turn into the existing visible search error rather than leaving `Ищем в папках и файлах…` indefinitely.
 - Disk search follows a matching folder before returning, so a matching file in a deeper nested folder (including the `УТП` fixture) is returned alongside the folder without a fixed depth limit.
+- Disk search combines matches from every connected course; unit and browser regressions verify both course results in one query.
 - Analytics Worker: valid/invalid/expired Telegram `initData`, keyed user hashing, first/repeated open, event allowlist and ID validation, D1 total/DAU/WAU/MAU aggregates, and idempotent retention cleanup.
 - Authorization: admin allowlist success, direct non-admin admin API/route denial, `/stats` admin/non-admin handling, and webhook secret-header rejection.
+- Worker regressions: event before `app_open` creates the pseudonymous user without inflating launches; `/stats` never replies in a group; 7/30-day metrics use trailing hours; only declared GET statistics routes and periods are accepted; oversized event bodies stop during streaming.
+- Optional deploy configuration: both jobs require a public HTTPS `VITE_ANALYTICS_API_BASE` repository variable before building, while the general `verify` job remains independent of production configuration.
 - Dashboard UI: empty/loading/error states, summary cards, period switching, zero-filled 30-day graph, popular subject/material long titles, and admin versus student mock users.
 
 ## UI adversarial QA
@@ -36,6 +39,8 @@ The test fixture intercepts Yandex Disk API and injects a development-only `wind
 After a meaningful UI change, run the critical suite and an adversarial smoke pass. For larger route/catalog/Telegram changes, repeat the complete browser matrix and document P3 limitations in `known-issues.md`.
 
 2026-09-21: после исправления латинского ввода `Ma` прошли `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` и полный `npm run test:ui` (36 проверок: Chromium, mobile Chromium и WebKit); новых P3-ограничений не выявлено.
+
+2026-09-23: после исправлений поиска, Worker и CI прошёл `npm run qa`: lint, typecheck, 17 Vitest тестов, 17 Node тестов, build и 54 Playwright проверки (Chromium, mobile Chromium, WebKit). `git diff --check` также прошёл. Реальный Telegram WebView и автоматический production deploy этим прогоном не проверялись.
 
 ## Analytics adversarial checks
 

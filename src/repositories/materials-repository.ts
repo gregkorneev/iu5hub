@@ -85,16 +85,15 @@ export const yandexDiskRepository = {
       return results
     }
     const configured = courses.filter((course) => isYandexDiskUrl(course.publicUrl))
-    const search = new Promise<DiskSearchResult[]>((resolve) => {
-      let remaining = configured.length
-      if (!remaining) resolve([])
-      configured.forEach((course) => { void searchCourse(course).then((results) => { if (results.length) resolve(results); else if (--remaining === 0) resolve([]) }).catch(() => { if (--remaining === 0) resolve([]) }) })
-    })
+    const found: DiskSearchResult[][] = configured.map(() => [])
+    const search = Promise.all(configured.map(async (course, index) => {
+      found[index] = await searchCourse(course).catch(() => [])
+    })).then(() => found.flat())
     let timeout: ReturnType<typeof globalThis.setTimeout> | undefined
     try {
       return await Promise.race([
         search,
-        new Promise<never>((_, reject) => { timeout = globalThis.setTimeout(() => reject(new Error('Поиск на Яндекс.Диске занял слишком много времени.')), diskSearchTimeoutMs) }),
+        new Promise<DiskSearchResult[]>((resolve, reject) => { timeout = globalThis.setTimeout(() => found.some((items) => items.length) ? resolve(found.flat()) : reject(new Error('Поиск на Яндекс.Диске занял слишком много времени.')), diskSearchTimeoutMs) }),
       ])
     } finally { if (timeout) globalThis.clearTimeout(timeout) }
   },

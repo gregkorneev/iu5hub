@@ -115,6 +115,17 @@ test.describe('Student Hub critical UI', () => {
     await expect(page.getByText('Ничего не найдено')).toBeVisible()
   })
 
+  test('shows matching files from both courses', async ({ page }) => {
+    await page.route('https://cloud-api.yandex.net/**', (route) => {
+      const key = new URL(route.request().url()).searchParams.get('public_key')
+      const path = key?.includes('PoeWdke') ? 'Курс 2/Общий конспект.pdf' : 'Курс 1/Общий конспект.pdf'
+      return route.fulfill({ json: { _embedded: { items: [{ name: 'Общий конспект.pdf', path, type: 'file' }] } } })
+    })
+    await page.goto('/#/search?q=%D0%9E%D0%B1%D1%89%D0%B8%D0%B9')
+    await expect(page.getByText('Найдено: 2')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Скачать Общий конспект.pdf' })).toHaveCount(2)
+  })
+
   test('finds a file below a matching folder at deep nesting', async ({ page }) => {
     await page.goto('/#/search?q=%D0%A3%D0%A2%D0%9F')
     await expect(page.getByText('УТП-файл.pdf')).toBeVisible()

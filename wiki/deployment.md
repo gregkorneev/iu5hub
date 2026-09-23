@@ -39,7 +39,7 @@ Provision it as follows:
 
 1. Create the Cloudflare Pages project for this Mini App and record its lowercase project name.
 2. Add repository secrets `CLOUDFLARE_API_TOKEN` (least-privilege Pages deploy token) and `CLOUDFLARE_ACCOUNT_ID`.
-3. Add repository variable `CLOUDFLARE_PAGES_PROJECT` with the project name and keep `CLOUDFLARE_PAGES_DEPLOY_ENABLED=false` until review is complete.
+3. Add repository variables `CLOUDFLARE_PAGES_PROJECT` and the public HTTPS Worker origin `VITE_ANALYTICS_API_BASE`; keep `CLOUDFLARE_PAGES_DEPLOY_ENABLED=false` until review is complete.
 4. Push a verified commit to `main`, set the enable variable to literal `true`, then confirm the job validates all three values and deploys `dist/` to the `main` branch.
 
 The Pages URL is a technical HTTPS endpoint for the Telegram Mini App. Do not make it the public product entry or include Telegram credentials in Cloudflare Pages settings.
@@ -54,7 +54,7 @@ The GitHub App integration is connected to `gregkorneev/iu5hub`; the production 
 
 ## GitHub Environment configuration
 
-The `cloudru-production` Environment exists and its `CLOUDRU_DEPLOY_ENABLED` variable is explicitly `false`, so deploy is currently safe by default. Configure the remaining values there; change the flag to literal `true` only for a reviewed deployment target.
+The `cloudru-production` Environment exists for deployment secrets and the optional prefix. `CLOUDRU_DEPLOY_ENABLED` must be a repository variable because the job condition is evaluated before GitHub selects the Environment. Leave it unset or `false` until the target is ready; set it to literal `true` only for a reviewed deployment target. Both optional deploy jobs require the public repository variable `VITE_ANALYTICS_API_BASE` so their production builds connect to the Worker.
 
 | Kind | Name | Required | Purpose |
 | --- | --- | --- | --- |
@@ -62,9 +62,10 @@ The `cloudru-production` Environment exists and its `CLOUDRU_DEPLOY_ENABLED` var
 | Secret | `CLOUDRU_SECRET_ACCESS_KEY` | yes | matching secret key |
 | Secret | `CLOUDRU_BUCKET` | yes | dedicated production frontend bucket name |
 | Variable | `CLOUDRU_PREFIX` | no | relative object-key prefix; leave empty for the bucket root |
-| Variable | `CLOUDRU_DEPLOY_ENABLED` | yes, to deploy | set to literal `true` only after the remaining configuration is ready |
+| Repository variable | `CLOUDRU_DEPLOY_ENABLED` | yes, to deploy | set to literal `true` only after the remaining configuration is ready |
+| Repository variable | `VITE_ANALYTICS_API_BASE` | yes, to deploy | public HTTPS Worker origin included in the Vite build |
 
-Cloudflare Pages uses separate repository configuration: secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; variables `CLOUDFLARE_PAGES_PROJECT`, `CLOUDFLARE_PAGES_DEPLOY_ENABLED`. The validator rejects missing values and project names outside lowercase letters, digits and hyphens.
+Cloudflare Pages uses separate repository configuration: secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; variables `CLOUDFLARE_PAGES_PROJECT`, `CLOUDFLARE_PAGES_DEPLOY_ENABLED` and the shared `VITE_ANALYTICS_API_BASE`. The validator rejects missing values and project names outside lowercase letters, digits and hyphens.
 
 The workflow uses `https://s3.cloud.ru`, `ru-central-1`, disables EC2 metadata discovery and has repository token permission `contents: read`. It prints `aws --version` before publishing. No bot token, Cloud.ru secret or `VITE_*` secret belongs in the repository or frontend bundle. `.env.example` intentionally contains no runtime value.
 
@@ -104,7 +105,7 @@ Consequences:
 1. Create the dedicated bucket, enable Static Website Hosting, configure `index.html` as its index document and `error.html` as its error document.
 2. Obtain and test an HTTPS endpoint accepted by Telegram Mini Apps. Do not make the raw endpoint the public product link.
 3. Enable versioning; make public-read behavior no broader than the static frontend endpoint requires.
-4. Create the least-privilege service account and populate the exact GitHub Environment secrets/variables above. Keep the existing `CLOUDRU_DEPLOY_ENABLED=false` until the target has been reviewed.
+4. Create the least-privilege service account and populate the GitHub Environment secrets/optional prefix above. Keep the repository variable `CLOUDRU_DEPLOY_ENABLED` unset or `false` until the target has been reviewed.
 5. Push a verified commit to `main`, set `CLOUDRU_DEPLOY_ENABLED=true`, and inspect the first `deploy-cloudru` log. It must show no missing configuration and must not expose secret values.
 6. Verify the base endpoint, a hash route, assets, HTTPS and cache headers. Then set the technical HTTPS endpoint as the Mini App URL in BotFather/the bot.
 7. Complete the Telegram smoke matrix in `testing.md`, record the released commit and update Wiki.

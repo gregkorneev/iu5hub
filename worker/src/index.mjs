@@ -10,7 +10,7 @@ function json(body, status = 200) {
 
 function unixNow() { return Math.floor(Date.now() / 1000) }
 function startOfUtcDay(timestamp) { const date = new Date(timestamp * 1000); return Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 1000) }
-function periodStart(period, now) { return periods[period] === null ? 0 : startOfUtcDay(now) - (periods[period] - 1) * 86_400 }
+function periodStart(period, now) { return periods[period] === null ? 0 : period === 'today' ? startOfUtcDay(now) : now - periods[period] * 86_400 }
 
 function adminIds(env) {
   return new Set((env.ADMIN_TELEGRAM_IDS ?? '').split(',').map((id) => id.trim()).filter((id) => /^\d+$/.test(id)))
@@ -23,6 +23,20 @@ async function identity(request, env) {
 }
 
 function validOptionalId(value) { return value === undefined || (typeof value === 'string' && idPattern.test(value)) }
+
+async function readEventBody(request) {
+  if (!request.body) return ''
+  const reader = request.body.getReader()
+  const decoder = new TextDecoder()
+  let text = '', bytes = 0
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) return text + decoder.decode()
+    bytes += value.byteLength
+    if (bytes > 1024) { await reader.cancel(); return null }
+    text += decoder.decode(value, { stream: true })
+  }
+}
 
 async function trackOpen(db, userHash, now) {
   const minute = Math.floor(now / 60)
@@ -38,10 +52,14 @@ async function trackOpen(db, userHash, now) {
 }
 
 async function trackEvent(db, userHash, event, now) {
-  await db.prepare(`INSERT OR IGNORE INTO events
-    (user_hash, event_type, subject_id, material_id, event_minute, created_at) VALUES (?, ?, ?, ?, ?, ?)`).bind(
-    userHash, event.type, event.subjectId ?? '', event.materialId ?? '', Math.floor(now / 60), now,
-  ).run()
+  await db.batch([
+    db.prepare(`INSERT INTO users (user_hash, first_seen_at, last_seen_at, launch_count) VALUES (?, ?, ?, 0)
+      ON CONFLICT(user_hash) DO UPDATE SET last_seen_at = excluded.last_seen_at`).bind(userHash, now, now),
+    db.prepare(`INSERT OR IGNORE INTO events
+      (user_hash, event_type, subject_id, material_id, event_minute, created_at) VALUES (?, ?, ?, ?, ?, ?)`).bind(
+      userHash, event.type, event.subjectId ?? '', event.materialId ?? '', Math.floor(now / 60), now,
+    ),
+  ])
 }
 
 async function queryOne(db, sql, ...bindings) { return db.prepare(sql).bind(...bindings).first() }
@@ -61,8 +79,8 @@ async function summary(db, now, period) {
   const [total, day, week, month, launches, searches, materialOpens, yandexDiskOpens] = await Promise.all([
     queryOne(db, 'SELECT COUNT(*) AS count FROM users'),
     queryOne(db, 'SELECT COUNT(DISTINCT user_hash) AS count FROM events WHERE created_at >= ?', today),
-    queryOne(db, 'SELECT COUNT(DISTINCT user_hash) AS count FROM events WHERE created_at >= ?', today - 6 * 86_400),
-    queryOne(db, 'SELECT COUNT(DISTINCT user_hash) AS count FROM events WHERE created_at >= ?', today - 29 * 86_400),
+    queryOne(db, 'SELECT COUNT(DISTINCT user_hash) AS count FROM events WHERE created_at >= ?', now - 7 * 86_400),
+    queryOne(db, 'SELECT COUNT(DISTINCT user_hash) AS count FROM events WHERE created_at >= ?', now - 30 * 86_400),
     queryOne(db, "SELECT COUNT(*) AS count FROM events WHERE event_type = 'app_open' AND created_at >= ?", start),
     queryOne(db, "SELECT COUNT(*) AS count FROM events WHERE event_type = 'search' AND created_at >= ?", start),
     queryOne(db, "SELECT COUNT(*) AS count FROM events WHERE event_type = 'material_open' AND created_at >= ?", start),
@@ -85,7 +103,7 @@ async function webhook(request, env) {
   let update
   try { update = await request.json() } catch { return new Response(null, { status: 400 }) }
   const message = update?.message
-  if (message?.text?.trim() === '/stats' && Number.isSafeInteger(message.from?.id) && adminIds(env).has(String(message.from.id))) await telegramStats(env, message.chat.id)
+  if (message?.text?.trim() === '/stats' && message.chat?.type === 'private' && message.chat.id === message.from?.id && Number.isSafeInteger(message.from.id) && adminIds(env).has(String(message.from.id))) await telegramStats(env, message.chat.id)
   return new Response('ok')
 }
 
@@ -98,8 +116,8 @@ async function handle(request, env) {
     if (url.pathname === '/api/admin/me' && request.method === 'GET') return json({ isAdmin: user.isAdmin })
     if (url.pathname === '/api/analytics/open' && request.method === 'POST') { await trackOpen(env.ANALYTICS_DB, user.userHash, unixNow()); return new Response(null, { status: 204 }) }
     if (url.pathname === '/api/analytics/event' && request.method === 'POST') {
-      const raw = await request.text()
-      if (new TextEncoder().encode(raw).byteLength > 1024) return json({ error: 'Payload too large' }, 413)
+      const raw = await readEventBody(request)
+      if (raw === null) return json({ error: 'Payload too large' }, 413)
       let event
       try { event = JSON.parse(raw) } catch { return json({ error: 'Invalid JSON' }, 400) }
       if (!event || !eventTypes.has(event.type) || !validOptionalId(event.subjectId) || !validOptionalId(event.materialId) || Object.keys(event).some((key) => !['type', 'subjectId', 'materialId'].includes(key))) return json({ error: 'Invalid event' }, 400)
@@ -109,11 +127,11 @@ async function handle(request, env) {
     if (!url.pathname.startsWith('/api/admin/')) return new Response('Not found', { status: 404 })
     if (!user.isAdmin) return json({ error: 'Forbidden' }, 403)
     const period = url.searchParams.get('period') ?? '30d'
-    if (!(period in periods)) return json({ error: 'Invalid period' }, 400)
+    if (!Object.hasOwn(periods, period)) return json({ error: 'Invalid period' }, 400)
     const now = unixNow(), start = periodStart(period, now)
     if (url.pathname === '/api/admin/stats/summary' && request.method === 'GET') return json(await summary(env.ANALYTICS_DB, now, period))
     if (url.pathname === '/api/admin/stats/activity' && request.method === 'GET') return json({ period, days: await activity(env.ANALYTICS_DB, now, start) })
-    const field = url.pathname.endsWith('/subjects') ? 'subject_id' : url.pathname.endsWith('/materials') ? 'material_id' : null
+    const field = request.method === 'GET' && url.pathname === '/api/admin/stats/subjects' ? 'subject_id' : request.method === 'GET' && url.pathname === '/api/admin/stats/materials' ? 'material_id' : null
     if (field) return json({ period, items: await queryAll(env.ANALYTICS_DB, `SELECT ${field} AS id, COUNT(*) AS count FROM events WHERE ${field} != '' AND created_at >= ? GROUP BY ${field} ORDER BY count DESC, id LIMIT 10`, start) })
     return new Response('Not found', { status: 404 })
 }

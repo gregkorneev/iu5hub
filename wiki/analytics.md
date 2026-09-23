@@ -22,7 +22,7 @@ The system stores only a keyed pseudonymous `user_hash`; first/last activity tim
 | `material_open` | an internal material/file opens | `subject_id`, `material_id` where known |
 | `yandex_disk_open` | an explicit Disk transition happens | `subject_id`, `material_id` where known |
 
-`POST /api/analytics/event` has an allowlist, small body limit and strict ID validation. Identity comes only from validated `initData`, never a frontend user ID. Delivery is fire-and-forget: unavailable analytics never prevents study navigation. A short server-side per-user deduplication window reduces accidental reload inflation for `app_open`; rate limiting protects D1 from scripted event flooding.
+`POST /api/analytics/event` has an allowlist, small body limit and strict ID validation. Identity comes only from validated `initData`, never a frontend user ID. Delivery is fire-and-forget: unavailable analytics never prevents study navigation. A short server-side per-user deduplication window reduces accidental reload inflation for `app_open`. Rate limiting is not configured yet; add a Cloudflare edge rule before relying on it to protect D1 from scripted event flooding.
 
 ## Retention
 
@@ -48,7 +48,7 @@ The 30-day activity view includes zero-event UTC days and distinguishes daily di
 
 Every `/api/admin/*` request validates fresh Telegram `initData`, extracts its verified user ID, and checks server-only `ADMIN_TELEGRAM_IDS` before D1 access. Malformed, expired or non-admin requests get an authentication failure/`403` and no data. A hidden React link is not authorization.
 
-`/telegram/webhook` accepts updates only if Telegram's secret-token header matches Worker-only `TELEGRAM_WEBHOOK_SECRET`. It handles only the `/stats` command, authorizes the sender with the same allowlist, and replies using Worker-only `TELEGRAM_BOT_TOKEN` with an aggregate report plus dashboard deep link.
+`/telegram/webhook` accepts updates only if Telegram's secret-token header matches Worker-only `TELEGRAM_WEBHOOK_SECRET`. It handles only the `/stats` command in a private chat with the authorized sender, and replies using Worker-only `TELEGRAM_BOT_TOKEN` with an aggregate report plus dashboard deep link.
 
 ## Provisioning and troubleshooting
 
