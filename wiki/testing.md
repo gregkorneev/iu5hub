@@ -10,6 +10,8 @@ Search metadata checks run in CI using the checked-in CSV inventory: `npm run se
 
 The tagging queue is generated from the checked-in inventory and is deterministic/offline. `npm run search:tagging-queue:check` verifies the committed queue is current. `search:apply-tags` checks every machine-managed field against `search-tags.csv` and updates only manual metadata; fixture tests cover valid apply and rejected stale/tampered rows.
 
+The Excel workbook is regenerated from CSV by `npm run search:workbook`; `npm run search:workbook:apply` imports only supported editable fields and synonym rows, then validates/builds the generated index and prints coverage. Workbook generation/import uses local files and is not a network CI step. The `.xlsx` working file is gitignored; CSV remains the reviewed source of truth.
+
 ## Minimum automated coverage
 
 - repository: поиск по title/subject/category/keywords и пустой результат;

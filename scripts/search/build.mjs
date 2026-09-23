@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { normalize, parseBoolean, readTable, splitList, synonymColumns, tagColumns } from './common.mjs'
+import { normalize, parseBoolean, readSynonymTable, readTable, splitList, tagColumns } from './common.mjs'
 
 const source = new URL('../../data/search/search-tags.csv', import.meta.url)
 const synonymsSource = new URL('../../data/search/search-synonyms.csv', import.meta.url)
@@ -8,7 +8,7 @@ const destination = new URL('../../src/generated/search-index.json', import.meta
 
 export async function build({ check = false, tagsPath = source, synonymsPath = synonymsSource, outputPath = destination } = {}) {
   const rows = await readTable(tagsPath, tagColumns)
-  const synonymRows = await readTable(synonymsPath, synonymColumns)
+  const synonymRows = await readSynonymTable(synonymsPath)
   const index = compileIndex(rows, synonymRows)
   const result = `${JSON.stringify(index, null, 2)}\n`
   if (check) {

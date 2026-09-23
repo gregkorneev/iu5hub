@@ -2,6 +2,10 @@
 node_modules/
 dist/
 
+# Generated local search tagging workbook; CSV files remain the source of truth
+data/search/tagging-queue.xlsx
+data/search/~$*.xlsx
+
 # Local environment and tooling files
 .env
 .env.*

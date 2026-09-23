@@ -5,8 +5,12 @@
 ```text
 Публичный Яндекс.Диск
         ↓ npm run search:sync (ручная сеть)
-data/search/search-tags.csv (catalog inventory and ручные поля in one table)
-        ↓ ручное заполнение aliases / keywords / priority / enabled / notes
+search-tags.csv + search-synonyms.csv (CSV source of truth)
+        ↓ npm run search:workbook
+Excel tagging-queue.xlsx (листы «Разметка», «Синонимы», «Инструкция»)
+        ↓ ручное заполнение
+npm run search:workbook:apply
+        ↓ импорт ручных полей в CSV
 npm run search:validate
         ↓ npm run search:build
 src/generated/search-index.json
@@ -17,6 +21,10 @@ npm run search:coverage
 `search:sync` обходит публичные каталоги, заданные в конфигурации курсов. Курс без корректной публичной ссылки пропускается. Sync обновляет машинные поля и сохраняет заполненные вручную данные по совпавшему `object_key`; исчезнувшие объекты остаются в таблице с `source_status=missing`, чтобы метаданные не терялись. Переименование или перенос может изменить ключ, если публичный API не даёт пригодного стабильного идентификатора. В таком случае старые метаданные сохраняются как missing, а новый объект появляется отдельной строкой; предупреждение о возможном совпадении не переносит метаданные автоматически.
 
 ## Таблицы
+
+Рекомендуемый способ ручной настройки — Excel-книга `data/search/tagging-queue.xlsx`. Команда `npm run search:workbook` обновляет очередь, создаёт книгу и автоматически открывает её в Excel на macOS. Книга содержит лист «Разметка» с активными папками, лист «Синонимы» с глобальными соответствиями и лист «Инструкция» с описанием полей. В «Разметке» редактируются `aliases`, `keywords`, `priority`, `enabled`, `inherit`, `notes`; на листе «Синонимы» — `term`, `synonyms`, `enabled`, `notes`. `object_key` скрыт и используется для сопоставления при импорте; не меняйте его или остальные machine fields. После сохранения запустите `npm run search:workbook:apply`, чтобы перенести ручные значения в CSV, проверить таблицы, собрать индекс и coverage.
+
+CSV (`search-tags.csv`, `search-synonyms.csv`) остаётся source of truth. Workbook — временная рабочая форма, исключена из Git. Для расширенного ручного процесса без Excel используйте `npm run search:tagging-queue` → правка `tagging-queue.csv` → `npm run search:apply-tags`; синонимы можно редактировать напрямую в CSV.
 
 Основной файл для владельца — `data/search/search-tags.csv`. Откройте его в Numbers, Excel, LibreOffice или импортируйте в Google Sheets. Редактируйте только `aliases`, `keywords`, `priority`, `enabled`, `inherit` и `notes`. В списках используйте `;` как разделитель, например `матан; мат анализ`. Пустые поля допустимы; новая строка по умолчанию включена с приоритетом 0.
 
@@ -29,6 +37,8 @@ npm run search:coverage
 ## Команды
 
 - `npm run search:sync` — получить актуальный каталог; требует доступа к сети и запускается вручную.
+- `npm run search:workbook` — обновить очередь, создать Excel-книгу и открыть её в Excel на macOS.
+- `npm run search:workbook:apply` — импортировать ручные поля и синонимы из книги в CSV, проверить, собрать индекс и coverage.
 - `npm run search:validate` — проверить CSV и соответствие строк локальному снимку каталога.
 - `npm run search:build` — собрать machine-readable индекс из таблиц и каталога; сеть не нужна.
 - `npm run search:build:check` — проверить, что закоммиченный индекс совпадает с результатом сборки; сеть не нужна.

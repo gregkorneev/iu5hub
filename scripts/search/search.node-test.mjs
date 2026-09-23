@@ -1,8 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import ExcelJS from 'exceljs'
 import { parseCsv, stringifyCsv, objectKeyForPath, parseBoolean, readTable, tagColumns, synonymColumns, writeTable } from './common.mjs'
 import { inventoryCourse, mergeInventory, sync } from './sync-yandex.mjs'
 import { build, compileIndex } from './build.mjs'
@@ -10,6 +11,139 @@ import { validate } from './validate.mjs'
 import { createQueue, queueColumns } from './tagging-queue.mjs'
 import { applyTags, validateQueueAndApply } from './apply-tags.mjs'
 import { summarize } from './coverage.mjs'
+import { buildPriorityTagRows, commitSourceFiles, generateWorkbook, mergeWorkbookSynonyms, overlayTagQueue, parseTagWorksheet, parseWorkbookSynonyms, readWorksheetRecords, sheetNames, tagSheetColumns } from './workbook.mjs'
+
+test('generated Excel workbook contains the requested sheets, Unicode, hidden key and validations', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'search-workbook-create-'))
+  const path = join(dir, 'tagging-queue.xlsx')
+  try {
+    const { tagRows } = await generateWorkbook({ path, noOpen: true })
+    assert.equal(tagRows.length, 141)
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.readFile(path)
+    assert.deepEqual(workbook.worksheets.map(({ name }) => name), ['Инструкция', 'Разметка', 'Синонимы'])
+    const sheet = workbook.getWorksheet('Разметка')
+    assert.deepEqual(sheet.getRow(1).values.slice(1, 12), ['Курс', 'Глубина', 'Путь', 'Название', 'Псевдонимы', 'Ключевые слова', 'Приоритет', 'Наследовать', 'Включено', 'Заметки', 'Статус'])
+    assert.equal(sheet.rowCount, 142)
+    const keyColumn = sheet.getRow(1).values.slice(1).indexOf('object_key') + 1
+    assert.ok(keyColumn > 0)
+    assert.equal(sheet.getColumn(keyColumn).hidden, true)
+    assert.equal(sheet.getCell(2, 3).value.includes('Семестр'), true)
+    assert.equal(sheet.getCell(2, 1).value, 'Курс 1')
+    assert.equal(sheet.getCell(2, 5).value, '')
+    assert.equal(sheet.getCell(2, 7).value, 0)
+    assert.equal(sheet.getCell(2, 8).value, 'TRUE')
+    assert.equal(sheet.getCell(2, 9).value, 'TRUE')
+    assert.equal(sheet.getCell(2, 7).dataValidation.type, 'whole')
+    assert.equal(sheet.getCell(2, 8).dataValidation.type, 'list')
+    assert.equal(sheet.getCell(2, 9).dataValidation.type, 'list')
+    assert.equal(sheet.views[0].ySplit, 1)
+    assert.equal(sheet.getColumn(3).alignment.wrapText, true)
+    const synonyms = workbook.getWorksheet('Синонимы')
+    assert.equal(synonyms.getColumn(5).hidden, true)
+    assert.equal(synonyms.getCell(3, 3).dataValidation.type, 'list')
+  } finally { await rm(dir, { recursive: true, force: true }) }
+})
+
+test('workbook row order is irrelevant and unknown or duplicate keys are rejected', () => {
+  const queue = [
+    { object_key: 'one', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Курс/А', name: 'А', depth: '1', status: 'priority', source_status: 'active', enabled: 'TRUE', aliases: '', keywords: '', priority: '0', inherit: 'TRUE', notes: '' },
+    { object_key: 'two', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Курс/Б', name: 'Б', depth: '1', status: 'priority', source_status: 'active', enabled: 'TRUE', aliases: '', keywords: '', priority: '0', inherit: 'TRUE', notes: '' },
+  ]
+  const submitted = [...queue].reverse().map((row) => ({ ...row, aliases: `tag-${row.object_key}` }))
+  const parsed = parseTagWorksheet(submitted, queue)
+  assert.deepEqual(parsed.map(({ object_key }) => object_key), ['two', 'one'])
+  assert.throws(() => parseTagWorksheet([{ ...submitted[0], object_key: 'missing' }, submitted[1]], queue), /Unknown or ineligible object_key/)
+  assert.throws(() => parseTagWorksheet([submitted[0], submitted[0]], queue), /exactly once/)
+})
+
+test('workbook source replacement restores earlier CSV when a later rename fails', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'workbook-atomic-'))
+  try {
+    const tags = join(dir, 'tags.csv'); const synonyms = join(dir, 'synonyms.csv')
+    await writeFile(tags, 'old tags'); await writeFile(synonyms, 'old synonyms')
+    let calls = 0
+    const renameFile = async (source, destination) => {
+      calls++
+      if (calls === 2) throw new Error('simulated second rename failure')
+      await rename(source, destination)
+    }
+    await assert.rejects(commitSourceFiles([[tags, 'new tags'], [synonyms, 'new synonyms']], { renameFile }), /simulated second rename failure/)
+    assert.equal(await readFile(tags, 'utf8'), 'old tags')
+    assert.equal(await readFile(synonyms, 'utf8'), 'old synonyms')
+    assert.equal((await readdir(dir)).some((name) => name.endsWith('.bak')), false)
+  } finally { await rm(dir, { recursive: true, force: true }) }
+})
+
+test('workbook source replacement preserves a recovery backup when rollback fails', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'workbook-rollback-'))
+  try {
+    const tags = join(dir, 'tags.csv'); const synonyms = join(dir, 'synonyms.csv')
+    await writeFile(tags, 'old tags'); await writeFile(synonyms, 'old synonyms')
+    let calls = 0
+    const renameFile = async (source, destination) => {
+      calls++
+      if (calls === 2 || calls === 3) throw new Error('simulated rename failure')
+      await rename(source, destination)
+    }
+    await assert.rejects(commitSourceFiles([[tags, 'new tags'], [synonyms, 'new synonyms']], { renameFile }), /Recovery backups were preserved at:/)
+    const backup = (await readdir(dir)).find((name) => name.endsWith('.bak'))
+    assert.ok(backup)
+    assert.equal(await readFile(join(dir, backup), 'utf8'), 'old tags')
+  } finally { await rm(dir, { recursive: true, force: true }) }
+})
+
+test('workbook overlays editable queue fields by stable key and keeps canonical fields', () => {
+  const canonical = { object_key: 'k', course_id: 'course-1', path: 'Курс/Папка', name: 'Папка', aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '' }
+  const merged = overlayTagQueue([canonical], [{ ...canonical, path: 'spoof', aliases: 'папка', keywords: 'лекции', priority: '7', enabled: 'FALSE', notes: 'ручное' }])
+  assert.equal(merged[0].path, canonical.path)
+  assert.equal(merged[0].aliases, 'папка')
+  assert.equal(merged[0].priority, '7')
+  assert.equal(merged[0].enabled, 'FALSE')
+  assert.equal(merged[0].notes, 'ручное')
+})
+
+test('workbook synonym overlays retain edits, stable keys, new rows, and safe deletions', () => {
+  const original = [{ object_key: 'synonym:old', term: 'базы данных', synonyms: 'бд', enabled: 'TRUE', notes: '' }]
+  const prior = [
+    { ...original[0], term: 'данные', synonyms: 'бд; субд', notes: 'общий' },
+    { object_key: '', term: 'математический анализ', synonyms: 'матан', enabled: 'TRUE', notes: '' },
+  ]
+  const merged = mergeWorkbookSynonyms(original, prior)
+  assert.equal(merged[0].term, 'данные')
+  assert.equal(merged[0].object_key, 'synonym:old')
+  assert.equal(merged[1].term, 'математический анализ')
+  assert.equal(merged.length, 2)
+  const applied = parseWorkbookSynonyms(merged, original)
+  assert.equal(applied[0].object_key, 'synonym:old')
+  assert.match(applied[1].object_key, /^synonym:/)
+  assert.throws(() => parseWorkbookSynonyms([merged[0], { ...merged[0], term: 'другое' }, merged[1]], original), /Duplicate synonym object_key/)
+  assert.throws(() => parseWorkbookSynonyms([{ ...merged[0], term: ' ' }], original), /clear synonyms and notes/)
+  assert.throws(() => parseWorkbookSynonyms([{ ...merged[0], object_key: 'unknown' }], original), /Unknown synonym object_key/)
+})
+
+test('workbook rows map Russian headers and reject formulas', () => {
+  const makeSheet = (firstValue) => ({
+    name: sheetNames.tags, rowCount: 2,
+    getRow: (rowNumber) => ({
+      values: rowNumber === 1 ? [undefined, 'Путь', 'object_key'] : undefined,
+      getCell: (column) => ({ value: rowNumber === 1 ? (column === 1 ? 'Путь' : 'object_key') : (column === 1 ? firstValue : 'stable') }),
+    }),
+  })
+  const worksheet = makeSheet({ formula: '1+1' })
+  assert.throws(() => readWorksheetRecords(worksheet, { Путь: 'path' }), /formulas are not allowed/)
+  assert.deepEqual(readWorksheetRecords(makeSheet('Курс/Папка'), { Путь: 'path' }).records, [{ path: 'Курс/Папка', object_key: 'stable' }])
+  assert.equal(readWorksheetRecords(makeSheet('=SUM(A1:A2)'), { Путь: 'path' }).records[0].path, '=SUM(A1:A2)')
+})
+
+test('workbook visible tag columns and priority queue size stay fixed', () => {
+  assert.deepEqual(tagSheetColumns.slice(0, 11).map(([, header]) => header), ['Курс', 'Глубина', 'Путь', 'Название', 'Псевдонимы', 'Ключевые слова', 'Приоритет', 'Наследовать', 'Включено', 'Заметки', 'Статус'])
+  assert.equal(tagSheetColumns[11][0], 'object_key')
+  const rows = Array.from({ length: 141 }, (_, index) => ({ object_key: `k${index}`, course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: `Курс/Семестр/${String(index).padStart(3, '0')}`, name: `${index}`, aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }))
+  const generated = buildPriorityTagRows(rows, ['course-1'], [{ ...rows[0], aliases: 'сохранено' }])
+  assert.equal(generated.length, 141)
+  assert.equal(generated[0].aliases, 'сохранено')
+})
 
 test('CSV handles Cyrillic, quoting, commas, and line endings', () => {
   const source = '\ufeffname,notes\r\n"Математический анализ","строка, с ""кавычками"""\r\n'
@@ -137,7 +271,7 @@ test('validation catches duplicate keys, normalized tags, invalid priority, and 
     assert(messages.some((message) => message.includes('duplicate object_key')))
     assert(messages.some((message) => message.includes('duplicate items after normalization')))
     assert(messages.some((message) => message.includes('empty list item')))
-    assert(messages.some((message) => message.includes('priority must be a non-negative integer')))
+    assert(messages.some((message) => message.includes('priority must be an integer from 0 to')))
     assert(messages.some((message) => message.includes('enabled must be TRUE or FALSE')))
     assert(messages.some((message) => message.includes('inherit must be TRUE or FALSE')))
   } finally { await rm(dir, { recursive: true, force: true }) }

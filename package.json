@@ -21,6 +21,8 @@
     "search:tagging-queue": "node scripts/search/tagging-queue.mjs",
     "search:tagging-queue:check": "node scripts/search/tagging-queue.mjs --check",
     "search:apply-tags": "node scripts/search/apply-tags.mjs",
+    "search:workbook": "node scripts/search/workbook.mjs",
+    "search:workbook:apply": "node scripts/search/workbook.mjs --apply",
     "search:prepare": "npm run search:sync && npm run search:tagging-queue && npm run search:validate && npm run search:build && npm run search:coverage",
     "qa": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:ui"
   },
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "exceljs": "^4.4.0",
     "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.63.0",
     "@types/react": "^19.2.14",

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { dataDir, normalize, parseBoolean, parseCsv, readCourses, readTable, stringifyCsv, tagColumns, writeTable } from './common.mjs'
+import { dataDir, maxPriority, normalize, parseBoolean, parseCsv, readCourses, readTable, stringifyCsv, tagColumns, writeTable } from './common.mjs'
 import { createQueue, queueColumns, queueStatus } from './tagging-queue.mjs'
 
 const canonicalPath = new URL('search-tags.csv', dataDir)
@@ -37,7 +37,7 @@ export function validateQueueAndApply(canonical, queue) {
 }
 
 function validateManual(row, key) {
-  if (!/^\d+$/.test(row.priority) || !Number.isSafeInteger(Number(row.priority))) throw new Error(`${key}: priority must be a non-negative integer`)
+  if (!/^\d+$/.test(row.priority) || !Number.isSafeInteger(Number(row.priority)) || Number(row.priority) > maxPriority) throw new Error(`${key}: priority must be an integer from 0 to ${maxPriority}`)
   parseBoolean(row.inherit)
   for (const field of ['aliases', 'keywords']) {
     if (row[field].length > 2000) throw new Error(`${key}: ${field} is too long`)

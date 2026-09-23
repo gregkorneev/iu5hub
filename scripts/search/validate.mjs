@@ -1,4 +1,4 @@
-import { readCourses, readTable, tagColumns, synonymColumns, dataDir, normalize, parseBoolean } from './common.mjs'
+import { maxPriority, readCourses, readSynonymTable, readTable, tagColumns, dataDir, normalize, parseBoolean } from './common.mjs'
 
 const fail = (message) => console.error(`ERROR: ${message}`)
 const controls = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/
@@ -16,7 +16,7 @@ export async function validate(directory = dataDir) {
   const errors = []
   let rows, synonyms
   try { rows = await readTable(new URL('search-tags.csv', directory), tagColumns) } catch (error) { errors.push(`search-tags.csv: ${error.message}`) }
-  try { synonyms = await readTable(new URL('search-synonyms.csv', directory), synonymColumns) } catch (error) { errors.push(`search-synonyms.csv: ${error.message}`) }
+  try { synonyms = await readSynonymTable(new URL('search-synonyms.csv', directory)) } catch (error) { errors.push(`search-synonyms.csv: ${error.message}`) }
   if (rows) {
     const courses = await readCourses(); const ids = new Set(courses.map(({ id }) => id)); const keys = new Set()
     rows.forEach((row, index) => {
@@ -26,7 +26,7 @@ export async function validate(directory = dataDir) {
       if (!['folder', 'file'].includes(row.type)) errors.push(`${label}: type must be folder or file`)
       if (!['active', 'missing'].includes(row.source_status)) errors.push(`${label}: source_status must be active or missing`)
       if (keys.has(row.object_key)) errors.push(`${label}: duplicate object_key "${row.object_key}"`); keys.add(row.object_key)
-      if (!/^\d+$/.test(row.priority) || !Number.isSafeInteger(Number(row.priority))) errors.push(`${label}: priority must be a non-negative integer`)
+      if (!/^\d+$/.test(row.priority) || !Number.isSafeInteger(Number(row.priority)) || Number(row.priority) > maxPriority) errors.push(`${label}: priority must be an integer from 0 to ${maxPriority}`)
       try { parseBoolean(row.enabled) } catch { errors.push(`${label}: enabled must be TRUE or FALSE`) }
       try { parseBoolean(row.inherit) } catch { errors.push(`${label}: inherit must be TRUE or FALSE`) }
       checkList(row.aliases, `${label} aliases`, errors); checkList(row.keywords, `${label} keywords`, errors)
@@ -34,13 +34,19 @@ export async function validate(directory = dataDir) {
       if (row.path.length > 1000) errors.push(`${label}: path exceeds 1000 characters`)
     })
   }
-  if (synonyms) synonyms.forEach((row, index) => {
+  if (synonyms) {
+    const synonymKeys = new Set()
+    synonyms.forEach((row, index) => {
     const label = `search-synonyms.csv row ${index + 2}`
     if (!row.term.trim()) errors.push(`${label}: term is required`)
+    if (!row.object_key?.trim()) errors.push(`${label}: object_key is required`)
+    if (synonymKeys.has(row.object_key)) errors.push(`${label}: duplicate object_key`)
+    synonymKeys.add(row.object_key)
     try { parseBoolean(row.enabled) } catch { errors.push(`${label}: enabled must be TRUE or FALSE`) }
     checkList(row.synonyms, `${label} synonyms`, errors)
     for (const field of synonymColumns) if (controls.test(row[field] ?? '')) errors.push(`${label}: ${field} contains a control character`)
-  })
+    })
+  }
   for (const message of errors) fail(message)
   if (errors.length) return false
   console.log(`Search metadata valid: ${(rows ?? []).length} objects, ${(synonyms ?? []).length} synonym entries.`)

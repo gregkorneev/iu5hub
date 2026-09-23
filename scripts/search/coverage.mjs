@@ -1,4 +1,4 @@
-import { dataDir, parseBoolean, readTable, synonymColumns, tagColumns } from './common.mjs'
+import { dataDir, parseBoolean, readSynonymTable, readTable, tagColumns } from './common.mjs'
 import { compileIndex } from './build.mjs'
 import { createQueue } from './tagging-queue.mjs'
 
@@ -33,7 +33,7 @@ export function summarize(rows, synonymRows = []) {
 
 export async function report() {
   const rows = await readTable(new URL('search-tags.csv', dataDir), tagColumns)
-  const synonymRows = await readTable(new URL('search-synonyms.csv', dataDir), synonymColumns)
+  const synonymRows = await readSynonymTable(new URL('search-synonyms.csv', dataDir))
   const { active, folders, files, hasAliases, hasKeywords, tagged, missing, untaggedFolders, enabled, disabled, taggedFolders, folderAliases, folderKeywords, inheriting, taggedFiles, queue, inherited, withoutEffectiveTags, depthCounts } = summarize(rows, synonymRows)
   const metric = (label, value) => `${label.padEnd(29)}${value}`
   const lines = [

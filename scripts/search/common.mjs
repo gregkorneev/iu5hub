@@ -2,8 +2,10 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 
 export const tagColumns = ['object_key', 'course_id', 'course_title', 'type', 'path', 'name', 'aliases', 'keywords', 'priority', 'enabled', 'inherit', 'notes', 'source_status']
-export const synonymColumns = ['term', 'synonyms', 'enabled', 'notes']
+export const synonymColumns = ['term', 'synonyms', 'enabled', 'notes', 'object_key']
+export const legacySynonymColumns = ['term', 'synonyms', 'enabled', 'notes']
 export const manualColumns = ['aliases', 'keywords', 'priority', 'enabled', 'inherit', 'notes']
+export const maxPriority = 2_147_483_647
 
 export function parseCsv(text) {
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1)
@@ -52,6 +54,7 @@ export const parseBoolean = (value) => {
   throw new Error(`Expected TRUE or FALSE, got "${value}"`)
 }
 export const defaultInherit = (type) => type === 'folder' ? 'TRUE' : 'FALSE'
+export const synonymKeyForTerm = (term) => `synonym:${createHash('sha256').update(normalize(term)).digest('hex').slice(0, 20)}`
 
 // The config is intentionally read from courses.ts so the sync uses the same source as the app.
 export async function readCourses() {
@@ -66,6 +69,26 @@ export async function readTable(path, expectedHeaders) {
   const parsed = parseCsv(text)
   if (expectedHeaders && parsed.headers.join('\0') !== expectedHeaders.join('\0')) throw new Error(`${path}: expected columns ${expectedHeaders.join(', ')}`)
   return parsed.records
+}
+export async function readSynonymTable(path) {
+  let text
+  try { text = new TextDecoder('utf-8', { fatal: true }).decode(await readFile(path)) }
+  catch (error) { throw new Error(`invalid UTF-8 (${error.message})`) }
+  const parsed = parseCsv(text)
+  if (parsed.headers.join('\0') === synonymColumns.join('\0')) return parsed.records
+  if (parsed.headers.join('\0') !== legacySynonymColumns.join('\0')) throw new Error(`${path}: expected columns ${synonymColumns.join(', ')}`)
+  return parsed.records.map((row) => ({ ...row, object_key: synonymKeyForTerm(row.term) }))
+}
+export async function migrateSynonymTable(path) {
+  let text
+  try { text = new TextDecoder('utf-8', { fatal: true }).decode(await readFile(path)) }
+  catch (error) { throw new Error(`invalid UTF-8 (${error.message})`) }
+  const parsed = parseCsv(text)
+  if (parsed.headers.join('\0') === synonymColumns.join('\0')) return parsed.records
+  if (parsed.headers.join('\0') !== legacySynonymColumns.join('\0')) throw new Error(`${path}: expected columns ${synonymColumns.join(', ')}`)
+  const records = parsed.records.map((row) => ({ ...row, object_key: synonymKeyForTerm(row.term) }))
+  await writeTable(path, synonymColumns, records)
+  return records
 }
 export async function writeTable(path, headers, records) {
   await writeFile(path, stringifyCsv(headers, records), 'utf8')
