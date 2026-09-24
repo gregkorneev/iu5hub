@@ -4,6 +4,7 @@ export interface TelegramWebApp {
   initData?: string
   initDataUnsafe?: { user?: TelegramUser }
   themeParams?: Record<string, string>
+  colorScheme?: 'light' | 'dark'
   viewportHeight?: number
   viewportStableHeight?: number
   isExpanded?: boolean

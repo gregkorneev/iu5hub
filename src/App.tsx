@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Link, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type DiskSearchResult, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
@@ -20,12 +20,13 @@ function useCatalog() {
 function Layout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const direction = useNavigationType() === 'POP' ? 'back' : 'forward'
   useTelegramBackButton(location.pathname !== '/')
   const user = getTelegramUser()
   const [admin, setAdmin] = useState(false)
   useEffect(() => { let current = true; void adminFetch('/api/admin/me').then((response) => response.ok ? response.json() : null).then((data: { isAdmin?: boolean } | null) => { if (current) setAdmin(data?.isAdmin === true) }).catch(() => undefined); return () => { current = false } }, [])
   const home = location.pathname === '/'
-  return <div className={`app${home ? ' app--home' : ''}`}><header><Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link>{(!home || admin) && <nav aria-label="Основная навигация">{!home && <><Link to="/">Каталог</Link><Link to="/search">Поиск</Link></>}{admin && <Link to="/admin/stats">Статистика</Link>}</nav>}</header>{user && home && <p className="user-greeting">Привет, {user.firstName}</p>}<main key={location.pathname}>{!home && !location.pathname.startsWith('/course/') && !location.pathname.startsWith('/admin/') && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}{children}</main><footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer></div>
+  return <div className={`app${home ? ' app--home' : ''}`}><header><Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link>{(!home || admin) && <nav aria-label="Основная навигация">{!home && <><Link to="/">Каталог</Link><Link to="/search">Поиск</Link></>}{admin && <Link to="/admin/stats">Статистика</Link>}</nav>}</header>{user && home && <p className="user-greeting">Привет, {user.firstName}</p>}<main key={`${location.pathname}${location.search}`} data-navigation={direction}>{!home && !location.pathname.startsWith('/course/') && !location.pathname.startsWith('/admin/') && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}{children}</main><footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer></div>
 }
 function Home() {
   const { courses } = useCatalog()

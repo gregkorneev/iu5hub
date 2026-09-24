@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-24
+
+- Обновлён дизайн Telegram Mini App: семантические токены поверх Telegram theme, системный шрифт для основного текста и ALS Sector для бренда, более ясные отступы, спокойные поверхности карточек и поиска, быстрый feedback при касании.
+- Добавлены короткие направленные переходы маршрутов с учётом возврата, анимационная замена для `prefers-reduced-motion`, плотный фон без blur для `prefers-reduced-transparency` и усиленные границы для `prefers-contrast`.
+- Главная на низком portrait-экране и при фокусе поиска может прокручиваться по вертикали; на обычной высоте сохраняет компоновку внутри Telegram viewport. Обновлены browser-проверки геометрии на 320 px, тем и accessibility preferences.
+
 ## 2026-09-23
 
 - Added the CSV-based preparation workflow for manually curated search aliases/keywords, with offline validation/build checks in CI; production search is unchanged.

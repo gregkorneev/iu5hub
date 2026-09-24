@@ -8,6 +8,7 @@ import { isTelegramLaunchHash } from './telegram/location'
 import './styles.css'
 import './responsive.css'
 import './dark-theme.css'
+import './design.css'
 
 initializeTelegram()
 trackAppOpen()

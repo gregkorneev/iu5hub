@@ -7,6 +7,7 @@ describe('initializeTelegram', () => {
   it('keeps the selected launch mode and refreshes safe areas', () => {
     const listeners: Record<string, () => void> = {}
     const setProperty = vi.fn()
+    const removeProperty = vi.fn()
     const app = {
       viewportHeight: 420,
       viewportStableHeight: 420,
@@ -18,7 +19,7 @@ describe('initializeTelegram', () => {
       offEvent: vi.fn(),
     }
     vi.stubGlobal('window', { Telegram: { WebApp: app } })
-    vi.stubGlobal('document', { documentElement: { dataset: {}, style: { setProperty } } })
+    vi.stubGlobal('document', { documentElement: { dataset: {}, style: { setProperty, removeProperty } } })
 
     initializeTelegram()
     listeners.safeAreaChanged()

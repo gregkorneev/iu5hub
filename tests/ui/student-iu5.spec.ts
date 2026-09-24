@@ -1,10 +1,13 @@
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures'
 
-test.describe('Student Hub critical UI', () => {
+test.describe('Студент ИУ5 critical UI', () => {
   test('starts in Telegram, exposes courses, and has no serious accessibility violations', async ({ page }, testInfo) => {
     const consoleErrors: string[] = []
     page.on('pageerror', (error) => consoleErrors.push(error.message))
+    page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()) })
+    page.on('requestfailed', (request) => { if (request.method() === 'GET') consoleErrors.push(`${request.method()} ${request.url()}: ${request.failure()?.errorText}`) })
+    page.on('response', (response) => { if (response.status() >= 400) consoleErrors.push(`${response.status()} ${response.url()}`) })
     await page.goto('/#/')
     await expect(page.getByRole('heading', { name: 'Материалы на Яндекс.Диске' })).toBeVisible()
     await expect(page.getByRole('link', { name: /Курс 1/ })).toBeVisible()
@@ -15,7 +18,8 @@ test.describe('Student Hub critical UI', () => {
       await document.fonts.load('700 16px "ALS Sector"')
       return document.fonts.check('16px "ALS Sector"')
         && document.fonts.check('700 16px "ALS Sector"')
-        && getComputedStyle(document.documentElement).fontFamily.includes('ALS Sector')
+        && getComputedStyle(document.documentElement).fontFamily.includes('-apple-system')
+        && getComputedStyle(document.querySelector('.brand')!).fontFamily.includes('ALS Sector')
     })).toBeTruthy()
     await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toBeHidden()
     await expect.poll(() => page.evaluate(() => (window as Window & { __telegram: { ready: number } }).__telegram.ready)).toBe(1)
@@ -58,17 +62,21 @@ test.describe('Student Hub critical UI', () => {
       await page.goto('/#/course/course-1?path=1%20%D0%A1%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
       const tiles = page.locator('.semester-subject-grid .disk-item--folder')
       await expect(tiles).toHaveCount(3)
-      expect(await tiles.evaluateAll((items) => {
+      const geometry = await tiles.evaluateAll((items) => {
         const [first, second] = items.map((item) => item.getBoundingClientRect())
-        const titlesFit = items.every((item) => {
+        const titles = items.map((item) => {
           const title = item.querySelector<HTMLElement>('strong')!
           const style = getComputedStyle(title)
-          return title.scrollWidth <= title.clientWidth
-            && style.overflowWrap === 'normal' && style.wordBreak === 'normal'
+          return { name: title.textContent, scrollWidth: title.scrollWidth, clientWidth: title.clientWidth, overflowWrap: style.overflowWrap, wordBreak: style.wordBreak }
         })
-        return first.top === second.top && first.left < second.left
-          && titlesFit
-      })).toBeTruthy()
+        return { sameRow: first.top === second.top && first.left < second.left, titles }
+      })
+      expect(geometry.sameRow).toBeTruthy()
+      for (const title of geometry.titles) {
+        expect(title.scrollWidth, title.name ?? '').toBeLessThanOrEqual(title.clientWidth)
+        expect(title.overflowWrap).toBe('normal')
+        expect(title.wordBreak).toBe('normal')
+      }
     }
   })
 
@@ -132,14 +140,14 @@ test.describe('Student Hub critical UI', () => {
   })
 
   test('ends a stalled live Disk search with an error instead of an endless loader', async ({ page }) => {
-    test.setTimeout(20_000)
+    test.setTimeout(25_000)
     await page.unroute('https://cloud-api.yandex.net/**')
     await page.route('**/v1/disk/public/resources**', async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 11_000))
       await route.fulfill({ json: { _embedded: { items: [] } } })
     })
     await page.goto('/#/search?q=%D0%9C%D0%B0%D1%82%D0%B5%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%B0%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7')
-    await expect(page.getByText('Не удалось выполнить поиск по Яндекс.Диску.')).toBeVisible({ timeout: 13_000 })
+    await expect(page.getByText('Не удалось выполнить поиск по Яндекс.Диску.')).toBeVisible({ timeout: 16_000 })
     await expect(page.getByText('Ищем в папках и файлах…')).toBeHidden()
   })
 

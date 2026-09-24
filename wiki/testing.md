@@ -20,10 +20,10 @@ The Excel workbook is regenerated from CSV by `npm run search:workbook`; `npm ru
 - Cloudflare Pages config: required token/account/project values and a valid project name.
 - Playwright critical UI suite: startup, courses/folders/files, direct HashRouter route, Russian/empty search, Telegram BackButton fixture, mobile overflow and serious/critical axe violations. Vite starts automatically through Playwright `webServer`; no tunnel or Telegram login is required.
 - Header branding uses the single public asset `/logo-iu5.jpeg`; the browser suite verifies it loads on the home route.
-- Global typography uses local ALS Sector Regular and Bold; browser checks wait for both font faces before confirming the root style.
+- Основной текст использует системный стек шрифтов, а бренд — локальный ALS Sector. Browser checks загружают Regular и Bold и проверяют, что бренд использует ALS Sector, а корневой элемент — системный стек.
 - Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
 - Home search also accepts a Latin transliteration of a Russian query (for example, `ma` finds `Математический анализ`); the mobile regression covers this input before checking the suggestion's tappability.
-- Home is locked to the Telegram viewport in portrait: the mobile regression verifies both axes cannot scroll. In landscape the page allows vertical scrolling for content that no longer fits, while the horizontal axis stays locked; catalog and search routes remain normally scrollable.
+- Home fills the Telegram viewport in ordinary portrait and does not scroll when content fits. On a short portrait viewport or while the search field has focus, vertical scrolling keeps content reachable above the mobile keyboard. Landscape also allows vertical scrolling when needed. Horizontal overflow remains blocked; catalog and search routes scroll normally.
 - File cards use a fixed download-control column: the browser regression checks equal right alignment for short and long file names in both catalog and search results, in every viewport engine.
 - Semester-folder names are recognized in both `sem` and `семестр` forms, regardless of case; mobile regression checks the two-column folder-tile layout and confirms even `Парадигмы и конструкции языков программирования` stays inside its tile and breaks only at spaces. A file in the same semester grid spans both columns, keeps its long name within bounds and retains its download button at the right edge.
 - Header navigation: the home route hides only its redundant Catalog and Search links; inner routes preserve them. The server-confirmed admin Statistics link is above the hero layer and its click opens `/#/admin/stats` on desktop, mobile Chromium and WebKit.
@@ -35,6 +35,7 @@ The Excel workbook is regenerated from CSV by `npm run search:workbook`; `npm ru
 - Worker regressions: event before `app_open` creates the pseudonymous user without inflating launches; `/stats` never replies in a group; 7/30-day metrics use trailing hours; only declared GET statistics routes and periods are accepted; oversized event bodies stop during streaming.
 - Optional deploy configuration: both jobs require a public HTTPS `VITE_ANALYTICS_API_BASE` repository variable before building, while the general `verify` job remains independent of production configuration.
 - Dashboard UI: empty/loading/error states, summary cards, period switching, zero-filled 30-day graph, popular subject/material long titles, and admin versus student mock users.
+- Design resilience: 320 px semester tile geometry, light/dark Telegram palettes, route direction and `prefers-reduced-motion`, `prefers-reduced-transparency`, `prefers-contrast` are covered by browser checks. The UI uses Telegram theme values through semantic CSS roles and keeps the `HashRouter`/BackButton/viewport layer intact.
 
 ## UI adversarial QA
 
@@ -47,6 +48,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 2026-09-21: после исправления латинского ввода `Ma` прошли `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` и полный `npm run test:ui` (36 проверок: Chromium, mobile Chromium и WebKit); новых P3-ограничений не выявлено.
 
 2026-09-23: после исправлений поиска, Worker и CI прошёл `npm run qa`: lint, typecheck, 17 Vitest тестов, 17 Node тестов, build и 54 Playwright проверки (Chromium, mobile Chromium, WebKit). `git diff --check` также прошёл. Реальный Telegram WebView и автоматический production deploy этим прогоном не проверялись.
+
+2026-09-24: после редизайна `npm run test:ui` прошёл 63/63 в Chromium, mobile Chromium и WebKit. Browser QA проверил 320/390/428 px, светлую и тёмную Telegram themes, несовпадение темы ОС с Telegram, safe-area/viewport events, reduced motion/transparency, increased contrast, поиск и BackButton. На главной fixture не было page exceptions, console errors, failed GET или HTTP >=400; axe serious/critical и дополнительный color-contrast audit светлой/тёмной темы не нашли нарушений. Реальный Telegram WebView, фактическая экранная клавиатура и client-specific Compact/Fullsize/Fullscreen остаются ручной проверкой.
 
 ## Analytics adversarial checks
 

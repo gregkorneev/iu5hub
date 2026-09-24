@@ -36,13 +36,17 @@ export const test = base.extend<{ telegram: TelegramState }>({
     await page.route('https://telegram.org/js/telegram-web-app.js', (route) => route.fulfill({ contentType: 'application/javascript', body: '' }))
     await page.addInitScript(() => {
       const listeners = new Set<() => void>()
+      const eventListeners = new Map<string, Set<() => void>>()
       const state = { ready: 0, visible: false, opened: [] as string[] }
       ;(window as Window & { __telegram: typeof state }).__telegram = state
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit = (event) => eventListeners.get(event)?.forEach((listener) => listener())
       ;(window as Window & { Telegram: unknown }).Telegram = { WebApp: {
         initData: 'query_id=test&user=%7B%22id%22%3A1%7D&auth_date=1&hash=test', initDataUnsafe: { user: { id: 1, first_name: 'Студент с очень длинным именем для проверки адаптивной вёрстки', username: 'student' } },
         themeParams: { bg_color: '#f6faff', text_color: '#1a1a19' }, colorScheme: 'light', viewportHeight: 844, viewportStableHeight: 844,
         safeAreaInset: { top: 0, right: 0, bottom: 0, left: 0 }, contentSafeAreaInset: { top: 0, right: 0, bottom: 0, left: 0 },
-        ready: () => { state.ready += 1 }, expand: () => {}, openLink: (url: string) => { state.opened.push(url) }, onEvent: () => {}, offEvent: () => {},
+        ready: () => { state.ready += 1 }, expand: () => {}, openLink: (url: string) => { state.opened.push(url) },
+        onEvent: (event: string, listener: () => void) => { if (!eventListeners.has(event)) eventListeners.set(event, new Set()); eventListeners.get(event)!.add(listener) },
+        offEvent: (event: string, listener: () => void) => { eventListeners.get(event)?.delete(listener) },
         BackButton: { show: () => { state.visible = true }, hide: () => { state.visible = false }, onClick: (listener: () => void) => listeners.add(listener), offClick: (listener: () => void) => listeners.delete(listener), trigger: () => listeners.forEach((listener) => listener()) },
       } }
     })

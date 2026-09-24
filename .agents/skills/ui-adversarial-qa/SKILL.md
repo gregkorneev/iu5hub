@@ -1,9 +1,9 @@
 ---
 name: ui-adversarial-qa
-description: Run Student Hub's real-browser adversarial UI QA after meaningful UI or Telegram Mini App changes, including route interaction, browser debugging, accessibility, and regressions.
+description: Run real-browser adversarial UI QA for «Студент ИУ5» after meaningful UI or Telegram Mini App changes, including route interaction, browser debugging, accessibility, and regressions.
 ---
 
-Use this skill for Student Hub UI work that changes visible flows, routes, Telegram integration, catalog data rendering, forms, or responsive CSS. Do not use it for documentation-only changes.
+Use this skill for UI work in «Студент ИУ5» that changes visible flows, routes, Telegram integration, catalog data rendering, forms, or responsive CSS. Do not use it for documentation-only changes.
 
 1. Read `wiki/current-state.md`, `wiki/testing.md`, `wiki/telegram.md`, and the relevant source before changing code. Preserve strict Telegram and Yandex Disk URL validation; use test fixtures rather than production switches.
 2. Run the affected UI in Playwright. The suite starts Vite itself and mocks `window.Telegram.WebApp` plus Yandex Disk API only in `tests/ui/fixtures.ts`.
