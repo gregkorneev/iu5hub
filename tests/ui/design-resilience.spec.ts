@@ -21,7 +21,7 @@ test.describe('Студент ИУ5 mobile resilience', () => {
   test('reacts to Telegram theme and safe-area events without losing the route or search text', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/#/search')
-    const input = page.getByRole('searchbox', { name: 'Поиск в папках и файлах' })
+    const input = page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' })
     await input.fill('мат')
     await page.evaluate(() => {
       const app = (window as Window & { Telegram: { WebApp: { themeParams: Record<string, string>; colorScheme: string; viewportHeight: number; contentSafeAreaInset: Record<string, number> } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
