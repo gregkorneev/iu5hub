@@ -18,18 +18,18 @@ test('generated Excel workbook contains the requested sheets, Unicode, hidden ke
   const path = join(dir, 'tagging-queue.xlsx')
   try {
     const { tagRows } = await generateWorkbook({ path, noOpen: true })
-    assert.equal(tagRows.length, 141)
+    assert.equal(tagRows.length, 29)
     const workbook = new ExcelJS.Workbook()
     await workbook.xlsx.readFile(path)
     assert.deepEqual(workbook.worksheets.map(({ name }) => name), ['Инструкция', 'Разметка', 'Синонимы'])
     const sheet = workbook.getWorksheet('Разметка')
     assert.deepEqual(sheet.getRow(1).values.slice(1, 3), ['Папка', 'Теги'])
-    assert.equal(sheet.rowCount, 142)
+    assert.equal(sheet.rowCount, 30)
     const keyColumn = sheet.getRow(1).values.slice(1).indexOf('object_key') + 1
     assert.ok(keyColumn > 0)
     assert.equal(keyColumn, 3)
     assert.equal(sheet.getColumn(keyColumn).hidden, true)
-    assert.match(sheet.getCell(2, 1).value, /^Курс 1 \/ 1 Семестр$/)
+    assert.match(sheet.getCell(2, 1).value, /^Курс 1 \/ 1 Семестр \/ Аналитическая геометрия$/)
     assert.equal(sheet.getCell(2, 2).value, '')
     assert.equal(sheet.views[0].ySplit, 1)
     assert.equal(sheet.getColumn(1).alignment.wrapText, true)
@@ -134,7 +134,7 @@ test('workbook rows map Russian headers and reject formulas', () => {
   assert.equal(readWorksheetRecords(makeSheet('=SUM(A1:A2)'), { Папка: 'folder_label' }).records[0].folder_label, '=SUM(A1:A2)')
 })
 
-test('workbook has one folder list and one editable tag field; priority queue size stays fixed', () => {
+test('workbook has one folder list and one editable tag field; priority queue includes only depth two', () => {
   assert.deepEqual(tagSheetColumns.slice(0, 2).map(([, header]) => header), ['Папка', 'Теги'])
   assert.equal(tagSheetColumns[2][0], 'object_key')
   const rows = Array.from({ length: 141 }, (_, index) => ({ object_key: `k${index}`, course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: `Курс/Семестр/${String(index).padStart(3, '0')}`, name: `${index}`, aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }))
@@ -176,19 +176,21 @@ test('sync merge preserves manual metadata, adds new rows, and retains missing r
   assert.equal(absent[0].inherit, 'TRUE')
 })
 
-test('tagging queue selects folders at priority depths and sorts by course, depth, path', () => {
+test('tagging queue selects folders directly inside semesters and sorts by course, depth, path', () => {
   const make = (course_id, path, type = 'folder', enabled = 'TRUE', source_status = 'active') => ({ object_key: `${course_id}:${path}`, course_id, course_title: course_id, type, path, name: path.split('/').at(-1), aliases: '', keywords: '', priority: '0', enabled, inherit: type === 'folder' ? 'TRUE' : 'FALSE', notes: '', source_status })
-  const rows = [make('course-2', '2 course/2 Sem/Б'), make('course-1', '1 course/1 Sem/Z'), make('course-1', '1 course/1 Sem/A'), make('course-1', '1 course'), make('course-1', '1 course/1 Sem/A/file.pdf', 'file'), make('course-1', '1 course/1 Sem/Disabled', 'folder', 'FALSE')]
+  const rows = [make('course-2', '2 course/2 Sem/Б'), make('course-1', '1 course/1 Sem/Z'), make('course-1', '1 course/1 Sem/A'), make('course-1', '1 course'), make('course-1', '1 course/1 Sem'), make('course-1', '1 course/1 Sem/A/Лекции'), make('course-1', '1 course/1 Sem/A/file.pdf', 'file'), make('course-1', '1 course/1 Sem/Disabled', 'folder', 'FALSE')]
   const queue = createQueue(rows, { courseIds: ['course-1', 'course-2'] })
   assert.deepEqual(queue.map(({ path }) => path), ['1 course/1 Sem/A', '1 course/1 Sem/Z', '2 course/2 Sem/Б'])
+  assert(queue.every(({ depth, status }) => depth === 2 && status === 'priority'))
   const allRows = createQueue(rows, { all: true, courseIds: ['course-1', 'course-2'] })
-  assert.equal(allRows.length, 4)
+  assert.equal(allRows.length, 6)
   assert.equal(allRows.find(({ path }) => path === '1 course').status, 'root')
-  assert(queue.every(({ status }) => status === 'priority'))
+  assert.equal(allRows.find(({ path }) => path === '1 course/1 Sem').status, 'later')
+  assert.equal(allRows.find(({ path }) => path === '1 course/1 Sem/A/Лекции').status, 'later')
 })
 
 test('apply-tags joins on key, applies manual fields including enabled, and rejects machine edits atomically', () => {
-  const canonical = [{ object_key: 'k', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: '1 course/1 Семестр', name: '1 Семестр', aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }]
+  const canonical = [{ object_key: 'k', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: '1 course/1 Семестр/Математика', name: 'Математика', aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }]
   const [queueRow] = createQueue(canonical)
   const submitted = { ...queueRow, aliases: 'семестр; сем', priority: '10', enabled: 'FALSE', inherit: 'FALSE', notes: 'ok' }
   const { records, changes } = validateQueueAndApply(canonical, [submitted])
@@ -208,14 +210,14 @@ test('apply-tags regenerates the queue after disabling a folder and preserves al
     const canonical = [make('root', 'Курс'), make('target', 'Курс/1 Семестр'), make('sibling', 'Курс/1 Семестр/Математика'), make('later', 'Курс/1/2/3/4/5/Глубоко')]
     await writeTable(tagsPath, tagColumns, canonical)
     const priorityQueue = createQueue(canonical, { courseIds: ['course-1'] })
-    await writeTable(queuePath, queueColumns, priorityQueue.map((row) => row.object_key === 'target' ? { ...row, enabled: 'FALSE' } : row))
+    assert.deepEqual(priorityQueue.map(({ object_key }) => object_key), ['sibling'])
+    await writeTable(queuePath, queueColumns, priorityQueue.map((row) => ({ ...row, enabled: 'FALSE' })))
     await applyTags({ tagsPath, queuePath })
     const queue = await readTable(queuePath, queueColumns)
-    assert(!queue.some(({ object_key }) => object_key === 'target'))
-    assert(queue.some(({ object_key }) => object_key === 'sibling'))
+    assert.equal(queue.length, 0)
     assert(queue.every(({ status }) => status === 'priority'))
     const updated = await readTable(tagsPath, tagColumns)
-    assert.equal(updated.find(({ object_key }) => object_key === 'target').enabled, 'FALSE')
+    assert.equal(updated.find(({ object_key }) => object_key === 'sibling').enabled, 'FALSE')
 
     const allQueue = createQueue(canonical, { all: true, courseIds: ['course-1'] })
     await writeTable(tagsPath, tagColumns, canonical)

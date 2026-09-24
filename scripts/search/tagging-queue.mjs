@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { dataDir, parseBoolean, readCourses, readTable, stringifyCsv, tagColumns } from './common.mjs'
 
 export const queueColumns = ['object_key', 'course_id', 'course_title', 'type', 'path', 'name', 'depth', 'status', 'source_status', 'enabled', 'aliases', 'keywords', 'priority', 'inherit', 'notes']
-export const queueStatus = (depth) => depth === 0 ? 'root' : depth <= 3 ? 'priority' : 'later'
+export const queueStatus = (depth) => depth === 0 ? 'root' : depth === 2 ? 'priority' : 'later'
 const source = new URL('search-tags.csv', dataDir)
 const destination = new URL('tagging-queue.csv', dataDir)
 
@@ -11,7 +11,7 @@ export function createQueue(rows, { all = false, courseIds = [...new Set(rows.ma
   const selected = rows.filter((row) => {
     if (row.type !== 'folder' || row.source_status !== 'active' || !parseBoolean(row.enabled)) return false
     const depth = Math.max(0, row.path.split('/').filter(Boolean).length - 1)
-    return all || (depth >= 1 && depth <= 3)
+    return all || depth === 2
   }).map((row) => {
     const depth = Math.max(0, row.path.split('/').filter(Boolean).length - 1)
     return { ...Object.fromEntries(queueColumns.map((field) => [field, row[field] ?? ''])), depth, status: queueStatus(depth) }
