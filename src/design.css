@@ -26,9 +26,9 @@
   --action: var(--telegram-button-color, #006cdc);
   --action-text: var(--telegram-button-text-color, var(--platform-background));
   --action-quiet: color-mix(in srgb, var(--action) 70%, var(--platform-text) 30%);
-  --material-thin: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
-  --material-regular: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
-  --material-thick: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+  --material-thin: color-mix(in srgb, var(--surface-elevated) 58%, transparent);
+  --material-regular: color-mix(in srgb, var(--surface-elevated) 70%, transparent);
+  --material-thick: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
   --material-edge: color-mix(in srgb, var(--platform-text) 12%, transparent);
   --material-highlight: color-mix(in srgb, #fff 70%, transparent);
   --material-shadow: color-mix(in srgb, var(--platform-text) 9%, transparent);
@@ -56,6 +56,9 @@
   --separator: color-mix(in srgb, var(--brand-blue) 20%, transparent);
   --action: color-mix(in srgb, var(--telegram-button-color, var(--brand-blue)) 15%, var(--brand-blue) 85%);
   --action-text: #062448;
+  --material-thin: color-mix(in srgb, var(--surface-elevated) 66%, transparent);
+  --material-regular: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
+  --material-thick: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
   --material-edge: color-mix(in srgb, var(--brand-blue) 22%, transparent);
   --material-highlight: color-mix(in srgb, #fff 12%, transparent);
   --material-shadow: color-mix(in srgb, #000 24%, transparent);
@@ -236,6 +239,7 @@ html:has(.app--home input:focus), body:has(.app--home input:focus) { overflow-x:
   @media (prefers-reduced-transparency: no-preference) {
     header { background: var(--material-regular); backdrop-filter: blur(18px) saturate(145%); }
     .search, .in-app-back, .course-root-link { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
+    .search:focus-within { background: var(--material-thin); }
     .search-suggestions { background: var(--material-thick); backdrop-filter: blur(24px) saturate(150%); }
   }
 }
