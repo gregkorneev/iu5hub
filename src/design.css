@@ -26,6 +26,11 @@
   --action: var(--telegram-button-color, #006cdc);
   --action-text: var(--telegram-button-text-color, var(--platform-background));
   --action-quiet: color-mix(in srgb, var(--action) 70%, var(--platform-text) 30%);
+  --action-glass: color-mix(in srgb, var(--action) 24%, transparent);
+  --action-glass-text: #002c5b;
+  --action-glass-edge: color-mix(in srgb, var(--action) 44%, transparent);
+  --action-glass-highlight: color-mix(in srgb, #fff 68%, transparent);
+  --action-glass-shadow: color-mix(in srgb, var(--action) 14%, transparent);
   --material-thin: color-mix(in srgb, var(--surface-elevated) 58%, transparent);
   --material-regular: color-mix(in srgb, var(--surface-elevated) 70%, transparent);
   --material-thick: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
@@ -56,6 +61,11 @@
   --separator: color-mix(in srgb, var(--brand-blue) 20%, transparent);
   --action: color-mix(in srgb, var(--telegram-button-color, var(--brand-blue)) 15%, var(--brand-blue) 85%);
   --action-text: #062448;
+  --action-glass: color-mix(in srgb, var(--brand-blue) 24%, transparent);
+  --action-glass-text: var(--platform-text);
+  --action-glass-edge: color-mix(in srgb, var(--brand-blue) 44%, transparent);
+  --action-glass-highlight: color-mix(in srgb, #fff 16%, transparent);
+  --action-glass-shadow: color-mix(in srgb, var(--brand-blue) 18%, transparent);
   --material-thin: color-mix(in srgb, var(--surface-elevated) 66%, transparent);
   --material-regular: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
   --material-thick: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
@@ -172,7 +182,7 @@ section + section { margin-top: 2.5rem; }
 .disk-item--folder > span:first-child::after { top: 0; width: .6875rem; height: .4375rem; border-radius: .1875rem .1875rem 0 0; }
 .disk-file { padding: 0; }
 .disk-file__open { min-height: 4.5rem; padding: var(--space-4); }
-.download-button { width: 2.75rem; height: 2.75rem; border: 0; border-radius: var(--radius-medium); background: var(--surface-secondary); color: var(--action-quiet); }
+.download-button { width: 2.75rem; height: 2.75rem; border: 1px solid var(--material-edge); border-radius: var(--radius-medium); background: var(--surface-secondary); color: var(--action-quiet); }
 .breadcrumb { margin-bottom: var(--space-3); font-size: .8125rem; }
 .breadcrumb a, .plain-link { color: var(--action); }
 .lead { color: var(--text-secondary); font-size: var(--type-body); line-height: 1.5; }
@@ -241,17 +251,36 @@ html:has(.app--home input:focus), body:has(.app--home input:focus) { overflow-x:
     .search, .in-app-back, .course-root-link { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
     .search:focus-within { background: var(--material-thin); }
     .search-suggestions { background: var(--material-thick); backdrop-filter: blur(24px) saturate(150%); }
+    :is(.search button, .button:not(.button--quiet), .filters .active, .stats-periods button.active) {
+      border: 1px solid var(--action-glass-edge);
+      background: var(--action-glass);
+      color: var(--action-glass-text);
+      box-shadow: inset 0 1px 0 var(--action-glass-highlight), 0 .25rem .75rem var(--action-glass-shadow);
+      backdrop-filter: blur(8px) saturate(145%);
+    }
+    .button--quiet {
+      border: 1px solid var(--material-edge);
+      background: var(--material-thin);
+      color: var(--text-primary);
+      box-shadow: inset 0 1px 0 var(--material-highlight), 0 .25rem .75rem var(--material-shadow);
+      backdrop-filter: blur(10px) saturate(130%);
+    }
+    .download-button { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
   }
 }
 @media (prefers-reduced-transparency: reduce) {
   header, .search-suggestions { background: var(--surface-elevated); backdrop-filter: none; }
   .search, .in-app-back, .course-root-link { background: var(--surface-secondary); backdrop-filter: none; }
+  :is(.search button, .button, .filters .active, .stats-periods button.active) { border-color: transparent; background: var(--action); color: var(--action-text); box-shadow: none; backdrop-filter: none; }
+  .button--quiet, .download-button { background: var(--surface-secondary); backdrop-filter: none; }
 }
 @media (prefers-contrast: more) {
   :root { --text-secondary: var(--text-primary); --separator: var(--text-primary); }
   .course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search, .search-suggestions { border: 1px solid var(--separator); }
   header, .search-suggestions { background: var(--surface-primary); backdrop-filter: none; }
   .search, .in-app-back, .course-root-link { background: var(--surface-secondary); backdrop-filter: none; }
+  :is(.search button, .button, .filters .active, .stats-periods button.active) { border-color: var(--action); background: var(--action); color: var(--action-text); box-shadow: none; backdrop-filter: none; }
+  .button--quiet, .download-button { background: var(--surface-secondary); backdrop-filter: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   main, main[data-navigation="back"] { animation: page-fade 120ms ease-out both !important; }

@@ -88,17 +88,20 @@ test.describe('Студент ИУ5 mobile resilience', () => {
   })
 
   test('replaces movement and translucent chrome for accessibility preferences', async ({ page, browserName }) => {
-    await page.goto('/#/course/course-1')
+    await page.goto('/#/')
     await page.emulateMedia({ reducedMotion: 'reduce', contrast: 'more' })
     expect(await page.evaluate(() => {
       const main = getComputedStyle(document.querySelector('main')!)
-      const card = getComputedStyle(document.querySelector('.semester-button')!)
+      const card = getComputedStyle(document.querySelector('.course-grid a')!)
       const header = getComputedStyle(document.querySelector('header')!)
+      const action = getComputedStyle(document.querySelector('.search button')!)
       return matchMedia('(prefers-reduced-motion: reduce)').matches
         && matchMedia('(prefers-contrast: more)').matches
         && main.animationName === 'page-fade'
         && card.borderTopWidth !== '0px'
         && header.backdropFilter === 'none'
+        && action.backdropFilter === 'none'
+        && !action.backgroundColor.includes('/')
     })).toBeTruthy()
     if (browserName === 'chromium') {
       const session = await page.context().newCDPSession(page)
@@ -107,8 +110,13 @@ test.describe('Студент ИУ5 mobile resilience', () => {
         { name: 'prefers-contrast', value: 'more' },
         { name: 'prefers-reduced-transparency', value: 'reduce' },
       ] })
-      expect(await page.evaluate(() => matchMedia('(prefers-reduced-transparency: reduce)').matches
-        && getComputedStyle(document.querySelector('header')!).backdropFilter === 'none')).toBeTruthy()
+      expect(await page.evaluate(() => {
+        const action = getComputedStyle(document.querySelector('.search button')!)
+        return matchMedia('(prefers-reduced-transparency: reduce)').matches
+          && getComputedStyle(document.querySelector('header')!).backdropFilter === 'none'
+          && action.backdropFilter === 'none'
+          && !action.backgroundColor.includes('/')
+      })).toBeTruthy()
     }
   })
 })

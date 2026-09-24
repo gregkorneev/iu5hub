@@ -57,6 +57,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 
 2026-09-24: после пользовательской настройки прозрачности повторно прошли lint, typecheck, 17 Vitest, 38 Node tests, build и Playwright 66/66. Дополнительный mobile Chromium capture подтвердил уровни alpha light 58/70/84% и dark 66/76/88% и glass-поведение сфокусированного поиска; fallback режимы не менялись.
 
+2026-09-24: после перевода основных действий, активных фильтров, периодов статистики и кнопок скачивания на glass-материалы прошёл полный `npm run qa`: lint, typecheck, 17 Vitest, 38 Node tests, build, Playwright 66/66. Регрессия подтверждает, что high-contrast и reduced-transparency отключают прозрачность и blur у primary action кнопок.
+
 ## Analytics adversarial checks
 
 Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` navigation as a student, invalid webhook secret, empty D1, one-user and high-cardinality results, repeated taps/reloads, unavailable D1/Worker, slow network and long repository labels. Verify a material or Disk link still opens when event delivery fails. Never place production tokens, real admin IDs or real initData into fixtures, snapshots or test output.
