@@ -39,15 +39,31 @@ test.describe('Студент ИУ5 mobile resilience', () => {
       const app = getComputedStyle(document.querySelector('.app')!)
       return root.getPropertyValue('--platform-background').trim() === '#101820'
         && root.getPropertyValue('--platform-text').trim() === '#f4f7fa'
+        && document.documentElement.dataset.telegramTheme === 'dark'
+        && getComputedStyle(document.body).backgroundColor !== 'rgb(16, 24, 32)'
         && root.getPropertyValue('--tg-viewport-height').trim() === '780px'
         && root.getPropertyValue('--tg-safe-area-bottom').trim() === '34px'
         && root.getPropertyValue('--telegram-button-text-color').trim() === '#102333'
-        && getComputedStyle(document.querySelector('.search button')!).color === 'rgb(16, 35, 51)'
         && parseFloat(app.paddingTop) >= 24
         && parseFloat(app.paddingBottom) >= 34
         && parseFloat(app.paddingLeft) >= 12
         && parseFloat(app.paddingRight) >= 12
         && document.documentElement.scrollWidth <= innerWidth
+    })).toBeTruthy()
+    await page.evaluate(() => {
+      const app = (window as Window & { Telegram: { WebApp: { themeParams: Record<string, string>; colorScheme: string } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.themeParams = { bg_color: '#f6faff', text_color: '#1a1a19', secondary_bg_color: '#e1effb', button_color: '#006cdc', button_text_color: '#ffffff' }
+      app.colorScheme = 'light'
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('themeChanged')
+    })
+    await expect(input).toHaveValue('мат')
+    expect(await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement)
+      return document.documentElement.dataset.telegramTheme === 'light'
+        && document.documentElement.style.colorScheme === 'light'
+        && root.getPropertyValue('--platform-background').trim() === '#f6faff'
+        && root.getPropertyValue('--telegram-button-text-color').trim() === '#ffffff'
+        && getComputedStyle(document.body).backgroundColor === 'rgb(246, 250, 255)'
     })).toBeTruthy()
   })
 

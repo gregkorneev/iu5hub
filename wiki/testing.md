@@ -51,6 +51,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 
 2026-09-24: после редизайна `npm run test:ui` прошёл 63/63 в Chromium, mobile Chromium и WebKit. Browser QA проверил 320/390/428 px, светлую и тёмную Telegram themes, несовпадение темы ОС с Telegram, safe-area/viewport events, reduced motion/transparency, increased contrast, поиск и BackButton. На главной fixture не было page exceptions, console errors, failed GET или HTTP >=400; axe serious/critical и дополнительный color-contrast audit светлой/тёмной темы не нашли нарушений. Реальный Telegram WebView, фактическая экранная клавиатура и client-specific Compact/Fullsize/Fullscreen остаются ручной проверкой.
 
+2026-09-24: после обновления корпоративной тёмной палитры повторно прошли `npm run lint`, `npm run typecheck` и `npm run test:ui` — 63/63 (Chromium, mobile Chromium, WebKit). Регрессия проверяет `themeChanged` dark→light, `data-telegram-theme`, тёмно-синий фон и возврат светлого, сохранение ввода поиска и safe-area. Отдельный axe color-contrast audit не нашёл нарушений в 16 сочетаниях 320/390 px × light/dark × home/course/semester/search; на 320 px переполнения папок нет. Реальный Telegram WebView этим прогоном не проверен.
+
 ## Analytics adversarial checks
 
 Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` navigation as a student, invalid webhook secret, empty D1, one-user and high-cardinality results, repeated taps/reloads, unavailable D1/Worker, slow network and long repository labels. Verify a material or Disk link still opens when event delivery fails. Never place production tokens, real admin IDs or real initData into fixtures, snapshots or test output.

@@ -23,6 +23,7 @@
   --separator: color-mix(in srgb, var(--platform-text) 15%, transparent);
   --action: var(--telegram-button-color, #006cdc);
   --action-text: var(--telegram-button-text-color, var(--platform-background));
+  --action-quiet: color-mix(in srgb, var(--action) 70%, var(--platform-text) 30%);
   --material-nav: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
   --duration-press: 90ms;
   --duration-transition: 220ms;
@@ -36,6 +37,17 @@
   --accent-dark: var(--action);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-optical-sizing: auto;
+}
+
+:root[data-telegram-theme="dark"] {
+  --brand-blue: #5aa9f7;
+  --surface-primary: color-mix(in srgb, var(--platform-background) 30%, #071d3c 70%);
+  --surface-elevated: color-mix(in srgb, var(--telegram-secondary-background, var(--platform-background)) 20%, #102d52 80%);
+  --surface-secondary: color-mix(in srgb, var(--telegram-secondary-background, var(--platform-background)) 20%, #173a63 80%);
+  --text-secondary: color-mix(in srgb, var(--platform-text) 78%, var(--surface-primary) 22%);
+  --separator: color-mix(in srgb, var(--brand-blue) 20%, transparent);
+  --action: color-mix(in srgb, var(--telegram-button-color, var(--brand-blue)) 15%, var(--brand-blue) 85%);
+  --action-text: #062448;
 }
 
 body { background: var(--surface-primary); color: var(--text-primary); }
@@ -115,6 +127,7 @@ section + section { margin-top: 2.5rem; }
 }
 .course-grid a { min-height: 8.25rem; padding: var(--space-4); }
 .course-grid span { font-size: 2rem; letter-spacing: -.05em; }
+:root[data-telegram-theme="dark"] .course-grid span { color: var(--brand-blue); }
 .course-grid strong { font-size: 1rem; line-height: 1.2; }
 .course-grid b { margin-top: var(--space-2); color: var(--action); font-size: .75rem; }
 .semester-button { min-height: 9rem; padding: var(--space-5); color: var(--text-primary); }
@@ -125,13 +138,18 @@ section + section { margin-top: 2.5rem; }
 .disk-list { gap: var(--space-2); margin-top: var(--space-5); }
 .disk-item { min-height: 4.5rem; padding: var(--space-4); color: var(--text-primary); }
 .disk-item--folder { background: var(--surface-elevated); }
+.disk-item--folder > span:first-child { position: relative; width: 1.375rem; height: 1.25rem; font-size: 0; }
+.disk-item--folder > span:first-child::before,
+.disk-item--folder > span:first-child::after { content: ""; position: absolute; left: 0; background: var(--action); }
+.disk-item--folder > span:first-child::before { top: .25rem; width: 1.375rem; height: 1rem; border-radius: .1875rem; }
+.disk-item--folder > span:first-child::after { top: 0; width: .6875rem; height: .4375rem; border-radius: .1875rem .1875rem 0 0; }
 .disk-file { padding: 0; }
 .disk-file__open { min-height: 4.5rem; padding: var(--space-4); }
-.download-button { width: 2.75rem; height: 2.75rem; border: 0; border-radius: .75rem; background: var(--surface-secondary); color: var(--action); }
+.download-button { width: 2.75rem; height: 2.75rem; border: 0; border-radius: .75rem; background: var(--surface-secondary); color: var(--action-quiet); }
 .breadcrumb { margin-bottom: var(--space-3); font-size: .8125rem; }
 .breadcrumb a, .plain-link { color: var(--action); }
 .lead { color: var(--text-secondary); font-size: var(--type-body); line-height: 1.5; }
-.in-app-back, .course-root-link, .filters a { min-height: 2.75rem; border: 0; border-radius: .75rem; background: var(--surface-secondary); color: var(--action); }
+.in-app-back, .course-root-link, .filters a { min-height: 2.75rem; border: 0; border-radius: .75rem; background: var(--surface-secondary); color: var(--action-quiet); }
 .in-app-back { margin-bottom: var(--space-4); }
 .course-actions { margin-bottom: var(--space-4); }
 .filters .active { background: var(--action); color: var(--action-text); }
