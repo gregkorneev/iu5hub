@@ -1,5 +1,6 @@
 /* The Telegram palette remains the source of truth; these are UI roles. */
 :root {
+  --tg-viewport-height: 100dvh;
   --space-1: .25rem;
   --space-2: .5rem;
   --space-3: .75rem;
@@ -52,6 +53,9 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-optical-sizing: auto;
 }
+
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+button, a, [role="button"] { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 
 :root[data-telegram-theme="dark"] {
   --brand-blue: #5aa9f7;
@@ -171,7 +175,7 @@ h1, .section-title h2 { color: var(--text-primary); font-size: var(--type-screen
 .search--compact button { background: var(--action); }
 .search-suggestions { top: calc(100% + var(--space-2)); border-color: var(--material-edge); border-radius: var(--radius-medium); background: var(--surface-elevated); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .75rem 2rem var(--material-shadow); }
 .search-suggestions button { min-height: 3rem; padding: var(--space-3) var(--space-4); border-color: var(--separator); color: var(--text-primary); }
-.search-suggestions button:active, .search-suggestions button:hover { background: var(--surface-secondary); }
+.search-suggestions button:active { background: var(--surface-secondary); }
 section + section { margin-top: 2.5rem; }
 .section-title { margin-bottom: var(--space-4); }
 .section-title h2 { font-size: var(--type-section); }
@@ -219,17 +223,21 @@ section + section { margin-top: 2.5rem; }
 .stats-periods button { min-height: 2.75rem; border-color: var(--separator); border-radius: var(--radius-pill); }
 .stats-periods button.active { border-color: var(--action); background: var(--action); }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .course-grid a:hover, .subject-card:hover, .material-card:hover, .semester-button:hover, .disk-item:hover {
     transform: none;
     box-shadow: 0 .375rem 1.25rem color-mix(in srgb, var(--platform-text) 10%, transparent);
   }
+  .search-suggestions button:hover { background: var(--surface-secondary); }
+  nav a:hover { color: var(--action); }
+  .section-title > a:hover { color: var(--action); }
 }
 :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search button, .button, .download-button, .in-app-back, .course-root-link, .filters a, nav a, .stats-periods button):active {
   transform: scale(.985);
   transition-duration: var(--duration-press);
 }
 :is(.search button, .button, .download-button, .in-app-back, .course-root-link, .filters a, nav a, .stats-periods button):focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+:is(.brand, .breadcrumb a, .plain-link, .search-suggestions button, .disk-file__open):active { opacity: .72; }
 
 @media (max-width: 620px) {
   .app { width: min(100% - 1.5rem, 58rem); }

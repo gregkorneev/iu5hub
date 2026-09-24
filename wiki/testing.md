@@ -59,6 +59,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 
 2026-09-24: после перевода основных действий, активных фильтров, периодов статистики и кнопок скачивания на glass-материалы прошёл полный `npm run qa`: lint, typecheck, 17 Vitest, 38 Node tests, build, Playwright 66/66. Регрессия подтверждает, что high-contrast и reduced-transparency отключают прозрачность и blur у primary action кнопок.
 
+2026-09-24: mobile-native/UI polish прошёл lint, typecheck, 18 Vitest + 41 Node tests, build, `git diff --check` и Playwright 69/69 (Chromium, mobile Chromium, WebKit). Сквозной navigation audit 3/3 проверил переходы home→course→semester, прямой subject/material route, результаты поиска, hash reload и Telegram/in-app BackButton. На 320/390/428 px проверены обе темы, сфокусированный поиск при коротком viewport, длинный семестр и пустая папка; 24 снимка, без горизонтального overflow и page errors. Safe-area проверки 6/6; `theme-color` следует Telegram при несовпадении темы ОС и Telegram в трёх движках. Реальная экранная клавиатура, iOS zoom, status bar, tap latency/long-press и клиентские режимы Telegram требуют проверки на устройстве.
+
 ## Analytics adversarial checks
 
 Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` navigation as a student, invalid webhook secret, empty D1, one-user and high-cardinality results, repeated taps/reloads, unavailable D1/Worker, slow network and long repository labels. Verify a material or Disk link still opens when event delivery fails. Never place production tokens, real admin IDs or real initData into fixtures, snapshots or test output.

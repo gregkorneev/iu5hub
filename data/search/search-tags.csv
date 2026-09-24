@@ -2,19 +2,19 @@ object_key,course_id,course_title,type,path,name,aliases,keywords,teacher,priori
 course-1:dd1b36574071d136,course-1,Курс 1,folder,1 course,1 course,,,,0,TRUE,TRUE,,active
 course-1:77e8b4264bcb83de,course-1,Курс 1,folder,1 course/1 Семестр,1 Семестр,,,,0,TRUE,TRUE,,active
 course-1:106c97916f6cbeec,course-1,Курс 1,folder,1 course/2 Семестр,2 Семестр,,,,0,TRUE,TRUE,,active
-course-1:3a51a718f40c35c9,course-1,Курс 1,folder,1 course/1 Семестр/Аналитическая геометрия,Аналитическая геометрия,,Ангем; Аналит; Аналитгеом; Аналитическая геометрия,,0,TRUE,TRUE,,active
+course-1:3a51a718f40c35c9,course-1,Курс 1,folder,1 course/1 Семестр/Аналитическая геометрия,Аналитическая геометрия,,Ангем; Аналит; Аналитгеом; Аналитическая геометрия,Грибов; ФН; ФН-12; ФН12,0,TRUE,TRUE,,active
 course-1:64073de5e82f10ad,course-1,Курс 1,folder,1 course/1 Семестр/Английский,Английский,,Англ; Английский,,0,TRUE,TRUE,,active
-course-1:21e907daa86424b2,course-1,Курс 1,folder,1 course/1 Семестр/Информатика,Информатика,,Инфа; Информатика,,0,TRUE,TRUE,,active
-course-1:09c5656ffd7f02be,course-1,Курс 1,folder,1 course/1 Семестр/Математический анализ,Математический анализ,,Матан; матанал; матанализ; Математический анализ,,0,TRUE,TRUE,,active
-course-1:666495c21f8fd25f,course-1,Курс 1,folder,1 course/1 Семестр/Начертательная геометрия,Начертательная геометрия,,начерт; инжа; Начертательная геометрия,,0,TRUE,TRUE,,active
-course-1:97ec6c4cf3c95bed,course-1,Курс 1,folder,1 course/1 Семестр/Основы программирования 2025,Основы программирования 2025,,прога; ооп; пкш; оп; Основы программирования 2025,,0,TRUE,TRUE,,active
-course-1:50434038c3c7ec8b,course-1,Курс 1,folder,1 course/1 Семестр/Социология(2022),Социология(2022),,утп; практика; Социология(2022),,0,TRUE,TRUE,,active
-course-1:d30eed71958c44fc,course-1,Курс 1,folder,1 course/1 Семестр/УТП ИУ5,УТП ИУ5,,начерт; инжа; УТП ИУ5,,0,TRUE,TRUE,,active
-course-1:4e707b79bf1cd7ba,course-1,Курс 1,folder,1 course/2 Семестр/Инженерная графика,Инженерная графика,,начерт; инжа; Инженерная графика,,0,TRUE,TRUE,,active
-course-1:9e0514d87dd5b452,course-1,Курс 1,folder,1 course/2 Семестр/Интегралы и Дифференциальные уравнения,Интегралы и Дифференциальные уравнения,,инты; интегралы; дифуры; Интегралы и Дифференциальные уравнения,,0,TRUE,TRUE,,active
-course-1:5aac5cf57bf39d67,course-1,Курс 1,folder,1 course/2 Семестр/ЛАиФНП,ЛАиФНП,,линейная алгебра; линал; фнп; ЛАиФНП,,0,TRUE,TRUE,,active
-course-1:0b4227d4a638c886,course-1,Курс 1,folder,1 course/2 Семестр/Программирование на основе классов и шаблонов,Программирование на основе классов и шаблонов,,прога; ооп; пкш; оп; Программирование на основе классов и шаблонов,,0,TRUE,TRUE,,active
-course-1:ed6a409b975e3830,course-1,Курс 1,folder,1 course/2 Семестр/Физика,Физика,,физика,,0,TRUE,TRUE,,active
+course-1:21e907daa86424b2,course-1,Курс 1,folder,1 course/1 Семестр/Информатика,Информатика,,Инфа; Информатика,Горячкин; ИУ5,0,TRUE,TRUE,,active
+course-1:09c5656ffd7f02be,course-1,Курс 1,folder,1 course/1 Семестр/Математический анализ,Математический анализ,,Матан; матанал; матанализ; Математический анализ,Ахметова; Фаина; ФН; ФН-12; ФН12,0,TRUE,TRUE,,active
+course-1:666495c21f8fd25f,course-1,Курс 1,folder,1 course/1 Семестр/Начертательная геометрия,Начертательная геометрия,,начерт; инжа; Начертательная геометрия,РК-1; РК; РК1,0,TRUE,TRUE,,active
+course-1:97ec6c4cf3c95bed,course-1,Курс 1,folder,1 course/1 Семестр/Основы программирования 2025,Основы программирования 2025,,прога; ооп; пкш; оп; Основы программирования 2025,Волосова; ИУ5; ИУ-5,0,TRUE,TRUE,,active
+course-1:50434038c3c7ec8b,course-1,Курс 1,folder,1 course/1 Семестр/Социология(2022),Социология(2022),,Социология; Социология(2022),,0,TRUE,TRUE,,active
+course-1:d30eed71958c44fc,course-1,Курс 1,folder,1 course/1 Семестр/УТП ИУ5,УТП ИУ5,,утп; практика; УТП ИУ5,ИУ-5; ИУ; ИУ5; Чумаков; Петрович,0,TRUE,TRUE,,active
+course-1:4e707b79bf1cd7ba,course-1,Курс 1,folder,1 course/2 Семестр/Инженерная графика,Инженерная графика,,начерт; инжа; Инженерная графика,РК-1; РК; РК1,0,TRUE,TRUE,,active
+course-1:9e0514d87dd5b452,course-1,Курс 1,folder,1 course/2 Семестр/Интегралы и Дифференциальные уравнения,Интегралы и Дифференциальные уравнения,,инты; интегралы; дифуры; Интегралы и Дифференциальные уравнения,Ахметова; Фаина; ФН; ФН-12; ФН12,0,TRUE,TRUE,,active
+course-1:5aac5cf57bf39d67,course-1,Курс 1,folder,1 course/2 Семестр/ЛАиФНП,ЛАиФНП,,линейная алгебра; линал; фнп; ЛАиФНП,Ахметова; Фаина; ФН; ФН-12; ФН12; Грибов,0,TRUE,TRUE,,active
+course-1:0b4227d4a638c886,course-1,Курс 1,folder,1 course/2 Семестр/Программирование на основе классов и шаблонов,Программирование на основе классов и шаблонов,,прога; ооп; пкш; оп; Программирование на основе классов и шаблонов,Волосова; ИУ5; ИУ-5; Колосов,0,TRUE,TRUE,,active
+course-1:ed6a409b975e3830,course-1,Курс 1,folder,1 course/2 Семестр/Физика,Физика,,физика,Корогодина; Кара; ФН-4,0,TRUE,TRUE,,active
 course-1:793cca56c484987a,course-1,Курс 1,file,1 course/2 Семестр/Практика РЛ-6.pdf,Практика РЛ-6.pdf,,,,0,TRUE,FALSE,,active
 course-1:1e66f81c098f4ca9,course-1,Курс 1,folder,1 course/1 Семестр/Аналитическая геометрия/ДЗ,ДЗ,,,,0,TRUE,TRUE,,active
 course-1:0dfd92c3b6bb9b78,course-1,Курс 1,folder,1 course/1 Семестр/Аналитическая геометрия/Лекции,Лекции,,,,0,TRUE,TRUE,,active
@@ -874,18 +874,18 @@ course-1:aae128e97edadc6e,course-1,Курс 1,file,1 course/2 Семестр/Ф�
 course-2:1c46192b99edb7dc,course-2,Курс 2,folder,2 course,2 course,,,,0,TRUE,TRUE,,active
 course-2:7e774590905c0543,course-2,Курс 2,folder,2 course/3 sem,3 sem,,,,0,TRUE,TRUE,,active
 course-2:f060ea570b474e0c,course-2,Курс 2,folder,2 course/4 sem,4 sem,,,,0,TRUE,TRUE,,active
-course-2:6c8020f7e7a2605f,course-2,Курс 2,folder,2 course/3 sem/Архитектура АСОИУ,Архитектура АСОИУ,,АСОИУ; Архитектура АСОИУ,,0,TRUE,TRUE,,active
-course-2:a5e3afbeeb522cb7,course-2,Курс 2,folder,2 course/3 sem/Модели данных,Модели данных,,МД; Модели данных,,0,TRUE,TRUE,,active
-course-2:f58dc2670377f312,course-2,Курс 2,folder,2 course/3 sem/Парадигмы и конструкции языков программирования,Парадигмы и конструкции языков программирования,,ПИК; Парадигмы и конструкции языков программирования,,0,TRUE,TRUE,,active
+course-2:6c8020f7e7a2605f,course-2,Курс 2,folder,2 course/3 sem/Архитектура АСОИУ,Архитектура АСОИУ,,АСОИУ; Архитектура АСОИУ,Гапанюк; ИУ5; ИУ-5,0,TRUE,TRUE,,active
+course-2:a5e3afbeeb522cb7,course-2,Курс 2,folder,2 course/3 sem/Модели данных,Модели данных,,МД; Модели данных,Маслеников; ИУ5; ИУ-5,0,TRUE,TRUE,,active
+course-2:f58dc2670377f312,course-2,Курс 2,folder,2 course/3 sem/Парадигмы и конструкции языков программирования,Парадигмы и конструкции языков программирования,,ПИК; Парадигмы и конструкции языков программирования,Гапанюк; ИУ5; ИУ-5,0,TRUE,TRUE,,active
 course-2:ec115054b38f7253,course-2,Курс 2,folder,2 course/3 sem/Правоведение,Правоведение,,Право; Правоведение,,0,TRUE,TRUE,,active
-course-2:96b753c3da92cc14,course-2,Курс 2,folder,2 course/3 sem/Теория вероятностей и математическая статистика,Теория вероятностей и математическая статистика,,тервер; статистика; Теория вероятностей и математическая статистика,,0,TRUE,TRUE,,active
-course-2:b81be4463294004f,course-2,Курс 2,folder,2 course/3 sem/Физика,Физика,,физика,,0,TRUE,TRUE,,active
+course-2:96b753c3da92cc14,course-2,Курс 2,folder,2 course/3 sem/Теория вероятностей и математическая статистика,Теория вероятностей и математическая статистика,,тервер; статистика; Теория вероятностей и математическая статистика,Безверхний; ФН; ФН-12; ФН12,0,TRUE,TRUE,,active
+course-2:b81be4463294004f,course-2,Курс 2,folder,2 course/3 sem/Физика,Физика,,физика,Корогодина; Кара; ФН-4,0,TRUE,TRUE,,active
 course-2:cb4695b8a9217ee0,course-2,Курс 2,folder,2 course/3 sem/Экология,Экология,,экология,,0,TRUE,TRUE,,active
-course-2:ab4ae98a09602820,course-2,Курс 2,folder,2 course/3 sem/Электротехника,Электротехника,,англ; Электротехника,,0,TRUE,TRUE,,active
+course-2:ab4ae98a09602820,course-2,Курс 2,folder,2 course/3 sem/Электротехника,Электротехника,,Электротехника; элтех; элдед,Белодедов; ИУ5; ИУ-5,0,TRUE,TRUE,,active
 course-2:37c54e368562e021,course-2,Курс 2,folder,2 course/4 sem/XML,XML,,XML,,0,TRUE,TRUE,,active
-course-2:cee6fefbc75d06aa,course-2,Курс 2,folder,2 course/4 sem/Английский язык,Английский язык,,БД; Английский язык,,0,TRUE,TRUE,,active
-course-2:93fb2c43f952491b,course-2,Курс 2,folder,2 course/4 sem/Базы данных,Базы данных,,дискретка; Базы данных,,0,TRUE,TRUE,,active
-course-2:7d226a9a83137b1b,course-2,Курс 2,folder,2 course/4 sem/Дискретная математика,Дискретная математика,,политология; Дискретная математика,,0,TRUE,TRUE,,active
+course-2:cee6fefbc75d06aa,course-2,Курс 2,folder,2 course/4 sem/Английский язык,Английский язык,,Англ; Английский; Английский язык,,0,TRUE,TRUE,,active
+course-2:93fb2c43f952491b,course-2,Курс 2,folder,2 course/4 sem/Базы данных,Базы данных,,Базы данных; БД,,0,TRUE,TRUE,,active
+course-2:7d226a9a83137b1b,course-2,Курс 2,folder,2 course/4 sem/Дискретная математика,Дискретная математика,,дискретка; Дискретная математика,,0,TRUE,TRUE,,active
 course-2:b5e1e0bb068948e9,course-2,Курс 2,folder,2 course/4 sem/Политология,Политология,,Политология,,0,TRUE,TRUE,,active
 course-2:edd4fe22ef4e1f42,course-2,Курс 2,folder,2 course/4 sem/Системное программирование,Системное программирование,,Системное программирование,,0,TRUE,TRUE,,active
 course-2:e0003d059dd655d0,course-2,Курс 2,folder,2 course/4 sem/Схемотехника,Схемотехника,,Схемотехника,,0,TRUE,TRUE,,active

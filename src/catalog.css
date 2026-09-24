@@ -18,12 +18,10 @@
 .tag.tag--additional { background:#dff4f4; color:#08716f!important }
 .tag.tag--other { background:#eceff1; color:#4b5962!important }
 .in-app-back { min-height:44px; margin:0 0 18px; padding:0 12px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--accent-dark); font-weight:700 }
-.in-app-back:hover { border-color:var(--accent); background:var(--soft) }
 .course-actions { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 18px }
 .course-actions .in-app-back { margin:0 }
 .course-root-link { display:inline-flex; align-items:center; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--accent-dark); font-weight:700 }
 .disk-item { display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 12px; width:100%; padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); color:var(--ink); text-align:left }
-.disk-item:hover { border-color:var(--accent); transform:translateY(-2px) }
 .disk-item > span { grid-row:span 2; font-size:1.3rem }
 .disk-item small { color:var(--muted) }
 .disk-item--folder { background:#eaf5ff }
@@ -34,13 +32,11 @@
 .disk-file__open strong,.disk-file__open small { display:block; min-width:0; overflow-wrap:anywhere }
 .disk-file__open small { margin-top:4px; color:var(--muted) }
 .download-button { width:40px; height:40px; align-self:center; justify-self:center; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--accent-dark); font-size:1.25rem; font-weight:800 }
-.download-button:hover { background:#d4ebff; color:var(--accent) }
 .semester-subject-grid { grid-template-columns:repeat(2,minmax(0,1fr)) }
 .semester-subject-grid .disk-item { min-height:112px; align-content:center }
 .semester-subject-grid .disk-file { grid-column:1 / -1; min-height:0 }
 .semester-button-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:28px }
 .semester-button { display:grid; gap:3px; min-height:180px; align-content:center; padding:24px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(135deg,#fff,#eaf5ff); color:var(--accent-dark) }
-.semester-button:hover { border-color:var(--accent); transform:translateY(-2px) }
 .semester-button span { color:var(--accent); font-size:3.25rem; font-weight:800; line-height:1 }
 .semester-button strong { font-size:1.25rem }
 .semester-button small { color:var(--muted); margin-top:8px }

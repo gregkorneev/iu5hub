@@ -8,6 +8,7 @@ export const applyTelegramTheme = () => {
   const app = getTelegramWebApp()
   const params = app?.themeParams
   document.documentElement.style.colorScheme = app?.colorScheme ?? ''
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', app?.colorScheme === 'dark' ? '#0d203a' : '#f6faff')
   if (app?.colorScheme) document.documentElement.dataset.telegramTheme = app.colorScheme
   else delete document.documentElement.dataset.telegramTheme
   set('--platform-background', params?.bg_color)
