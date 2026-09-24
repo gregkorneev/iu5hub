@@ -219,6 +219,13 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Статистика' })).toBeVisible()
     await expect(page.getByText('428')).toBeVisible()
     await expect(page.getByRole('img', { name: /График/ })).toBeVisible()
+    await page.setViewportSize({ width: 320, height: 568 })
+    expect(await page.evaluate(() => {
+      const controls = [document.querySelector('.brand'), ...document.querySelectorAll('header nav a')].filter((node): node is Element => node instanceof Element)
+      const boxes = controls.map((node) => node.getBoundingClientRect())
+      return document.documentElement.scrollWidth <= innerWidth
+        && boxes.every((a, index) => boxes.slice(index + 1).every((b) => a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top))
+    })).toBeTruthy()
     await page.getByRole('button', { name: '7 дней' }).click()
     await expect(page.getByRole('button', { name: '7 дней' })).toHaveClass(/active/)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()

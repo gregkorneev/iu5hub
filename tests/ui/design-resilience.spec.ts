@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures'
 
 test.describe('Студент ИУ5 mobile resilience', () => {
@@ -85,6 +86,25 @@ test.describe('Студент ИУ5 mobile resilience', () => {
         && cover.backgroundColor !== 'transparent'
         && cover.backgroundColor !== 'rgba(0, 0, 0, 0)'
     })).toBeTruthy()
+  })
+
+  test('keeps dark category tags readable without backdrop-filter support', async ({ page }) => {
+    await page.goto('/#/subject/physics')
+    await page.evaluate(() => {
+      const app = (window as Window & { Telegram: { WebApp: { themeParams: Record<string, string>; colorScheme: string } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.themeParams = { bg_color: '#101820', text_color: '#f4f7fa', secondary_bg_color: '#182633', button_color: '#78b4ff', button_text_color: '#102333' }
+      app.colorScheme = 'dark'
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('themeChanged')
+      for (const sheet of Array.from(document.styleSheets)) {
+        for (let index = sheet.cssRules.length - 1; index >= 0; index--) {
+          const rule = sheet.cssRules[index]
+          if (rule instanceof CSSSupportsRule && rule.conditionText.includes('backdrop-filter')) sheet.deleteRule(index)
+        }
+      }
+    })
+    await page.waitForTimeout(300)
+    const results = await new AxeBuilder({ page }).withRules(['color-contrast']).analyze()
+    expect(results.violations).toEqual([])
   })
 
   test('replaces movement and translucent chrome for accessibility preferences', async ({ page, browserName }) => {
