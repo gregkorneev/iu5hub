@@ -4,7 +4,7 @@ import { mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promi
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import ExcelJS from 'exceljs'
-import { parseCsv, stringifyCsv, objectKeyForPath, parseBoolean, readTable, tagColumns, synonymColumns, writeTable } from './common.mjs'
+import { parseCsv, stringifyCsv, objectKeyForPath, parseBoolean, readTable, tagColumns, legacyTagColumns, synonymColumns, writeTable } from './common.mjs'
 import { inventoryCourse, mergeInventory, sync } from './sync-yandex.mjs'
 import { build, compileIndex } from './build.mjs'
 import { validate } from './validate.mjs'
@@ -16,26 +16,45 @@ import { buildPriorityTagRows, commitSourceFiles, generateWorkbook, mergeWorkboo
 test('generated Excel workbook contains the requested sheets, Unicode, hidden key and validations', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'search-workbook-create-'))
   const path = join(dir, 'tagging-queue.xlsx')
+  const inputTagsPath = join(dir, 'search-tags.csv')
+  const inputSynonymsPath = join(dir, 'search-synonyms.csv')
+  const inputQueuePath = join(dir, 'tagging-queue.csv')
   try {
-    const { tagRows } = await generateWorkbook({ path, noOpen: true })
+    await writeFile(inputTagsPath, await readFile(new URL('../../data/search/search-tags.csv', import.meta.url)))
+    await writeFile(inputSynonymsPath, await readFile(new URL('../../data/search/search-synonyms.csv', import.meta.url)))
+    await writeFile(inputQueuePath, await readFile(new URL('../../data/search/tagging-queue.csv', import.meta.url)))
+    const { tagRows } = await generateWorkbook({ path, noOpen: true, inputTagsPath, inputSynonymsPath, inputQueuePath })
     assert.equal(tagRows.length, 29)
+    const queuedRows = await readTable(inputQueuePath, queueColumns)
+    assert.equal(queuedRows.length, 29)
+    for (const row of queuedRows) assert.equal(row.keywords.split(';').filter((term) => term.trim().toLocaleLowerCase('ru') === row.name.toLocaleLowerCase('ru')).length, 1)
     const workbook = new ExcelJS.Workbook()
     await workbook.xlsx.readFile(path)
     assert.deepEqual(workbook.worksheets.map(({ name }) => name), ['Инструкция', 'Разметка', 'Синонимы'])
     const sheet = workbook.getWorksheet('Разметка')
-    assert.deepEqual(sheet.getRow(1).values.slice(1, 3), ['Папка', 'Теги'])
+    assert.deepEqual(sheet.getRow(1).values.slice(1, 4), ['Папка', 'Теги', 'Преподаватель'])
     assert.equal(sheet.rowCount, 30)
     const keyColumn = sheet.getRow(1).values.slice(1).indexOf('object_key') + 1
     assert.ok(keyColumn > 0)
-    assert.equal(keyColumn, 3)
+    assert.equal(keyColumn, 4)
     assert.equal(sheet.getColumn(keyColumn).hidden, true)
     assert.match(sheet.getCell(2, 1).value, /^Курс 1 \/ 1 Семестр \/ Аналитическая геометрия$/)
-    assert.equal(sheet.getCell(2, 2).value, '')
+    assert.equal(sheet.getCell(2, 2).value, tagRows[0].keywords)
+    assert.match(sheet.getCell(2, 2).value, /Аналитическая геометрия/)
+    assert.equal(sheet.getCell(2, 3).value, '')
     assert.equal(sheet.views[0].ySplit, 1)
     assert.equal(sheet.getColumn(1).alignment.wrapText, true)
     const synonyms = workbook.getWorksheet('Синонимы')
     assert.equal(synonyms.getColumn(5).hidden, true)
     assert.equal(synonyms.getCell(3, 3).dataValidation.type, 'list')
+    const firstKey = tagRows[0].object_key
+    sheet.getCell(2, 2).value = 'ручная метка;'
+    sheet.getCell(2, 3).value = 'Иванов;'
+    await workbook.xlsx.writeFile(path)
+    const regenerated = await generateWorkbook({ path, noOpen: true, inputTagsPath, inputSynonymsPath, inputQueuePath })
+    const preserved = regenerated.tagRows.find(({ object_key }) => object_key === firstKey)
+    assert.equal(preserved.keywords, 'ручная метка; Аналитическая геометрия')
+    assert.equal(preserved.teacher, 'Иванов;')
   } finally { await rm(dir, { recursive: true, force: true }) }
 })
 
@@ -44,14 +63,24 @@ test('workbook row order is irrelevant and unknown or duplicate keys are rejecte
     { object_key: 'one', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Курс/А', name: 'А', depth: '1', status: 'priority', source_status: 'active', enabled: 'TRUE', aliases: '', keywords: '', priority: '0', inherit: 'TRUE', notes: '' },
     { object_key: 'two', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Курс/Б', name: 'Б', depth: '1', status: 'priority', source_status: 'active', enabled: 'TRUE', aliases: '', keywords: '', priority: '0', inherit: 'TRUE', notes: '' },
   ]
-  const submitted = [...queue].reverse().map((row) => ({ ...row, keywords: `tag-${row.object_key}` }))
+  const submitted = [...queue].reverse().map((row) => ({ ...row, teacher: `препод-${row.object_key};`, keywords: `tag-${row.object_key};` }))
   const parsed = parseTagWorksheet(submitted, queue)
   assert.deepEqual(parsed.map(({ object_key }) => object_key), ['one', 'two'])
-  assert.deepEqual(parsed.map(({ keywords }) => keywords), ['tag-one', 'tag-two'])
+  assert.deepEqual(parsed.map(({ keywords }) => keywords), ['tag-one; А', 'tag-two; Б'])
+  assert.deepEqual(parsed.map(({ teacher }) => teacher), ['препод-one', 'препод-two'])
   assert.equal(parsed[0].inherit, 'TRUE')
   assert.equal(parsed[0].priority, '0')
   assert.throws(() => parseTagWorksheet([{ ...submitted[0], object_key: 'missing' }, submitted[1]], queue), /Unknown or ineligible object_key/)
   assert.throws(() => parseTagWorksheet([submitted[0], submitted[0]], queue), /Duplicate object_key/)
+})
+
+test('legacy workbook rows without teacher preserve expected teacher and import visible tags', () => {
+  const queue = [{ object_key: 'legacy-key', name: 'Алгебра', keywords: 'Алгебра', teacher: 'Иванов', aliases: 'линал', priority: '0', enabled: 'TRUE', inherit: 'TRUE' }]
+  const parsed = parseTagWorksheet([{ object_key: 'legacy-key', keywords: 'линал; Алгебра;' }], queue)
+  assert.equal(parsed[0].keywords, 'линал; Алгебра')
+  assert.equal(parsed[0].teacher, 'Иванов')
+  const blankTeacher = parseTagWorksheet([{ object_key: 'legacy-key', keywords: 'Алгебра;' }], [{ ...queue[0], teacher: '' }])
+  assert.equal(blankTeacher[0].teacher, '')
 })
 
 test('workbook source replacement restores earlier CSV when a later rename fails', async () => {
@@ -92,10 +121,11 @@ test('workbook source replacement preserves a recovery backup when rollback fail
 
 test('workbook overlays editable queue fields by stable key and keeps canonical fields', () => {
   const canonical = { object_key: 'k', course_id: 'course-1', path: 'Курс/Папка', name: 'Папка', aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '' }
-  const merged = overlayTagQueue([canonical], [{ ...canonical, path: 'spoof', aliases: 'папка', keywords: 'лекции', priority: '7', enabled: 'FALSE', notes: 'ручное' }])
+  const merged = overlayTagQueue([{ ...canonical, teacher: '' }], [{ ...canonical, path: 'spoof', aliases: 'папка', keywords: 'лекции', teacher: 'Профессор', priority: '7', enabled: 'FALSE', notes: 'ручное' }])
   assert.equal(merged[0].path, canonical.path)
   assert.equal(merged[0].aliases, '')
   assert.equal(merged[0].keywords, 'лекции')
+  assert.equal(merged[0].teacher, 'Профессор')
   assert.equal(merged[0].priority, '0')
   assert.equal(merged[0].enabled, 'TRUE')
   assert.equal(merged[0].notes, '')
@@ -134,13 +164,15 @@ test('workbook rows map Russian headers and reject formulas', () => {
   assert.equal(readWorksheetRecords(makeSheet('=SUM(A1:A2)'), { Папка: 'folder_label' }).records[0].folder_label, '=SUM(A1:A2)')
 })
 
-test('workbook has one folder list and one editable tag field; priority queue includes only depth two', () => {
-  assert.deepEqual(tagSheetColumns.slice(0, 2).map(([, header]) => header), ['Папка', 'Теги'])
-  assert.equal(tagSheetColumns[2][0], 'object_key')
+test('workbook has folder, tag and teacher fields; priority queue includes only depth two and each folder name once', () => {
+  assert.deepEqual(tagSheetColumns.slice(0, 3).map(([, header]) => header), ['Папка', 'Теги', 'Преподаватель'])
+  assert.equal(tagSheetColumns[3][0], 'object_key')
   const rows = Array.from({ length: 141 }, (_, index) => ({ object_key: `k${index}`, course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: `Курс/Семестр/${String(index).padStart(3, '0')}`, name: `${index}`, aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }))
-  const generated = buildPriorityTagRows(rows, ['course-1'], [{ ...rows[0], keywords: 'сохранено' }])
+  const generated = buildPriorityTagRows(rows, ['course-1'], [{ ...rows[0], keywords: 'сохранено; 0;' }])
   assert.equal(generated.length, 141)
-  assert.equal(generated[0].keywords, 'сохранено')
+  assert.equal(generated[0].keywords, 'сохранено; 0')
+  assert.equal(generated[1].keywords, '1')
+  assert.equal(buildPriorityTagRows([{ ...rows[0], keywords: '0; 0;' }], ['course-1'])[0].keywords, '0')
 })
 
 test('CSV handles Cyrillic, quoting, commas, and line endings', () => {
@@ -162,14 +194,16 @@ test('semicolon lists, booleans, and path key strategy are deterministic', () =>
 })
 
 test('sync merge preserves manual metadata, adds new rows, and retains missing rows', () => {
-  const old = { object_key: 'old', course_id: 'course-1', type: 'folder', path: 'Алгебра', name: 'Алгебра', aliases: 'линал', keywords: 'матрицы', priority: '12', enabled: 'FALSE', notes: 'review', source_status: 'active' }
+  const old = { object_key: 'old', course_id: 'course-1', type: 'folder', path: 'Алгебра', name: 'Алгебра', aliases: 'линал', keywords: 'матрицы', teacher: 'Иванов', priority: '12', enabled: 'FALSE', notes: 'review', source_status: 'active' }
   const result = mergeInventory([old], [
     { object_key: 'old', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Алгебра', name: 'Алгебра' },
     { object_key: 'new', course_id: 'course-1', course_title: 'Курс 1', type: 'file', path: 'Алгебра/Лекция.pdf', name: 'Лекция.pdf' },
   ])
   assert.equal(result[0].aliases, 'линал'); assert.equal(result[0].enabled, 'FALSE')
   assert.equal(result[0].inherit, 'TRUE')
+  assert.equal(result[0].teacher, 'Иванов')
   assert.equal(result[1].priority, '0'); assert.equal(result[1].enabled, 'TRUE'); assert.equal(result[1].keywords, '')
+  assert.equal(result[1].teacher, '')
   assert.equal(result[1].inherit, 'FALSE')
   const absent = mergeInventory([{ ...old, source_status: 'missing' }], [])
   assert.equal(absent[0].source_status, 'missing'); assert.equal(absent[0].notes, 'review')
@@ -190,11 +224,12 @@ test('tagging queue selects folders directly inside semesters and sorts by cours
 })
 
 test('apply-tags joins on key, applies manual fields including enabled, and rejects machine edits atomically', () => {
-  const canonical = [{ object_key: 'k', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: '1 course/1 Семестр/Математика', name: 'Математика', aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }]
+  const canonical = [{ object_key: 'k', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: '1 course/1 Семестр/Математика', name: 'Математика', aliases: '', keywords: '', teacher: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }]
   const [queueRow] = createQueue(canonical)
-  const submitted = { ...queueRow, aliases: 'семестр; сем', priority: '10', enabled: 'FALSE', inherit: 'FALSE', notes: 'ok' }
+  const submitted = { ...queueRow, aliases: 'семестр; сем', keywords: 'матан', teacher: 'Иванов', priority: '10', enabled: 'FALSE', inherit: 'FALSE', notes: 'ok' }
   const { records, changes } = validateQueueAndApply(canonical, [submitted])
   assert.equal(changes.length, 1); assert.equal(records[0].enabled, 'FALSE'); assert.equal(records[0].aliases, 'семестр; сем')
+  assert.equal(records[0].teacher, 'Иванов')
   assert.throws(() => validateQueueAndApply(canonical, [{ ...submitted, path: 'edited' }]), /machine field path/)
   assert.throws(() => validateQueueAndApply(canonical, [{ ...submitted, status: 'later' }]), /status does not match/)
   assert.throws(() => validateQueueAndApply(canonical, [{ ...submitted, enabled: 'yes' }]), /TRUE or FALSE/)
@@ -251,7 +286,7 @@ test('Yandex inventory recursively lists folders and uses pagination without net
 test('failed course fetch does not overwrite the existing inventory snapshot', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'search-sync-failure-'))
   const input = join(dir, 'search-tags.csv')
-  const legacyHeaders = tagColumns.filter((field) => field !== 'inherit')
+  const legacyHeaders = legacyTagColumns[0]
   const before = stringifyCsv(legacyHeaders, [Object.fromEntries(legacyHeaders.map((field) => [field, field === 'object_key' ? 'old' : field === 'course_id' ? 'course-1' : '']))])
   try {
     await writeFile(input, before)
@@ -260,10 +295,31 @@ test('failed course fetch does not overwrite the existing inventory snapshot', a
   } finally { await rm(dir, { recursive: true, force: true }) }
 })
 
+test('legacy search-tags schemas without teacher remain readable with blank teacher defaults', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'search-legacy-teacher-'))
+  try {
+    const row = { object_key: 'k', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Курс/Папка', name: 'Папка', aliases: '', keywords: 'ручной тег', teacher: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }
+    for (const [index, headers] of legacyTagColumns.entries()) {
+      const legacyPath = join(dir, `legacy-${index}.csv`)
+      await writeTable(legacyPath, headers, [row])
+      const migrated = await readTable(legacyPath, tagColumns)
+      assert.equal(migrated[0].teacher, '')
+      assert.equal(migrated[0].keywords, 'ручной тег')
+      assert.equal(migrated[0].inherit, 'TRUE')
+    }
+    const oldNoInherit = join(dir, 'legacy-no-inherit.csv')
+    const noInheritRow = { ...row }; delete noInheritRow.inherit
+    await writeTable(oldNoInherit, legacyTagColumns[1], [noInheritRow])
+    const migrated = await readTable(oldNoInherit, tagColumns)
+    assert.equal(migrated[0].teacher, '')
+    assert.equal(migrated[0].inherit, 'TRUE')
+  } finally { await rm(dir, { recursive: true, force: true }) }
+})
+
 test('validation catches duplicate keys, normalized tags, invalid priority, and boolean', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'search-meta-'))
   try {
-    const row = { object_key: 'x', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Тест', name: 'Тест', aliases: 'матан; МАТАН', keywords: 'тема;;', priority: '1.2', enabled: 'да', inherit: 'TRUE', notes: '', source_status: 'active' }
+    const row = { object_key: 'x', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Тест', name: 'Тест', aliases: 'матан; МАТАН', keywords: 'тема;;', teacher: 'Смирнов;;Иванов', priority: '1.2', enabled: 'да', inherit: 'TRUE', notes: '', source_status: 'active' }
     await writeTable(join(dir, 'search-tags.csv'), tagColumns, [row, { ...row, priority: '-1', inherit: 'yes' }])
     await writeTable(join(dir, 'search-synonyms.csv'), synonymColumns, [])
     const prior = console.error; const messages = []; console.error = (message) => messages.push(message)
@@ -274,6 +330,7 @@ test('validation catches duplicate keys, normalized tags, invalid priority, and 
     assert(messages.some((message) => message.includes('priority must be an integer from 0 to')))
     assert(messages.some((message) => message.includes('enabled must be TRUE or FALSE')))
     assert(messages.some((message) => message.includes('inherit must be TRUE or FALSE')))
+    assert(messages.some((message) => message.includes('teacher: empty list item')))
   } finally { await rm(dir, { recursive: true, force: true }) }
 })
 
@@ -281,10 +338,11 @@ test('generated index compiles tags and global synonyms and supports check mode'
   const dir = await mkdtemp(join(tmpdir(), 'search-build-'))
   try {
     const tagsPath = join(dir, 'tags.csv'); const synonymsPath = join(dir, 'synonyms.csv'); const outputPath = join(dir, 'index.json')
-    await writeTable(tagsPath, tagColumns, [{ object_key: 'k', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Математика', name: 'Математика', aliases: 'матан; мат анализ', keywords: 'пределы; интегралы', priority: '20', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }])
+    await writeTable(tagsPath, tagColumns, [{ object_key: 'k', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Математика', name: 'Математика', aliases: 'матан; мат анализ', keywords: 'пределы; интегралы', teacher: 'Иванов; Петрова', priority: '20', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }])
     await writeTable(synonymsPath, synonymColumns, [{ term: 'Базы данных', synonyms: 'бд; субд', enabled: 'TRUE', notes: '' }])
     const index = await build({ tagsPath, synonymsPath, outputPath })
     assert.deepEqual(index.objects[0].aliases, ['матан', 'мат анализ'])
+    assert.deepEqual(index.objects[0].teacher, ['Иванов', 'Петрова'])
     assert.equal(index.objects[0].priority, 20); assert.equal(index.synonyms[0].term, 'базы данных')
     const firstBuild = await readFile(outputPath, 'utf8')
     await build({ tagsPath, synonymsPath, outputPath })
@@ -335,16 +393,26 @@ test('inherit FALSE prevents passing own tags and sibling tags do not cross over
   assert.deepEqual(refs('sibling-b'), ['semester', 'root'])
 })
 
+test('teacher-only parent metadata is searchable by enabled descendants through inheritance', () => {
+  const parent = { object_key: 'teacher-parent', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Курс/Семестр/Предмет', name: 'Предмет', aliases: '', keywords: '', teacher: 'Иванов', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }
+  const child = { ...parent, object_key: 'child', type: 'file', path: 'Курс/Семестр/Предмет/Лекция.pdf', name: 'Лекция.pdf', teacher: '', inherit: 'FALSE' }
+  const index = compileIndex([parent, child], [])
+  const object = index.objects.find(({ objectKey }) => objectKey === 'child')
+  assert.deepEqual(object.inherited, [{ distance: 1, objectKey: 'teacher-parent' }])
+  assert.deepEqual(index.objects.find(({ objectKey }) => objectKey === 'teacher-parent').teacher, ['Иванов'])
+})
+
 test('coverage counts tagged folders, local file tags, inherited refs, queue depth, and effective tags', () => {
-  const folder = { object_key: 'root', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: '1 course', name: '1 course', aliases: 'курс', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }
-  const file = { ...folder, object_key: 'file', type: 'file', path: '1 course/Лекция.pdf', name: 'Лекция.pdf', aliases: '', inherit: 'FALSE' }
+  const folder = { object_key: 'root', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: '1 course', name: '1 course', aliases: 'курс', keywords: '', teacher: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }
+  const file = { ...folder, object_key: 'file', type: 'file', path: '1 course/Лекция.pdf', name: 'Лекция.pdf', aliases: '', teacher: 'Иванов', inherit: 'FALSE' }
   const missing = { ...folder, object_key: 'gone', path: '1 course/Removed', name: 'Removed', source_status: 'missing' }
   const result = summarize([folder, file, missing], [])
   assert.equal(result.active.length, 2)
   assert.equal(result.taggedFolders.length, 1)
   assert.equal(result.folderAliases.length, 1)
   assert.equal(result.folderKeywords.length, 0)
-  assert.equal(result.taggedFiles, 0)
+  assert.equal(result.taggedFiles, 1)
+  assert.equal(result.hasTeachers.length, 1)
   assert.equal(result.inherited, 1)
   assert.equal(result.withoutEffectiveTags, 0)
   assert.equal(result.missing.length, 1)

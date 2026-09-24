@@ -29,7 +29,7 @@ export async function validate(directory = dataDir) {
       if (!/^\d+$/.test(row.priority) || !Number.isSafeInteger(Number(row.priority)) || Number(row.priority) > maxPriority) errors.push(`${label}: priority must be an integer from 0 to ${maxPriority}`)
       try { parseBoolean(row.enabled) } catch { errors.push(`${label}: enabled must be TRUE or FALSE`) }
       try { parseBoolean(row.inherit) } catch { errors.push(`${label}: inherit must be TRUE or FALSE`) }
-      checkList(row.aliases, `${label} aliases`, errors); checkList(row.keywords, `${label} keywords`, errors)
+      checkList(row.aliases, `${label} aliases`, errors); checkList(row.keywords, `${label} keywords`, errors); checkList(row.teacher, `${label} teacher`, errors)
       for (const field of tagColumns) if (controls.test(row[field] ?? '')) errors.push(`${label}: ${field} contains a control character`)
       if (row.path.length > 1000) errors.push(`${label}: path exceeds 1000 characters`)
     })

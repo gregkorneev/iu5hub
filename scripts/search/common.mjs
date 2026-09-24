@@ -1,10 +1,11 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 
-export const tagColumns = ['object_key', 'course_id', 'course_title', 'type', 'path', 'name', 'aliases', 'keywords', 'priority', 'enabled', 'inherit', 'notes', 'source_status']
+export const tagColumns = ['object_key', 'course_id', 'course_title', 'type', 'path', 'name', 'aliases', 'keywords', 'teacher', 'priority', 'enabled', 'inherit', 'notes', 'source_status']
+export const legacyTagColumns = [tagColumns.filter((field) => field !== 'teacher'), tagColumns.filter((field) => !['teacher', 'inherit'].includes(field))]
 export const synonymColumns = ['term', 'synonyms', 'enabled', 'notes', 'object_key']
 export const legacySynonymColumns = ['term', 'synonyms', 'enabled', 'notes']
-export const manualColumns = ['aliases', 'keywords', 'priority', 'enabled', 'inherit', 'notes']
+export const manualColumns = ['aliases', 'keywords', 'teacher', 'priority', 'enabled', 'inherit', 'notes']
 export const maxPriority = 2_147_483_647
 
 export function parseCsv(text) {
@@ -67,6 +68,9 @@ export async function readTable(path, expectedHeaders) {
   try { text = new TextDecoder('utf-8', { fatal: true }).decode(await readFile(path)) }
   catch (error) { throw new Error(`invalid UTF-8 (${error.message})`) }
   const parsed = parseCsv(text)
+  if (expectedHeaders?.join('\0') === tagColumns.join('\0') && legacyTagColumns.some((headers) => parsed.headers.join('\0') === headers.join('\0'))) {
+    return parsed.records.map((row) => ({ teacher: '', ...row, ...(row.inherit === undefined ? { inherit: row.type === 'folder' ? 'TRUE' : 'FALSE' } : {}) }))
+  }
   if (expectedHeaders && parsed.headers.join('\0') !== expectedHeaders.join('\0')) throw new Error(`${path}: expected columns ${expectedHeaders.join(', ')}`)
   return parsed.records
 }

@@ -33,13 +33,14 @@ export function compileIndex(rows, synonymRows) {
     const inherited = []
     for (let length = segments.length - 1; length > 0; length--) {
       const ancestor = byPath.get(`${row.course_id}\0${segments.slice(0, length).join('/')}`)
-      if (ancestor && parseBoolean(ancestor.enabled) && parseBoolean(ancestor.inherit) && (ancestor.aliases.trim() || ancestor.keywords.trim())) {
+      if (ancestor && parseBoolean(ancestor.enabled) && parseBoolean(ancestor.inherit) && (ancestor.aliases.trim() || ancestor.keywords.trim() || (ancestor.teacher ?? '').trim())) {
         inherited.push({ distance: segments.length - length, objectKey: ancestor.object_key })
       }
     }
     return {
       objectKey: row.object_key, courseId: row.course_id, type: row.type, path: row.path, name: row.name,
-      aliases: splitList(row.aliases), keywords: splitList(row.keywords), priority: Number(row.priority),
+      aliases: splitList(row.aliases), keywords: splitList(row.keywords),
+      ...(row.teacher?.trim() ? { teacher: splitList(row.teacher) } : {}), priority: Number(row.priority),
       enabled: true, inherit: parseBoolean(row.inherit), inherited,
     }
   })

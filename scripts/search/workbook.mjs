@@ -5,9 +5,9 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { validateQueueAndApply } from './apply-tags.mjs'
 import { build } from './build.mjs'
-import { dataDir, maxPriority, migrateSynonymTable, normalize, parseBoolean, readCourses, readSynonymTable, readTable, synonymColumns, tagColumns, writeTable } from './common.mjs'
+import { dataDir, maxPriority, migrateSynonymTable, normalize, parseBoolean, readCourses, readSynonymTable, readTable, splitList, synonymColumns, tagColumns, writeTable } from './common.mjs'
 import { report } from './coverage.mjs'
-import { createQueue, queueColumns } from './tagging-queue.mjs'
+import { createQueue, legacyQueueColumns, queueColumns } from './tagging-queue.mjs'
 import { validate } from './validate.mjs'
 
 export const workbookPath = new URL('tagging-queue.xlsx', dataDir)
@@ -15,10 +15,10 @@ export const sheetNames = { tags: 'Разметка', synonyms: 'Синоним�
 const queuePath = new URL('tagging-queue.csv', dataDir)
 const tagsPath = new URL('search-tags.csv', dataDir)
 const synonymsPath = new URL('search-synonyms.csv', dataDir)
-const editableTagColumns = ['keywords']
+const editableTagColumns = ['keywords', 'teacher']
 
 export const tagSheetColumns = [
-  ['folder_label', 'Папка', 84], ['keywords', 'Теги', 54],
+  ['folder_label', 'Папка', 84], ['keywords', 'Теги', 54], ['teacher', 'Преподаватель', 30],
   ['object_key', 'object_key', 28, true], ['course_id', 'course_id', 18, true], ['course_title', 'course_title', 18, true],
   ['type', 'type', 12, true], ['path', 'path', 58, true], ['name', 'name', 36, true], ['depth', 'depth', 10, true],
   ['status', 'status', 12, true], ['source_status', 'source_status', 16, true],
@@ -31,7 +31,7 @@ const normalFill = 'EAF3FF'
 const headerFill = '24476B'
 const localPath = (path) => path instanceof URL ? fileURLToPath(path) : resolve(path)
 const tagHeaderMap = Object.fromEntries([
-  ['Папка', 'folder_label'], ['Теги', 'keywords'],
+  ['Папка', 'folder_label'], ['Теги', 'keywords'], ['Преподаватель', 'teacher'],
   ['object_key', 'object_key'], ['course_id', 'course_id'], ['course_title', 'course_title'], ['type', 'type'],
   ['path', 'path'], ['name', 'name'], ['depth', 'depth'], ['status', 'status'], ['source_status', 'source_status'],
 ].map(([header, field]) => [header, field]))
@@ -47,7 +47,34 @@ export function overlayTagQueue(baseRows, overlays) {
 
 export function buildPriorityTagRows(tags, courseIds, queueOverlay = [], workbookOverlay = []) {
   const selected = createQueue(tags, { courseIds })
-  return overlayTagQueue(overlayTagQueue(selected, queueOverlay), workbookOverlay)
+  return overlayTagQueue(overlayTagQueue(selected, queueOverlay), workbookOverlay).map((row) => ({
+    ...row,
+    keywords: ensureNameOnce(row.keywords, row.name),
+    teacher: row.teacher ?? '',
+  }))
+}
+
+async function readQueueOverlay(path) {
+  try { await access(localPath(path)) } catch (error) {
+    if (error.code === 'ENOENT') return []
+    throw error
+  }
+  try { return await readTable(path, queueColumns) } catch (error) {
+    try { return (await readTable(path, legacyQueueColumns)).map((row) => ({ ...row, teacher: '' })) } catch { throw error }
+  }
+}
+
+function ensureNameOnce(value, name) {
+  const terms = splitList(value ?? '')
+  const normalizedName = normalize(name)
+  const firstNameIndex = terms.findIndex((term) => normalize(term) === normalizedName)
+  const withoutDuplicateName = terms.filter((term, index) => normalize(term) !== normalizedName || index === firstNameIndex)
+  if (firstNameIndex < 0) withoutDuplicateName.push(name)
+  return withoutDuplicateName.join('; ')
+}
+
+function normalizeWorkbookList(value) {
+  return splitList(value ?? '').join('; ')
 }
 
 export function mergeWorkbookSynonyms(sourceRows, priorRows) {
@@ -104,9 +131,9 @@ const makeWorkbook = async (tagRows, synonymRows) => {
     ['Настройка поиска «Студент ИУ5»'],
     [''],
     ['Лист «Разметка»'],
-    ['В листе две колонки: список папок и поле «Теги». Заполняйте только синюю колонку.'],
-    ['Вписывайте всё, что поможет найти папку или её содержимое: альтернативные названия, темы и важные слова.'],
-    ['Несколько значений разделяйте точкой с запятой: матан; мат анализ; интегралы.'],
+    ['В листе список папок, поле «Теги» и поле «Преподаватель». Заполняйте две синие колонки.'],
+    ['«Теги» ищут название папки и её темы или важные слова. Имя папки уже добавлено автоматически; можно дописать альтернативные названия и темы.'],
+    ['«Преподаватель» — отдельные имена преподавателей для поиска. Несколько значений разделяйте точкой с запятой.'],
     ['Теги папки автоматически учитываются для её содержимого. Позже их можно будет отдельно разнести по категориям.'],
     ['Служебные настройки сохраняются в исходной таблице и здесь не редактируются.'],
     ['Не меняйте скрытый object_key: он нужен для сопоставления папки после сортировки строк.'],
@@ -199,7 +226,11 @@ export function parseTagWorksheet(records, expectedQueue) {
     const expected = canonicalQueue.get(row.object_key)
     if (!expected) throw new Error(`Unknown or ineligible object_key in workbook: ${row.object_key}`)
     if (submittedByKey.has(row.object_key)) throw new Error(`Duplicate object_key in Разметка sheet: ${row.object_key}`)
-    submittedByKey.set(row.object_key, { ...expected, keywords: row.keywords })
+    submittedByKey.set(row.object_key, {
+      ...expected,
+      keywords: ensureNameOnce(normalizeWorkbookList(row.keywords), expected.name),
+      teacher: row.teacher === undefined ? (expected.teacher ?? '') : normalizeWorkbookList(row.teacher),
+    })
   }
   if (submittedByKey.size !== expectedQueue.length) {
     throw new Error('Разметка sheet must contain each current tagging queue object exactly once')
@@ -250,15 +281,15 @@ async function readPriorWorkbook(path) {
   }
 }
 
-export async function generateWorkbook({ path = workbookPath, noOpen = false } = {}) {
-  const tags = await readTable(tagsPath, tagColumns)
-  const synonyms = await migrateSynonymTable(synonymsPath)
+export async function generateWorkbook({ path = workbookPath, noOpen = false, inputTagsPath = tagsPath, inputSynonymsPath = synonymsPath, inputQueuePath = queuePath } = {}) {
+  const tags = await readTable(inputTagsPath, tagColumns)
+  const synonyms = await migrateSynonymTable(inputSynonymsPath)
   const prior = await readPriorWorkbook(path)
-  const previousQueueCsv = await readTable(queuePath, queueColumns).catch(() => [])
+  const previousQueueCsv = await readQueueOverlay(inputQueuePath)
   const courses = await readCourses()
   const tagRows = buildPriorityTagRows(tags, courses.map(({ id }) => id), previousQueueCsv, prior.tags)
   const synonymRows = mergeWorkbookSynonyms(synonyms, prior.synonyms)
-  await writeTable(queuePath, queueColumns, tagRows)
+  await writeTable(inputQueuePath, queueColumns, tagRows)
   const xlsx = await makeWorkbook(tagRows, synonymRows)
   await mkdir(dirname(localPath(path)), { recursive: true })
   await xlsx.xlsx.writeFile(localPath(path))

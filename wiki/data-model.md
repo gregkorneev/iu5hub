@@ -16,7 +16,7 @@
 
 Ручные теги будущего интеллектуального поиска хранятся в version-controlled CSV (`data/search/search-tags.csv` и `search-synonyms.csv`), а не в production D1. Объект каталога идентифицируется `object_key`; текущая стратегия использует стабильный ID только если публичный Yandex Disk API его подтверждает как пригодный для rename/move, иначе — детерминированный ключ от `course_id + path`. Поэтому rename/move может потребовать ручного переноса тегов. См. [search.md](search.md).
 
-Будущая D1 mapping: `search_metadata(object_key, course_id, type, path, name, aliases, keywords, priority, enabled, notes, source_status)` и отдельная `search_synonyms(term, synonyms, enabled, notes)`. Это схема-план; миграции и поисковой D1 сейчас нет.
+Будущая D1 mapping: `search_metadata(object_key, course_id, type, path, name, aliases, keywords, teacher, priority, enabled, inherit, notes, source_status)` и отдельная `search_synonyms(term, synonyms, enabled, notes)`. Поле `teacher` хранит имя или имена преподавателей как поисковую метаинформацию. Это схема-план; миграции и поисковой D1 сейчас нет.
 
 ## Four-course Disk catalog
 

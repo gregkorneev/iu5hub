@@ -2,7 +2,8 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { dataDir, parseBoolean, readCourses, readTable, stringifyCsv, tagColumns } from './common.mjs'
 
-export const queueColumns = ['object_key', 'course_id', 'course_title', 'type', 'path', 'name', 'depth', 'status', 'source_status', 'enabled', 'aliases', 'keywords', 'priority', 'inherit', 'notes']
+export const queueColumns = ['object_key', 'course_id', 'course_title', 'type', 'path', 'name', 'depth', 'status', 'source_status', 'enabled', 'aliases', 'keywords', 'teacher', 'priority', 'inherit', 'notes']
+export const legacyQueueColumns = queueColumns.filter((field) => field !== 'teacher')
 export const queueStatus = (depth) => depth === 0 ? 'root' : depth === 2 ? 'priority' : 'later'
 const source = new URL('search-tags.csv', dataDir)
 const destination = new URL('tagging-queue.csv', dataDir)

@@ -6,7 +6,7 @@ import { createQueue, queueColumns, queueStatus } from './tagging-queue.mjs'
 
 const canonicalPath = new URL('search-tags.csv', dataDir)
 const queuePath = new URL('tagging-queue.csv', dataDir)
-const manual = ['aliases', 'keywords', 'priority', 'inherit', 'notes']
+const manual = ['aliases', 'keywords', 'teacher', 'priority', 'inherit', 'notes']
 const machine = ['course_id', 'course_title', 'type', 'path', 'name', 'source_status']
 const controls = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/
 
@@ -39,7 +39,7 @@ export function validateQueueAndApply(canonical, queue) {
 function validateManual(row, key) {
   if (!/^\d+$/.test(row.priority) || !Number.isSafeInteger(Number(row.priority)) || Number(row.priority) > maxPriority) throw new Error(`${key}: priority must be an integer from 0 to ${maxPriority}`)
   parseBoolean(row.inherit)
-  for (const field of ['aliases', 'keywords']) {
+  for (const field of ['aliases', 'keywords', 'teacher']) {
     if (row[field].length > 2000) throw new Error(`${key}: ${field} is too long`)
     const terms = row[field] ? row[field].split(';').map((item) => item.trim()) : []
     if (terms.some((term) => !term)) throw new Error(`${key}: ${field} contains an empty item`)
