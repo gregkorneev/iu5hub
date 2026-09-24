@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
-import { categoryNames, type DiskItem, type DiskSearchResult, type Material, type Semester, type Subject } from './domain/types'
+import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
 import { getTelegramUser } from './telegram/user'
 import { downloadExternalFile, isYandexDiskUrl, openExternalLink } from './telegram/links'
 import { goBack, useTelegramBackButton } from './telegram/navigation'
 import { staticMaterialsRepository as repository } from './repositories/materials-repository'
+import { searchFolders } from './repositories/folder-search'
 import { adminFetch, track } from './analytics'
 import { AdminStats } from './AdminStats'
 import './catalog.css'
@@ -30,7 +31,7 @@ function Layout({ children }: { children: ReactNode }) {
 }
 function Home() {
   const { courses } = useCatalog()
-  return <><section className="hero"><p className="eyebrow">Учебные материалы</p><h1>Студент ИУ5</h1><p>Выберите курс или найдите нужную папку либо файл.</p><SearchBox /></section><section className="home-courses"><div className="section-title"><div><p className="eyebrow">Курсы</p><h2>Материалы на Яндекс.Диске</h2></div></div><div className="course-grid">{courses.map((course, index) => <Link key={course.id} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span>{index + 1}</span><strong>{course.title}</strong><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div></section></>
+  return <><section className="hero"><p className="eyebrow">Учебные материалы</p><h1>Студент ИУ5</h1><p>Выберите курс или найдите папку по тегу либо преподавателю.</p><SearchBox /></section><section className="home-courses"><div className="section-title"><div><p className="eyebrow">Курсы</p><h2>Материалы на Яндекс.Диске</h2></div></div><div className="course-grid">{courses.map((course, index) => <Link key={course.id} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span>{index + 1}</span><strong>{course.title}</strong><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div></section></>
 }
 function CoursePage() {
   const { id = '' } = useParams()
@@ -64,16 +65,8 @@ function MaterialPage() { const { id } = useParams(); const { subjects, material
 function SearchPage() {
   const [params] = useSearchParams()
   const query = params.get('q') ?? ''
-  const [search, setSearch] = useState<{ query: string; results: DiskSearchResult[]; error: string }>({ query: '', results: [], error: '' })
-  useEffect(() => {
-    if (!query.trim()) return
-    let active = true
-    void repository.searchDisk(query).then((results) => { if (active) setSearch({ query, results, error: '' }) }).catch(() => { if (active) setSearch({ query, results: [], error: 'Не удалось выполнить поиск по Яндекс.Диску.' }) })
-    return () => { active = false }
-  }, [query])
-  const current = search.query === query ? search : { results: [], error: '' }
-  const downloadFile = (item: DiskSearchResult) => { track('yandex_disk_open', { materialId: item.path }); void repository.getFileUrl(item.courseId, item.path).then((url) => downloadExternalFile(url, item.name)).catch(() => setSearch({ query, results: current.results, error: 'Не удалось скачать файл.' })) }
-  return <><h1>Поиск</h1><SearchBox key={query} initial={query} />{query && search.query !== query ? <p className="result-count">Ищем в папках и файлах…</p> : current.error ? <p className="result-count" role="alert">{current.error}</p> : query ? <p className="result-count">{current.results.length ? `Найдено: ${current.results.length}` : 'Ничего не найдено'}</p> : <p className="lead">Введите название папки или файла.</p>}{current.results.length > 0 && <div className="disk-list">{current.results.map((item) => item.type === 'dir' ? <Link className="disk-item disk-item--folder" key={`${item.courseId}-${item.path}`} to={`/course/${item.courseId}?path=${encodeURIComponent(item.path)}`}><span aria-hidden="true">📁</span><strong>{item.name}</strong><small>{item.courseTitle} · Открыть папку</small></Link> : <div className="disk-item disk-file" key={`${item.courseId}-${item.path}`}><button className="disk-file__open" onClick={() => downloadFile(item)}><span aria-hidden="true">📄</span><span><strong>{item.name}</strong><small>{item.courseTitle} · Скачать файл</small></span></button><button className="download-button" aria-label={`Скачать ${item.name}`} title="Скачать файл" onClick={() => downloadFile(item)}>⇩</button></div>)}</div>}</>
+  const results = query.trim() ? searchFolders(query) : []
+  return <><h1>Поиск</h1><SearchBox key={query} initial={query} />{query ? <p className="result-count">{results.length ? `Найдено папок: ${results.length}` : 'Ничего не найдено'}</p> : <p className="lead">Введите тег или имя преподавателя.</p>}{results.length > 0 && <div className="disk-list">{results.map((item) => <Link className="disk-item disk-item--folder" key={item.objectKey} to={`/course/${item.courseId}?path=${encodeURIComponent(item.path)}`}><span aria-hidden="true">📁</span><strong>{item.name}</strong><small>{item.path} · {item.matchedTerms.join(', ')}</small></Link>)}</div>}</>
 }
 function NotFound() { return <EmptyState title="Страница не найдена">Такого адреса в Студент ИУ5 нет.</EmptyState> }
 function AdminStatsPage() { const { subjects, materials } = useCatalog(); return <AdminStats names={new Map([...subjects, ...materials].map((item) => [item.id, item.title]))} /> }

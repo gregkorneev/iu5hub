@@ -1,7 +1,7 @@
-import { useEffect, useId, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { useId, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { categoryNames, type Category, type DiskSearchResult, type Material, type Subject } from './domain/types'
-import { staticMaterialsRepository as repository } from './repositories/materials-repository'
+import { categoryNames, type Category, type Material, type Subject } from './domain/types'
+import { searchFolders } from './repositories/folder-search'
 import { track } from './analytics'
 
 export function MaterialTag({ category }: { category: Category }) {
@@ -11,24 +11,16 @@ export function MaterialTag({ category }: { category: Category }) {
 export function SearchBox({ initial = '', compact = false }: { initial?: string; compact?: boolean }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState(initial)
-  const [suggestions, setSuggestions] = useState<{ query: string; items: DiskSearchResult[] }>({ query: '', items: [] })
   const [focused, setFocused] = useState(false)
   const listId = useId()
-  useEffect(() => {
-    if (query.trim().length < 2) return
-    let active = true
-    const timeout = globalThis.setTimeout(() => {
-      void repository.searchDisk(query).then((results) => { if (active) setSuggestions({ query, items: results.slice(0, 5) }) }).catch(() => { if (active) setSuggestions({ query, items: [] }) })
-    }, 250)
-    return () => { active = false; globalThis.clearTimeout(timeout) }
-  }, [query])
+  const currentSuggestions = query.trim() ? searchFolders(query).slice(0, 8) : []
+  const openFolder = (item: { courseId: string; path: string }) => navigate(`/course/${item.courseId}?path=${encodeURIComponent(item.path)}`)
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const value = query.trim()
     if (value) { track('search'); navigate(`/search?q=${encodeURIComponent(value)}`) }
   }
-  const currentSuggestions = suggestions.query === query ? suggestions.items : []
-  return <div className="search-shell"><form className={`search ${compact ? 'search--compact' : ''}`} role="search" onSubmit={submit}><label className="sr-only" htmlFor={listId}>Поиск в папках и файлах</label><input id={listId} name="q" type="search" value={query} onFocus={() => setFocused(true)} onBlur={() => globalThis.setTimeout(() => setFocused(false), 150)} onChange={({ target }) => setQuery(target.value)} placeholder="Найти папку или файл" autoComplete="off" /><button type="submit">Найти</button></form>{focused && query.trim().length >= 2 && currentSuggestions.length > 0 && <div className="search-suggestions" aria-label="Подсказки поиска">{currentSuggestions.map((item) => <button key={`${item.courseId}-${item.path}`} type="button" onClick={() => navigate(`/search?q=${encodeURIComponent(item.name)}`)}><strong>{item.name}</strong><small>{item.courseTitle} · {item.type === 'dir' ? 'папка' : 'файл'}</small></button>)}</div>}</div>
+  return <div className="search-shell"><form className={`search ${compact ? 'search--compact' : ''}`} role="search" onSubmit={submit}><label className="sr-only" htmlFor={listId}>Поиск по тегам и преподавателям</label><input id={listId} name="q" type="search" value={query} onFocus={() => setFocused(true)} onBlur={() => globalThis.setTimeout(() => setFocused(false), 150)} onChange={({ target }) => setQuery(target.value)} placeholder="Найти по тегу или преподавателю" autoComplete="off" /><button type="submit">Найти</button></form>{focused && currentSuggestions.length > 0 && <div className="search-suggestions" aria-label="Подсказки поиска">{currentSuggestions.map((item) => <button key={item.objectKey} type="button" onClick={() => openFolder(item)}><strong>{item.name}</strong><small>{item.path} · {item.matchedTerms.join(', ')}</small></button>)}</div>}</div>
 }
 
 export function SubjectCard({ subject, count }: { subject: Subject; count?: number }) {

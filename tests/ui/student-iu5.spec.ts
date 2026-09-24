@@ -42,7 +42,7 @@ test.describe('Студент ИУ5 critical UI', () => {
   })
 
   test('aligns every file download control to the same card edge', async ({ page }) => {
-    for (const route of ['/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80', '/#/search?q=pdf']) {
+    for (const route of ['/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80']) {
       await page.goto(route)
       await expect(page.getByRole('button', { name: 'Скачать Лекция 1.pdf' })).toBeVisible()
       expect(await page.locator('.disk-file').evaluateAll((cards) => {
@@ -111,51 +111,32 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(page.getByText('Каталог пока недоступен')).toBeHidden()
   })
 
-  test('searches Russian text, handles no results and clears stale suggestions', async ({ page }) => {
+  test('suggests from one character and opens a case-insensitive teacher match directly', async ({ page }) => {
     await page.goto('/#/search')
-    const input = page.getByRole('searchbox', { name: 'Поиск в папках и файлах' })
-    await input.fill('мат')
-    await expect(page.getByLabel('Подсказки поиска')).toContainText('Математический анализ')
-    await input.fill('x')
-    await expect(page.getByLabel('Подсказки поиска')).toBeHidden()
-    await input.fill('несуществующий материал')
-    await input.press('Enter')
+    const input = page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' })
+    await input.fill('г')
+    await expect(page.getByLabel('Подсказки поиска')).toContainText('Аналитическая геометрия')
+    await input.fill('ГРИБ')
+    const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Аналитическая геометрия/ })
+    await expect(suggestion).toBeVisible()
+    await suggestion.click()
+    await expect(page).toHaveURL(/#\/course\/course-1\?path=/)
+    await expect(page.getByText(/^Папка:/)).toContainText('Аналитическая геометрия')
+  })
+
+  test('full search uses only tagged folders with case-insensitive prefixes', async ({ page }) => {
+    await page.goto('/#/search?q=%D0%93%D0%A0%D0%98%D0%91')
+    await expect(page.getByText('Найдено папок: 2')).toBeVisible()
+    await expect(page.getByRole('link', { name: /Аналитическая геометрия/ })).toBeVisible()
+    await page.goto('/#/search?q=%D0%BD%D0%B5%D1%81%D1%83%D1%89%D0%B5%D1%81%D1%82%D0%B2%D1%83%D1%8E%D1%89%D0%B8%D0%B9')
     await expect(page.getByText('Ничего не найдено')).toBeVisible()
-  })
-
-  test('shows matching files from both courses', async ({ page }) => {
-    await page.route('https://cloud-api.yandex.net/**', (route) => {
-      const key = new URL(route.request().url()).searchParams.get('public_key')
-      const path = key?.includes('PoeWdke') ? 'Курс 2/Общий конспект.pdf' : 'Курс 1/Общий конспект.pdf'
-      return route.fulfill({ json: { _embedded: { items: [{ name: 'Общий конспект.pdf', path, type: 'file' }] } } })
-    })
-    await page.goto('/#/search?q=%D0%9E%D0%B1%D1%89%D0%B8%D0%B9')
-    await expect(page.getByText('Найдено: 2')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Скачать Общий конспект.pdf' })).toHaveCount(2)
-  })
-
-  test('finds a file below a matching folder at deep nesting', async ({ page }) => {
-    await page.goto('/#/search?q=%D0%A3%D0%A2%D0%9F')
-    await expect(page.getByText('УТП-файл.pdf')).toBeVisible()
-  })
-
-  test('ends a stalled live Disk search with an error instead of an endless loader', async ({ page }) => {
-    test.setTimeout(25_000)
-    await page.unroute('https://cloud-api.yandex.net/**')
-    await page.route('**/v1/disk/public/resources**', async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 11_000))
-      await route.fulfill({ json: { _embedded: { items: [] } } })
-    })
-    await page.goto('/#/search?q=%D0%9C%D0%B0%D1%82%D0%B5%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%B0%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7')
-    await expect(page.getByText('Не удалось выполнить поиск по Яндекс.Диску.')).toBeVisible({ timeout: 16_000 })
-    await expect(page.getByText('Ищем в папках и файлах…')).toBeHidden()
   })
 
   test('keeps home search suggestions tappable above the course catalog on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/#/')
-    await page.getByRole('searchbox', { name: 'Поиск в папках и файлах' }).fill('ma')
-    const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Математический анализ/ })
+    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).fill('м')
+    const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Математичес/ })
     await expect(suggestion).toBeVisible()
     expect(await suggestion.evaluate((element) => {
       const box = element.getBoundingClientRect()

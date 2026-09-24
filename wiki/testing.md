@@ -78,6 +78,8 @@ Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` 
 | Theme, Compact/Fullsize/Fullscreen viewport, safe areas, BackButton | n/a | required |
 | Keyboard/focus and touch targets | useful | required |
 
+For curated folder search, verify one-character suggestions, case-insensitive tag and teacher prefixes, no result for blank/unmatched input, and direct navigation when selecting a suggestion. Text search should not make Yandex API requests; Yandex is used after navigation to load the folder contents.
+
 Записывайте невыполнимые проверки и причину в `known-issues.md`.
 
 ## Local Telegram development check

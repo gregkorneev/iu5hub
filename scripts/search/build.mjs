@@ -5,22 +5,32 @@ import { normalize, parseBoolean, readSynonymTable, readTable, splitList, tagCol
 const source = new URL('../../data/search/search-tags.csv', import.meta.url)
 const synonymsSource = new URL('../../data/search/search-synonyms.csv', import.meta.url)
 const destination = new URL('../../src/generated/search-index.json', import.meta.url)
+const folderSearchDestination = new URL('../../src/generated/search-folder-index.json', import.meta.url)
 
-export async function build({ check = false, tagsPath = source, synonymsPath = synonymsSource, outputPath = destination } = {}) {
+export async function build({ check = false, tagsPath = source, synonymsPath = synonymsSource, outputPath = destination, folderSearchPath } = {}) {
+  const generatedFolderSearchPath = folderSearchPath ?? (outputPath === destination ? folderSearchDestination : null)
   const rows = await readTable(tagsPath, tagColumns)
   const synonymRows = await readSynonymTable(synonymsPath)
   const index = compileIndex(rows, synonymRows)
   const result = `${JSON.stringify(index, null, 2)}\n`
+  const searchableFolders = index.objects.filter((row) => row.type === 'folder' && row.enabled && row.aliases.length + row.keywords.length + (row.teacher?.length ?? 0) > 0)
+  const folderSearchIndex = `${JSON.stringify(searchableFolders.map(({ objectKey, courseId, path, name, keywords, teacher = [] }) => ({ objectKey, courseId, path, name, tags: keywords, teachers: teacher })), null, 2)}\n`
   if (check) {
     let current
     try { current = await readFile(outputPath, 'utf8') } catch { current = '' }
     if (current !== result) throw new Error('Generated search index is stale; run npm run search:build')
+    if (generatedFolderSearchPath) {
+      let currentFolderSearch
+      try { currentFolderSearch = await readFile(generatedFolderSearchPath, 'utf8') } catch { currentFolderSearch = '' }
+      if (currentFolderSearch !== folderSearchIndex) throw new Error('Generated folder search index is stale; run npm run search:build')
+    }
     console.log('Generated search index is up to date.')
   } else {
     const { mkdir } = await import('node:fs/promises')
     await mkdir(new URL('../../src/generated/', import.meta.url), { recursive: true })
     await writeFile(outputPath, result, 'utf8')
-    console.log(`Generated ${index.objects.length} search objects and ${index.synonyms.length} synonym entries.`)
+    if (generatedFolderSearchPath) await writeFile(generatedFolderSearchPath, folderSearchIndex, 'utf8')
+    console.log(`Generated ${index.objects.length} search objects, ${searchableFolders.length} tagged folders and ${index.synonyms.length} synonym entries.`)
   }
   return index
 }
