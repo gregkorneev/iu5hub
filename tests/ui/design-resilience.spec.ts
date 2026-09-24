@@ -67,6 +67,26 @@ test.describe('Студент ИУ5 mobile resilience', () => {
     })).toBeTruthy()
   })
 
+  test('keeps scrolled content out of the Telegram top safe area', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 })
+    await page.goto('/#/course/course-1?path=1%20%D0%A1%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
+    await page.evaluate(() => {
+      const app = (window as Window & { Telegram: { WebApp: { contentSafeAreaInset: Record<string, number> } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.contentSafeAreaInset = { top: 24, right: 0, bottom: 0, left: 0 }
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('contentSafeAreaChanged')
+      window.scrollTo(0, 500)
+    })
+    await expect.poll(() => page.evaluate(() => window.scrollY > 0)).toBeTruthy()
+    expect(await page.locator('header').evaluate((header) => {
+      const bar = header.getBoundingClientRect()
+      const cover = getComputedStyle(header, '::before')
+      return Math.abs(bar.top - 24) <= 1
+        && parseFloat(cover.height) >= 24
+        && cover.backgroundColor !== 'transparent'
+        && cover.backgroundColor !== 'rgba(0, 0, 0, 0)'
+    })).toBeTruthy()
+  })
+
   test('replaces movement and translucent chrome for accessibility preferences', async ({ page, browserName }) => {
     await page.goto('/#/course/course-1')
     await page.emulateMedia({ reducedMotion: 'reduce', contrast: 'more' })
