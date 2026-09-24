@@ -23,22 +23,16 @@ test('generated Excel workbook contains the requested sheets, Unicode, hidden ke
     await workbook.xlsx.readFile(path)
     assert.deepEqual(workbook.worksheets.map(({ name }) => name), ['Инструкция', 'Разметка', 'Синонимы'])
     const sheet = workbook.getWorksheet('Разметка')
-    assert.deepEqual(sheet.getRow(1).values.slice(1, 12), ['Курс', 'Глубина', 'Путь', 'Название', 'Псевдонимы', 'Ключевые слова', 'Приоритет', 'Наследовать', 'Включено', 'Заметки', 'Статус'])
+    assert.deepEqual(sheet.getRow(1).values.slice(1, 3), ['Папка', 'Теги'])
     assert.equal(sheet.rowCount, 142)
     const keyColumn = sheet.getRow(1).values.slice(1).indexOf('object_key') + 1
     assert.ok(keyColumn > 0)
+    assert.equal(keyColumn, 3)
     assert.equal(sheet.getColumn(keyColumn).hidden, true)
-    assert.equal(sheet.getCell(2, 3).value.includes('Семестр'), true)
-    assert.equal(sheet.getCell(2, 1).value, 'Курс 1')
-    assert.equal(sheet.getCell(2, 5).value, '')
-    assert.equal(sheet.getCell(2, 7).value, 0)
-    assert.equal(sheet.getCell(2, 8).value, 'TRUE')
-    assert.equal(sheet.getCell(2, 9).value, 'TRUE')
-    assert.equal(sheet.getCell(2, 7).dataValidation.type, 'whole')
-    assert.equal(sheet.getCell(2, 8).dataValidation.type, 'list')
-    assert.equal(sheet.getCell(2, 9).dataValidation.type, 'list')
+    assert.match(sheet.getCell(2, 1).value, /^Курс 1 \/ 1 Семестр$/)
+    assert.equal(sheet.getCell(2, 2).value, '')
     assert.equal(sheet.views[0].ySplit, 1)
-    assert.equal(sheet.getColumn(3).alignment.wrapText, true)
+    assert.equal(sheet.getColumn(1).alignment.wrapText, true)
     const synonyms = workbook.getWorksheet('Синонимы')
     assert.equal(synonyms.getColumn(5).hidden, true)
     assert.equal(synonyms.getCell(3, 3).dataValidation.type, 'list')
@@ -50,11 +44,14 @@ test('workbook row order is irrelevant and unknown or duplicate keys are rejecte
     { object_key: 'one', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Курс/А', name: 'А', depth: '1', status: 'priority', source_status: 'active', enabled: 'TRUE', aliases: '', keywords: '', priority: '0', inherit: 'TRUE', notes: '' },
     { object_key: 'two', course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: 'Курс/Б', name: 'Б', depth: '1', status: 'priority', source_status: 'active', enabled: 'TRUE', aliases: '', keywords: '', priority: '0', inherit: 'TRUE', notes: '' },
   ]
-  const submitted = [...queue].reverse().map((row) => ({ ...row, aliases: `tag-${row.object_key}` }))
+  const submitted = [...queue].reverse().map((row) => ({ ...row, keywords: `tag-${row.object_key}` }))
   const parsed = parseTagWorksheet(submitted, queue)
-  assert.deepEqual(parsed.map(({ object_key }) => object_key), ['two', 'one'])
+  assert.deepEqual(parsed.map(({ object_key }) => object_key), ['one', 'two'])
+  assert.deepEqual(parsed.map(({ keywords }) => keywords), ['tag-one', 'tag-two'])
+  assert.equal(parsed[0].inherit, 'TRUE')
+  assert.equal(parsed[0].priority, '0')
   assert.throws(() => parseTagWorksheet([{ ...submitted[0], object_key: 'missing' }, submitted[1]], queue), /Unknown or ineligible object_key/)
-  assert.throws(() => parseTagWorksheet([submitted[0], submitted[0]], queue), /exactly once/)
+  assert.throws(() => parseTagWorksheet([submitted[0], submitted[0]], queue), /Duplicate object_key/)
 })
 
 test('workbook source replacement restores earlier CSV when a later rename fails', async () => {
@@ -97,10 +94,11 @@ test('workbook overlays editable queue fields by stable key and keeps canonical 
   const canonical = { object_key: 'k', course_id: 'course-1', path: 'Курс/Папка', name: 'Папка', aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '' }
   const merged = overlayTagQueue([canonical], [{ ...canonical, path: 'spoof', aliases: 'папка', keywords: 'лекции', priority: '7', enabled: 'FALSE', notes: 'ручное' }])
   assert.equal(merged[0].path, canonical.path)
-  assert.equal(merged[0].aliases, 'папка')
-  assert.equal(merged[0].priority, '7')
-  assert.equal(merged[0].enabled, 'FALSE')
-  assert.equal(merged[0].notes, 'ручное')
+  assert.equal(merged[0].aliases, '')
+  assert.equal(merged[0].keywords, 'лекции')
+  assert.equal(merged[0].priority, '0')
+  assert.equal(merged[0].enabled, 'TRUE')
+  assert.equal(merged[0].notes, '')
 })
 
 test('workbook synonym overlays retain edits, stable keys, new rows, and safe deletions', () => {
@@ -126,23 +124,23 @@ test('workbook rows map Russian headers and reject formulas', () => {
   const makeSheet = (firstValue) => ({
     name: sheetNames.tags, rowCount: 2,
     getRow: (rowNumber) => ({
-      values: rowNumber === 1 ? [undefined, 'Путь', 'object_key'] : undefined,
-      getCell: (column) => ({ value: rowNumber === 1 ? (column === 1 ? 'Путь' : 'object_key') : (column === 1 ? firstValue : 'stable') }),
+      values: rowNumber === 1 ? [undefined, 'Папка', 'object_key'] : undefined,
+      getCell: (column) => ({ value: rowNumber === 1 ? (column === 1 ? 'Папка' : 'object_key') : (column === 1 ? firstValue : 'stable') }),
     }),
   })
   const worksheet = makeSheet({ formula: '1+1' })
-  assert.throws(() => readWorksheetRecords(worksheet, { Путь: 'path' }), /formulas are not allowed/)
-  assert.deepEqual(readWorksheetRecords(makeSheet('Курс/Папка'), { Путь: 'path' }).records, [{ path: 'Курс/Папка', object_key: 'stable' }])
-  assert.equal(readWorksheetRecords(makeSheet('=SUM(A1:A2)'), { Путь: 'path' }).records[0].path, '=SUM(A1:A2)')
+  assert.throws(() => readWorksheetRecords(worksheet, { Папка: 'folder_label' }), /formulas are not allowed/)
+  assert.deepEqual(readWorksheetRecords(makeSheet('Курс / Папка'), { Папка: 'folder_label' }).records, [{ folder_label: 'Курс / Папка', object_key: 'stable' }])
+  assert.equal(readWorksheetRecords(makeSheet('=SUM(A1:A2)'), { Папка: 'folder_label' }).records[0].folder_label, '=SUM(A1:A2)')
 })
 
-test('workbook visible tag columns and priority queue size stay fixed', () => {
-  assert.deepEqual(tagSheetColumns.slice(0, 11).map(([, header]) => header), ['Курс', 'Глубина', 'Путь', 'Название', 'Псевдонимы', 'Ключевые слова', 'Приоритет', 'Наследовать', 'Включено', 'Заметки', 'Статус'])
-  assert.equal(tagSheetColumns[11][0], 'object_key')
+test('workbook has one folder list and one editable tag field; priority queue size stays fixed', () => {
+  assert.deepEqual(tagSheetColumns.slice(0, 2).map(([, header]) => header), ['Папка', 'Теги'])
+  assert.equal(tagSheetColumns[2][0], 'object_key')
   const rows = Array.from({ length: 141 }, (_, index) => ({ object_key: `k${index}`, course_id: 'course-1', course_title: 'Курс 1', type: 'folder', path: `Курс/Семестр/${String(index).padStart(3, '0')}`, name: `${index}`, aliases: '', keywords: '', priority: '0', enabled: 'TRUE', inherit: 'TRUE', notes: '', source_status: 'active' }))
-  const generated = buildPriorityTagRows(rows, ['course-1'], [{ ...rows[0], aliases: 'сохранено' }])
+  const generated = buildPriorityTagRows(rows, ['course-1'], [{ ...rows[0], keywords: 'сохранено' }])
   assert.equal(generated.length, 141)
-  assert.equal(generated[0].aliases, 'сохранено')
+  assert.equal(generated[0].keywords, 'сохранено')
 })
 
 test('CSV handles Cyrillic, quoting, commas, and line endings', () => {

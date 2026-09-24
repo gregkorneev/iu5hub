@@ -15,13 +15,13 @@ export const sheetNames = { tags: 'Разметка', synonyms: 'Синоним�
 const queuePath = new URL('tagging-queue.csv', dataDir)
 const tagsPath = new URL('search-tags.csv', dataDir)
 const synonymsPath = new URL('search-synonyms.csv', dataDir)
-const editableTagColumns = ['aliases', 'keywords', 'priority', 'enabled', 'inherit', 'notes']
+const editableTagColumns = ['keywords']
 
 export const tagSheetColumns = [
-  ['course_title', 'Курс', 16], ['depth', 'Глубина', 10], ['path', 'Путь', 58], ['name', 'Название', 36],
-  ['aliases', 'Псевдонимы', 30], ['keywords', 'Ключевые слова', 38], ['priority', 'Приоритет', 12],
-  ['inherit', 'Наследовать', 20], ['enabled', 'Включено', 12], ['notes', 'Заметки', 32], ['status', 'Статус', 12],
-  ['object_key', 'object_key', 28, true], ['course_id', 'course_id', 18, true], ['type', 'type', 12, true], ['source_status', 'source_status', 16, true],
+  ['folder_label', 'Папка', 84], ['keywords', 'Теги', 54],
+  ['object_key', 'object_key', 28, true], ['course_id', 'course_id', 18, true], ['course_title', 'course_title', 18, true],
+  ['type', 'type', 12, true], ['path', 'path', 58, true], ['name', 'name', 36, true], ['depth', 'depth', 10, true],
+  ['status', 'status', 12, true], ['source_status', 'source_status', 16, true],
 ]
 export const synonymSheetColumns = [
   ['term', 'Термин', 32], ['synonyms', 'Синонимы', 48], ['enabled', 'Включено', 12], ['notes', 'Заметка', 36],
@@ -31,9 +31,9 @@ const normalFill = 'EAF3FF'
 const headerFill = '24476B'
 const localPath = (path) => path instanceof URL ? fileURLToPath(path) : resolve(path)
 const tagHeaderMap = Object.fromEntries([
-  ['Курс', 'course_title'], ['Глубина', 'depth'], ['Путь', 'path'], ['Название', 'name'], ['Псевдонимы', 'aliases'],
-  ['Ключевые слова', 'keywords'], ['Приоритет', 'priority'], ['Наследовать', 'inherit'], ['Включено', 'enabled'],
-  ['Заметки', 'notes'], ['Статус', 'status'], ['object_key', 'object_key'], ['course_id', 'course_id'], ['type', 'type'], ['source_status', 'source_status'],
+  ['Папка', 'folder_label'], ['Теги', 'keywords'],
+  ['object_key', 'object_key'], ['course_id', 'course_id'], ['course_title', 'course_title'], ['type', 'type'],
+  ['path', 'path'], ['name', 'name'], ['depth', 'depth'], ['status', 'status'], ['source_status', 'source_status'],
 ].map(([header, field]) => [header, field]))
 const synonymHeaderMap = Object.fromEntries([['Термин', 'term'], ['Синонимы', 'synonyms'], ['Включено', 'enabled'], ['Заметка', 'notes'], ['object_key', 'object_key']])
 
@@ -104,10 +104,12 @@ const makeWorkbook = async (tagRows, synonymRows) => {
     ['Настройка поиска «Студент ИУ5»'],
     [''],
     ['Лист «Разметка»'],
-    ['Заполняйте только столбцы «Псевдонимы», «Ключевые слова», «Приоритет», «Включено», «Наследовать теги» и «Заметка».'],
-    ['Несколько значений разделяйте точкой с запятой: матан; мат анализ. Приоритет: обычная папка — 0, крупный раздел — 10, предмет — 20. Используйте целые числа от 0.'],
-    ['Наследовать=TRUE передаёт aliases и keywords этой папки её содержимому. Для включения и наследования используйте TRUE или FALSE.'],
-    ['Не меняйте курс, тип, путь, название, глубину, статусы и скрытый object_key. object_key нужен для безопасного сопоставления строк.'],
+    ['В листе две колонки: список папок и поле «Теги». Заполняйте только синюю колонку.'],
+    ['Вписывайте всё, что поможет найти папку или её содержимое: альтернативные названия, темы и важные слова.'],
+    ['Несколько значений разделяйте точкой с запятой: матан; мат анализ; интегралы.'],
+    ['Теги папки автоматически учитываются для её содержимого. Позже их можно будет отдельно разнести по категориям.'],
+    ['Служебные настройки сохраняются в исходной таблице и здесь не редактируются.'],
+    ['Не меняйте скрытый object_key: он нужен для сопоставления папки после сортировки строк.'],
     [''],
     ['Лист «Синонимы»'],
     ['Добавляйте одну общую поисковую тему на строку. Синонимы разделяйте точкой с запятой. Можно менять термин, синонимы, включение и заметку. Не меняйте скрытый object_key.'],
@@ -119,8 +121,8 @@ const makeWorkbook = async (tagRows, synonymRows) => {
     ['CSV остаётся источником истины. Не отправляйте XLSX вместо search-tags.csv и search-synonyms.csv.'],
   ])
   instructions.getCell('A1').font = { bold: true, size: 15, color: { argb: 'FF24476B' } }
-  for (const cell of ['A3', 'A9', 'A12']) instructions.getCell(cell).font = { bold: true, size: 12 }
-  for (let row = 1; row <= 16; row++) instructions.getRow(row).height = row === 1 ? 26 : 24
+  for (const cell of ['A3', 'A11', 'A14']) instructions.getCell(cell).font = { bold: true, size: 12 }
+  for (let row = 1; row <= 18; row++) instructions.getRow(row).height = row === 1 ? 26 : 24
   instructions.getColumn(1).alignment = { wrapText: true, vertical: 'middle' }
 
   addTableSheet(workbook, sheetNames.tags, tagSheetColumns, tagRows)
@@ -131,7 +133,7 @@ const makeWorkbook = async (tagRows, synonymRows) => {
 function addTableSheet(workbook, sheetName, columns, rows) {
   const worksheet = workbook.addWorksheet(sheetName, { views: [{ state: 'frozen', ySplit: 1, showGridLines: false }] })
   worksheet.columns = columns.map(([key, header, width, hidden]) => ({ key, header, width, hidden: Boolean(hidden) }))
-  for (const row of rows) worksheet.addRow(Object.fromEntries(columns.map(([key]) => [key, key === 'priority' && row[key] !== '' ? Number(row[key]) : row[key] ?? ''])))
+  for (const row of rows) worksheet.addRow(Object.fromEntries(columns.map(([key]) => [key, key === 'folder_label' ? folderLabel(row) : row[key] ?? ''])))
   const end = worksheet.getRow(1).cellCount
   const last = worksheet.getRow(Math.max(1, worksheet.rowCount)).getCell(end).address
   worksheet.autoFilter = { from: 'A1', to: last }
@@ -145,7 +147,7 @@ function addTableSheet(workbook, sheetName, columns, rows) {
   columns.forEach(([key, , , hidden], index) => {
     const column = worksheet.getColumn(index + 1)
     column.hidden = Boolean(hidden)
-    if (['path', 'aliases', 'keywords', 'notes'].includes(key)) {
+    if (['folder_label', 'aliases', 'keywords', 'notes'].includes(key)) {
       column.alignment = { vertical: 'top', wrapText: true }
     }
     if (editableTagColumns.includes(key) || (sheetName === sheetNames.synonyms && ['term', 'synonyms', 'enabled', 'notes'].includes(key))) {
@@ -175,6 +177,11 @@ function addTableSheet(workbook, sheetName, columns, rows) {
   worksheet.properties.outlineLevelRow = 0
 }
 
+function folderLabel(row) {
+  const parts = row.path.split('/').filter(Boolean)
+  return [row.course_title, ...parts.slice(1)].join(' / ')
+}
+
 function requireHiddenColumn(worksheet, header) {
   const headers = worksheet.getRow(1).values.slice(1).map(displayValue)
   const columnIndex = headers.indexOf(header)
@@ -182,23 +189,22 @@ function requireHiddenColumn(worksheet, header) {
 }
 
 export function parseTagWorksheet(records, expectedQueue) {
-  const required = [...queueColumns, 'object_key']
+  const required = ['object_key', 'keywords']
   const headers = Object.keys(records[0] ?? {})
   if (required.some((header) => !headers.includes(header))) throw new Error(`Разметка sheet must include fields ${required.join(', ')}`)
   const canonicalQueue = new Map(expectedQueue.map((row) => [row.object_key, row]))
-  const submitted = []
+  const submittedByKey = new Map()
   for (const row of records) {
     if (!row.object_key) throw new Error('Every Разметка row must retain its hidden object_key')
     const expected = canonicalQueue.get(row.object_key)
     if (!expected) throw new Error(`Unknown or ineligible object_key in workbook: ${row.object_key}`)
-    const enabled = /^(true|false)$/i.test(row.enabled) ? row.enabled.toUpperCase() : row.enabled
-    const inherit = /^(true|false)$/i.test(row.inherit) ? row.inherit.toUpperCase() : row.inherit
-    submitted.push({ ...row, enabled, inherit })
+    if (submittedByKey.has(row.object_key)) throw new Error(`Duplicate object_key in Разметка sheet: ${row.object_key}`)
+    submittedByKey.set(row.object_key, { ...expected, keywords: row.keywords })
   }
-  if (submitted.length !== expectedQueue.length || new Set(submitted.map(({ object_key }) => object_key)).size !== expectedQueue.length) {
+  if (submittedByKey.size !== expectedQueue.length) {
     throw new Error('Разметка sheet must contain each current tagging queue object exactly once')
   }
-  return submitted
+  return expectedQueue.map(({ object_key }) => submittedByKey.get(object_key))
 }
 
 export function parseWorkbookSynonyms(records, canonicalRows) {
