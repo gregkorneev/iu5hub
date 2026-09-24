@@ -41,7 +41,7 @@ test('generated Excel workbook contains the requested sheets, Unicode, hidden ke
     assert.match(sheet.getCell(2, 1).value, /^Курс 1 \/ 1 Семестр \/ Аналитическая геометрия$/)
     assert.equal(sheet.getCell(2, 2).value, tagRows[0].keywords)
     assert.match(sheet.getCell(2, 2).value, /Аналитическая геометрия/)
-    assert.equal(sheet.getCell(2, 3).value, '')
+    assert.equal(sheet.getCell(2, 3).value, tagRows[0].teacher)
     assert.equal(sheet.views[0].ySplit, 1)
     assert.equal(sheet.getColumn(1).alignment.wrapText, true)
     const synonyms = workbook.getWorksheet('Синонимы')

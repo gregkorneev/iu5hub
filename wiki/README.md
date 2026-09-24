@@ -12,6 +12,7 @@
 | материалах и их источнике | `data-model.md` |
 | ручных тегах для будущего умного поиска | `search.md` |
 | Telegram Mini App и integration layer | `telegram.md` |
+| дизайн-системе и Liquid Glass | `design-system.md` |
 | локальном Telegram development через Quick Tunnel | `local-telegram-development.md` |
 | выпуске, проверках | `deployment.md`, `testing.md` |
 | приватной аналитике и метриках | `analytics.md`, `security.md` |

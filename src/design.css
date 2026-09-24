@@ -24,7 +24,7 @@
   --text-primary: var(--platform-text);
   --text-secondary: color-mix(in srgb, var(--platform-text) 66%, var(--platform-background) 34%);
   --separator: color-mix(in srgb, var(--platform-text) 15%, transparent);
-  --action: var(--telegram-button-color, #006cdc);
+  --action: color-mix(in srgb, var(--telegram-button-color, #006cdc) 90%, #002c5b 10%);
   --action-text: var(--telegram-button-text-color, var(--platform-background));
   --action-quiet: color-mix(in srgb, var(--action) 70%, var(--platform-text) 30%);
   --action-glass: color-mix(in srgb, var(--action) 24%, transparent);
@@ -91,7 +91,7 @@ button, a, [role="button"] { touch-action: manipulation; user-select: none; -web
 :root[data-telegram-theme="dark"] .tag.tag--other { color: #d9e2e7 !important; }
 :root[data-telegram-theme="light"] .tag.tag--lecture { color: #0759a5 !important; }
 :root[data-telegram-theme="light"] .tag.tag--lab { color: #087443 !important; }
-:root[data-telegram-theme="light"] .tag.tag--practice { color: #975c00 !important; }
+:root[data-telegram-theme="light"] .tag.tag--practice { color: #754500 !important; }
 :root[data-telegram-theme="light"] .tag.tag--methodical { color: #6837a4 !important; }
 :root[data-telegram-theme="light"] .tag.tag--presentation { color: #a92965 !important; }
 :root[data-telegram-theme="light"] .tag.tag--video { color: #ad4b09 !important; }
@@ -127,7 +127,14 @@ header::before {
 .brand { gap: var(--space-3); color: var(--text-primary); font-family: "ALS Sector", -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing: -.02em; font-size: var(--type-body); font-weight: var(--weight-strong); }
 .brand img { width: 2.25rem; height: 2.25rem; border-radius: var(--radius-small); box-shadow: none; }
 nav { gap: var(--space-2); color: var(--text-secondary); font-size: .875rem; }
-nav a { padding-inline: var(--space-2); border-radius: var(--radius-small); }
+nav a {
+  padding-inline: var(--space-2);
+  border: 1px solid var(--material-edge);
+  border-radius: var(--radius-small);
+  background: var(--surface-secondary);
+  box-shadow: inset 0 1px 0 var(--material-highlight);
+  transition: background-color var(--duration-transition) ease-out;
+}
 main { padding: var(--space-6) 0 3rem; animation: page-enter var(--duration-transition) var(--curve-exit) both; }
 main[data-navigation="back"] { animation-name: page-return; }
 @keyframes page-enter { from { opacity: .65; transform: translateX(.75rem); } to { opacity: 1; transform: translateX(0); } }
@@ -229,7 +236,7 @@ section + section { margin-top: 2.5rem; }
     box-shadow: 0 .375rem 1.25rem color-mix(in srgb, var(--platform-text) 10%, transparent);
   }
   .search-suggestions button:hover { background: var(--surface-secondary); }
-  nav a:hover { color: var(--action); }
+  nav a:hover { background: var(--surface-elevated); color: var(--action); }
   .section-title > a:hover { color: var(--action); }
 }
 :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search button, .button, .download-button, .in-app-back, .course-root-link, .filters a, nav a, .stats-periods button):active {
@@ -279,6 +286,7 @@ html:has(.app--home input:focus), body:has(.app--home input:focus) { overflow-x:
 @supports (backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {
     header { background: var(--material-regular); backdrop-filter: blur(18px) saturate(145%); }
+    nav a { background: var(--material-thin); }
     .search, .in-app-back, .course-root-link { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
     .search:focus-within { background: var(--material-thin); }
     .search-suggestions { background: var(--material-thick); backdrop-filter: blur(24px) saturate(150%); }
@@ -323,6 +331,7 @@ html:has(.app--home input:focus), body:has(.app--home input:focus) { overflow-x:
 }
 @media (prefers-contrast: more) {
   :root { --text-secondary: var(--text-primary); --separator: var(--text-primary); }
+  :root[data-telegram-theme="light"] { --action: #005bb9; --action-text: #fff; }
   .course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search, .search-suggestions { border: 1px solid var(--separator); }
   header, .search-suggestions { background: var(--surface-primary); backdrop-filter: none; }
   .search, .in-app-back, .course-root-link { background: var(--surface-secondary); backdrop-filter: none; }
