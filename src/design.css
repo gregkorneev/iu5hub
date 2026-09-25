@@ -395,6 +395,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 
 .favorite-card { position: relative; min-width: 0; }
 .favorite-card > a { height: 100%; padding-right: 4rem; }
+.favorite-card > a.semester-button { padding-right: var(--space-4); }
 .favorite-card > .favorite-button { position: absolute; z-index: 1; top: 50%; right: .5rem; transform: translateY(-50%); }
 .favorite-button { display: inline-grid; place-items: center; flex: 0 0 auto; width: 2.75rem; height: 2.75rem; padding: .6rem; border: 1px solid var(--material-edge); border-radius: var(--radius-medium); background: var(--surface-secondary); color: var(--text-secondary); transition: color var(--duration-press), transform var(--duration-press), background-color var(--duration-press); }
 .favorite-button svg { width: 100%; height: 100%; }
@@ -425,8 +426,8 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 .profile-item__content small { display: block; color: var(--text-secondary); overflow-wrap: anywhere; }
 @media (max-width: 380px) { nav { font-size: .76rem; } nav a { padding-inline: .3rem; } .disk-file { grid-template-columns: minmax(0, 1fr) 2.75rem 2.75rem; gap: 0; } .disk-file__open { padding-inline: .75rem; } }
 @media (max-width: 620px) {
+  .semester-button-grid .favorite-card > .favorite-button { top: .5rem; transform: none; }
   .semester-button-grid .favorite-card > .disk-item--folder { grid-template-columns: minmax(0, 1fr); padding-right: var(--space-2); }
   .semester-button-grid .favorite-card > .disk-item--folder > span { grid-row: auto; }
   .semester-button-grid .favorite-card > .disk-item--folder strong { font-size: .875rem; }
-  .semester-button-grid .favorite-card > .favorite-button { top: .5rem; transform: none; }
 }
