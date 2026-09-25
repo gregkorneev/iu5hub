@@ -130,6 +130,10 @@ To roll back application code, revert to the last-known-good commit on `main`; a
 | Base URL works but a route does not | Use the hash form `/#/…`; verify the web-site index document is `index.html`. |
 | Telegram refuses to launch | Verify the configured Mini App endpoint is HTTPS, reachable without authentication, and exactly matches the endpoint tested in Cloud.ru. |
 
+## Profile and favorites release order
+
+The personal profile uses the existing Worker and `ANALYTICS_DB` D1 database. Before releasing the Pages bundle, apply `worker/migrations/0002_favorites.sql` to the production D1 binding with the existing Wrangler workflow (`npx wrangler d1 migrations apply iu5hub-analytics --remote`). Set a unique, strong, durable Worker secret with `npx wrangler secret put USER_ID_HMAC_SECRET`, then deploy the updated Worker (`npx wrangler deploy`). Never pass a secret on the command line or commit its value. The Worker's `/api/profile/favorites` route uses the existing public `VITE_ANALYTICS_API_BASE` origin; no second frontend API variable is needed. Verify a real Telegram launch with two accounts before treating the feature as released. See `profile.md` for the API and privacy model.
+
 ## Limitations
 
 Cloudflare Pages is static frontend hosting, not the analytics backend. Private analytics additionally requires the Worker, D1 binding/migrations, Worker-only secrets and protected Telegram webhook described in `analytics.md`. Deploy and smoke-test it independently of a Pages artifact: a successful Pages deployment alone does not enable `/stats`, authentication, D1 or admin functions. When the Worker has its own hostname, set the public Pages build variable `VITE_ANALYTICS_API_BASE` to that HTTPS origin; it contains no credential and is protected by the Worker's origin allowlist and server-side Telegram validation.

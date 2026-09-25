@@ -19,12 +19,12 @@ function adminIds(env) {
 async function identity(request, env) {
   const telegramUserId = await validateInitData(request.headers.get('X-Telegram-Init-Data'), env.TELEGRAM_BOT_TOKEN)
   if (!telegramUserId) return null
-  return { isAdmin: adminIds(env).has(telegramUserId), userHash: await hashTelegramUserId(telegramUserId, env.ANALYTICS_HMAC_SECRET) }
+  return { telegramUserId, isAdmin: adminIds(env).has(telegramUserId) }
 }
 
 function validOptionalId(value) { return value === undefined || (typeof value === 'string' && idPattern.test(value)) }
 
-async function readEventBody(request) {
+async function readBody(request, limit) {
   if (!request.body) return ''
   const reader = request.body.getReader()
   const decoder = new TextDecoder()
@@ -33,9 +33,51 @@ async function readEventBody(request) {
     const { done, value } = await reader.read()
     if (done) return text + decoder.decode()
     bytes += value.byteLength
-    if (bytes > 1024) { await reader.cancel(); return null }
+    if (bytes > limit) { await reader.cancel(); return null }
     text += decoder.decode(value, { stream: true })
   }
+}
+
+const courseIds = new Set(['course-1', 'course-2', 'course-3'])
+function validFavoriteKey(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) &&
+    courseIds.has(value.courseId) && typeof value.path === 'string' &&
+    value.path.length > 0 && value.path.length <= 2048 && value.path.trim() === value.path &&
+    !value.path.startsWith('//') && !value.path.includes('://') &&
+    (!/^[a-z][a-z\d+.-]*:/i.test(value.path) || value.path.startsWith('disk:/')) &&
+    !/[\\\u0000-\u001f\u007f]/.test(value.path) &&
+    !value.path.split('/').some((segment) => segment === '.' || segment === '..')
+}
+function validFavorite(value, deleting) {
+  if (!validFavoriteKey(value)) return false
+  const keys = Object.keys(value)
+  if (deleting) return keys.length === 2 && keys.every((key) => ['courseId', 'path'].includes(key))
+  return keys.length === 4 && keys.every((key) => ['courseId', 'path', 'type', 'name'].includes(key)) &&
+    ['dir', 'file'].includes(value.type) && typeof value.name === 'string' &&
+    value.name.trim().length > 0 && value.name.length <= 255 && !/[\u0000-\u001f\u007f]/.test(value.name)
+}
+
+async function favorites(request, env, telegramUserId) {
+  const userHash = await hashTelegramUserId(telegramUserId, env.USER_ID_HMAC_SECRET)
+  const db = env.ANALYTICS_DB
+  if (request.method === 'GET') {
+    const rows = await queryAll(db, 'SELECT course_id AS courseId, item_path AS path, item_type AS type, item_name AS name, created_at AS createdAt FROM favorites WHERE user_hash = ? ORDER BY created_at DESC', userHash)
+    return json({ items: rows })
+  }
+  if (request.method !== 'PUT' && request.method !== 'DELETE') return new Response('Not found', { status: 404 })
+  const raw = await readBody(request, 4096)
+  if (raw === null) return json({ error: 'Payload too large' }, 413)
+  let item
+  try { item = JSON.parse(raw) } catch { return json({ error: 'Invalid JSON' }, 400) }
+  if (!validFavorite(item, request.method === 'DELETE')) return json({ error: 'Invalid favorite' }, 400)
+  if (request.method === 'PUT') {
+    await db.prepare('INSERT OR IGNORE INTO favorites (user_hash, course_id, item_path, item_type, item_name, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(userHash, item.courseId, item.path, item.type, item.name, unixNow()).run()
+  } else {
+    await db.prepare('DELETE FROM favorites WHERE user_hash = ? AND course_id = ? AND item_path = ?')
+      .bind(userHash, item.courseId, item.path).run()
+  }
+  return new Response(null, { status: 204 })
 }
 
 async function trackOpen(db, userHash, now) {
@@ -114,14 +156,15 @@ async function handle(request, env) {
     const user = await identity(request, env)
     if (!user) return json({ error: 'Unauthorized' }, 401)
     if (url.pathname === '/api/admin/me' && request.method === 'GET') return json({ isAdmin: user.isAdmin })
-    if (url.pathname === '/api/analytics/open' && request.method === 'POST') { await trackOpen(env.ANALYTICS_DB, user.userHash, unixNow()); return new Response(null, { status: 204 }) }
+    if (url.pathname === '/api/profile/favorites') return favorites(request, env, user.telegramUserId)
+    if (url.pathname === '/api/analytics/open' && request.method === 'POST') { await trackOpen(env.ANALYTICS_DB, await hashTelegramUserId(user.telegramUserId, env.ANALYTICS_HMAC_SECRET), unixNow()); return new Response(null, { status: 204 }) }
     if (url.pathname === '/api/analytics/event' && request.method === 'POST') {
-      const raw = await readEventBody(request)
+      const raw = await readBody(request, 1024)
       if (raw === null) return json({ error: 'Payload too large' }, 413)
       let event
       try { event = JSON.parse(raw) } catch { return json({ error: 'Invalid JSON' }, 400) }
       if (!event || !eventTypes.has(event.type) || !validOptionalId(event.subjectId) || !validOptionalId(event.materialId) || Object.keys(event).some((key) => !['type', 'subjectId', 'materialId'].includes(key))) return json({ error: 'Invalid event' }, 400)
-      await trackEvent(env.ANALYTICS_DB, user.userHash, event, unixNow())
+      await trackEvent(env.ANALYTICS_DB, await hashTelegramUserId(user.telegramUserId, env.ANALYTICS_HMAC_SECRET), event, unixNow())
       return new Response(null, { status: 204 })
     }
     if (!url.pathname.startsWith('/api/admin/')) return new Response('Not found', { status: 404 })
@@ -142,7 +185,7 @@ function withCors(request, env, response) {
     const headers = new Headers(response.headers)
     headers.set('Access-Control-Allow-Origin', origin)
     headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Telegram-Init-Data')
-    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     headers.set('Vary', 'Origin')
     return new Response(response.body, { status: response.status, headers })
   }
@@ -155,7 +198,7 @@ export default {
     try {
       return withCors(request, env, await handle(request, env))
     } catch {
-      return withCors(request, env, json({ error: 'Analytics unavailable' }, 503))
+      return withCors(request, env, json({ error: 'Service unavailable' }, 503))
     }
   },
   async scheduled(_controller, env) {

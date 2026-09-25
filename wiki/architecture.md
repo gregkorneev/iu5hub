@@ -18,23 +18,24 @@ static JSON / future API
 UI → Telegram integration layer → Telegram WebApp API
 ```
 
-### Private analytics boundary
+### Authenticated Worker boundary
 
 ```text
 Telegram Mini App (initData + allowlisted event)
         ↓ HTTPS
 Cloudflare Worker /api/*
         ↓ validate Telegram initData; derive HMAC user_hash
-Cloudflare D1 (users, events)
+Cloudflare D1 (analytics users/events and persistent favorites)
 
 Telegram Bot API → Worker /telegram/webhook → protected /stats response
 ```
 
-- Pages continues to serve only static `dist/`; the D1 binding, bot token, webhook secret, admin allowlist and HMAC key exist only in the Worker.
+- Pages continues to serve only static `dist/`; the D1 binding, bot token, webhook secret, admin allowlist and HMAC keys exist only in the Worker.
 - The browser submits original Telegram `initData`; `initDataUnsafe`, a Telegram ID, and an admin flag from the browser cannot authenticate anything. The Worker validates signature and freshness, then derives a keyed HMAC pseudonym from trusted `user.id`.
 - Analytics accepts only allowlisted event types and bounded internal material/subject IDs. It never accepts Disk URLs, display titles, arbitrary event values or Telegram profile fields.
 - Event delivery is best-effort. An analytics error must not delay navigation or opening a material/Disk link.
 - Each `/api/admin/*` request separately validates `initData` and checks the trusted ID against a server-side allowlist. Page visibility in React is UX only.
+- `/api/profile/favorites` validates the same `initData` but derives a separate, stable HMAC using `USER_ID_HMAC_SECRET`. Its D1 rows are independent of analytics retention; see `profile.md`.
 
 - UI не обращается к `window.Telegram` и не знает детали загрузки данных; Telegram API инкапсулирован в едином integration layer (`init`, user, theme, navigation, links или эквивалентная структура).
 - Repository возвращает доменные сущности; статическая JSON-реализация заменяема API-реализацией.
@@ -50,4 +51,4 @@ Cloudflare Pages хранит только `dist/`: HTML, JS/CSS bundles, icons,
 
 ## Non-goals MVP
 
-Публичный website, landing page, Taplink, собственный домен как обязательная пользовательская точка входа, хранение избранного, роли, Docker и сложное глобальное состояние не создаются до появления подтверждённой необходимости. Analytics Worker — не общий пользовательский backend и не защищённый каталог Диска: это минимальный доверенный контур для приватной статистики и `/stats`. Backend для non-public/authorized каталога остаётся отдельным scope.
+Публичный website, landing page, Taplink, собственный домен как обязательная пользовательская точка входа, роли, Docker и сложное глобальное состояние не создаются без подтверждённой необходимости. Существующий Worker обслуживает приватную статистику, `/stats` и персональное избранное; он не является защищённым каталогом Диска. Backend для non-public/authorized каталога остаётся отдельным scope.

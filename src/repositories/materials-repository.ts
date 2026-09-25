@@ -48,6 +48,7 @@ export const yandexDiskRepository = {
   async getFolder(courseId: string, path = ''): Promise<DiskItem[]> {
     const course = configuredCourse(courseId)
     const response = await fetchWithTimeout(apiUrl('', course.publicUrl, path))
+    if (response.status === 404) throw new Error('Папка больше недоступна.')
     if (!response.ok) throw new Error('Не удалось загрузить папку Яндекс.Диска.')
     const data = await response.json() as { _embedded?: { items?: Array<{ name?: string; path?: string; type?: string; modified?: string }> } }
     return (data._embedded?.items ?? []).map((item) => ({ name: item.name ?? 'Без названия', path: item.path ?? item.name ?? '', type: item.type === 'dir' ? 'dir' : 'file', modified: item.modified }))
@@ -55,6 +56,7 @@ export const yandexDiskRepository = {
   async getFileUrl(courseId: string, path: string) {
     const course = configuredCourse(courseId)
     const response = await fetchWithTimeout(apiUrl('/download', course.publicUrl, path))
+    if (response.status === 404) throw new Error('Файл был перемещён или удалён.')
     if (!response.ok) throw new Error('Не удалось открыть файл на Яндекс.Диске.')
     const data = await response.json() as { href?: string }
     if (!data.href || !isYandexDownloadUrl(data.href)) throw new Error('Яндекс.Диск вернул недопустимую ссылку на файл.')

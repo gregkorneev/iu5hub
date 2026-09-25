@@ -16,6 +16,7 @@
 | локальном Telegram development через Quick Tunnel | `local-telegram-development.md` |
 | выпуске, проверках | `deployment.md`, `testing.md` |
 | приватной аналитике и метриках | `analytics.md`, `security.md` |
+| личном профиле и избранном | `profile.md`, `decisions/ADR-0004-telegram-profile-favorites.md` |
 | рисках и временном контексте | `known-issues.md`, `agent-handoffs.md` |
 
 Код и тесты выше Wiki в иерархии истины; при расхождении обновляйте документацию.

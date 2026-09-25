@@ -3,9 +3,9 @@ import { test as base, expect } from '@playwright/test'
 
 type TelegramState = { ready: number; visible: boolean; opened: string[] }
 
-const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 'file' }>> = {
+const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 'file'; modified?: string }>> = {
   'course-1:': [
-    { name: '1 семестр', path: '1 семестр', type: 'dir' },
+    { name: '1 семестр', path: '1 семестр', type: 'dir', modified: '2026-09-25' },
     { name: 'Математический анализ', path: 'Математический анализ', type: 'dir' },
     { name: 'Архив', path: 'Архив', type: 'dir' },
     { name: 'Очень длинное название папки для проверки переноса текста на маленьком экране', path: 'long', type: 'dir' },
@@ -34,6 +34,19 @@ const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 
 
 export const test = base.extend<{ telegram: TelegramState }>({
   page: async ({ page }, use) => {
+    const favorites = new Map<string, { courseId: string; path: string; type: 'dir' | 'file'; name: string; createdAt: number }>()
+    await page.route('**/api/profile/favorites', async (route) => {
+      const request = route.request()
+      if (!request.headers()['x-telegram-init-data']) return route.fulfill({ status: 401, json: { error: 'Unauthorized' } })
+      if (request.method() === 'GET') return route.fulfill({ json: { items: [...favorites.values()] } })
+      const item = request.postDataJSON() as { courseId: string; path: string; type?: 'dir' | 'file'; name?: string }
+      const allowed = request.method() === 'PUT' ? ['courseId', 'path', 'type', 'name'] : ['courseId', 'path']
+      if (Object.keys(item).length !== allowed.length || Object.keys(item).some((key) => !allowed.includes(key))) return route.fulfill({ status: 400, json: { error: 'Invalid favorite' } })
+      const key = JSON.stringify([item.courseId, item.path])
+      if (request.method() === 'PUT' && item.type && item.name) favorites.set(key, { courseId: item.courseId, path: item.path, type: item.type, name: item.name, createdAt: 1 })
+      if (request.method() === 'DELETE') favorites.delete(key)
+      await route.fulfill({ status: 204 })
+    })
     await page.route('https://telegram.org/js/telegram-web-app.js', (route) => route.fulfill({ contentType: 'application/javascript', body: '' }))
     await page.addInitScript(() => {
       const listeners = new Set<() => void>()

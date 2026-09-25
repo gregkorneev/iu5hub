@@ -8,7 +8,7 @@ ANALYTICS_ALLOWED_ORIGIN = "https://iu5hub.pages.dev"
 ADMIN_DASHBOARD_URL = "https://iu5hub.pages.dev/#/admin/stats"
 
 # Provision the D1 database and replace this binding through `wrangler d1 create` before deployment.
-# Secrets are never declared here: ANALYTICS_HMAC_SECRET, TELEGRAM_BOT_TOKEN,
+# Secrets are never declared here: ANALYTICS_HMAC_SECRET, USER_ID_HMAC_SECRET, TELEGRAM_BOT_TOKEN,
 # TELEGRAM_WEBHOOK_SECRET and ADMIN_TELEGRAM_IDS must be set with `wrangler secret put`.
 [[d1_databases]]
 binding = "ANALYTICS_DB"

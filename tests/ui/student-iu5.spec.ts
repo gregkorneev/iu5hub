@@ -23,7 +23,7 @@ test.describe('Студент ИУ5 critical UI', () => {
     })).toBeTruthy()
     const tabBar = page.getByRole('navigation', { name: 'Основная навигация' })
     await expect(tabBar).toBeVisible()
-    await expect(tabBar.getByRole('link')).toHaveCount(2)
+    await expect(tabBar.getByRole('link')).toHaveCount(3)
     await expect(tabBar.getByRole('link', { name: 'Каталог' })).toHaveAttribute('aria-current', 'page')
     await expect.poll(() => page.evaluate(() => (window as Window & { __telegram: { ready: number } }).__telegram.ready)).toBe(1)
     const results = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
@@ -190,6 +190,10 @@ test.describe('Студент ИУ5 critical UI', () => {
     await page.goto('/#/course/course-1')
     await expect(page.getByRole('heading', { name: 'Курс 1' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()
+    expect(await page.locator('.semester-button-grid .favorite-card').evaluateAll((cards) => cards.every((card) => {
+      const box = card.getBoundingClientRect()
+      return box.left >= 0 && box.right <= innerWidth && card.scrollWidth <= card.clientWidth
+    }))).toBeTruthy()
     await page.screenshot({ path: testInfo.outputPath('course-mobile.png'), fullPage: true })
   })
 
