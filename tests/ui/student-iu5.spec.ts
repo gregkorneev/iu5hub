@@ -140,9 +140,11 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(page.getByText('Ничего не найдено')).toBeVisible()
   })
 
-  test('keeps home search suggestions tappable above the course catalog on mobile', async ({ page }) => {
+  test('keeps search suggestions tappable after opening Search from the bottom navigation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/#/')
+    await expect(page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' })).toHaveCount(0)
+    await page.getByRole('link', { name: 'Поиск' }).click()
     await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).fill('м')
     const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Математичес/ })
     await expect(suggestion).toBeVisible()

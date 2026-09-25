@@ -46,7 +46,7 @@ function Layout({ children }: { children: ReactNode }) {
 }
 function Home() {
   const { courses } = useCatalog()
-  return <><section className="hero"><p className="eyebrow">Учебные материалы</p><h1>Студент ИУ5</h1><p>Выберите курс или найдите папку по тегу либо преподавателю.</p><SearchBox /></section><section className="home-courses"><div className="section-title"><div><p className="eyebrow">Курсы</p><h2>Материалы на Яндекс.Диске</h2></div></div><div className="course-grid">{courses.map((course, index) => <Link key={course.id} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span>{index + 1}</span><strong>{course.title}</strong><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div></section></>
+  return <><section className="hero"><p className="eyebrow">Учебные материалы</p><h1>Студент ИУ5</h1><p>Выберите курс, чтобы открыть каталог учебных материалов.</p></section><section className="home-courses"><div className="section-title"><div><p className="eyebrow">Курсы</p><h2>Материалы на Яндекс.Диске</h2></div></div><div className="course-grid">{courses.map((course, index) => <Link key={course.id} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span>{index + 1}</span><strong>{course.title}</strong><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div></section></>
 }
 function CoursePage() {
   const { id = '' } = useParams()
