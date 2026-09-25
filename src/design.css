@@ -226,15 +226,24 @@ header::before {
 .bottom-nav > a {
   position: relative;
   z-index: 1;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 2px;
+  min-height: 46px;
   padding-inline: var(--space-2);
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
   box-shadow: none;
+  line-height: 1.1;
+  white-space: nowrap;
   transition: color var(--duration-transition) ease-out;
 }
+.bottom-nav > a svg { width: 18px; height: 18px; flex: none; stroke-width: 1.8; }
 .bottom-nav > a[aria-current="page"] { color: var(--text-primary); font-weight: var(--weight-strong); }
+.bottom-nav > a[aria-current="page"] svg { color: var(--action-quiet); }
 :root[data-telegram-theme="dark"] .bottom-nav > a[aria-current="page"] { color: #f3f8ff; }
 main { flex: 1 1 auto; padding: var(--space-6) 0 3rem; animation: page-enter var(--duration-transition) var(--curve-exit) both; }
 main[data-navigation="back"] { animation-name: page-return; }

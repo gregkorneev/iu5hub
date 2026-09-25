@@ -1,6 +1,48 @@
 import { test, expect } from './fixtures'
 
 test.describe('persistent bottom navigation', () => {
+  test('stacks decorative icons over labels and keeps the selection bubble inside each tab at 320px', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.setViewportSize({ width: 320, height: 844 })
+    await page.goto('/#/')
+    const nav = page.getByRole('navigation', { name: 'Основная навигация' })
+    const labels = ['Каталог', 'Поиск', 'Расписание', 'Профиль']
+    for (const label of labels) {
+      const link = nav.getByRole('link', { name: label })
+      await link.click()
+      await expect(link).toHaveAttribute('aria-current', 'page')
+      const geometry = await nav.evaluate((element, activeLabel) => {
+        const navBox = element.getBoundingClientRect()
+        const links = [...element.querySelectorAll('a')]
+        const active = links.find((item) => item.textContent === activeLabel)!
+        const activeBox = active.getBoundingClientRect()
+        const indicator = getComputedStyle(element, '::before')
+        const indicatorLeft = navBox.left + Number.parseFloat(indicator.left) + new DOMMatrixReadOnly(indicator.transform).m41
+        return {
+          navRight: navBox.right,
+          viewport: innerWidth,
+          activeLeft: activeBox.left,
+          activeRight: activeBox.right,
+          indicatorLeft,
+          indicatorRight: indicatorLeft + Number.parseFloat(indicator.width),
+          tabs: links.map((item) => {
+            const box = item.getBoundingClientRect()
+            const icon = item.querySelector('svg')!
+            const iconBox = icon.getBoundingClientRect()
+            const labelBox = item.querySelector('span')!.getBoundingClientRect()
+            return { width: box.width, height: box.height, iconHidden: icon.getAttribute('aria-hidden'), iconFocusable: icon.getAttribute('focusable'), iconBottom: iconBox.bottom, labelTop: labelBox.top, iconCenter: iconBox.left + iconBox.width / 2, labelCenter: labelBox.left + labelBox.width / 2 }
+          }),
+        }
+      }, label)
+      expect(geometry.navRight).toBeLessThanOrEqual(geometry.viewport)
+      expect(geometry.tabs.every((tab) => tab.width >= 44 && tab.height >= 44)).toBe(true)
+      expect(geometry.tabs.every((tab) => tab.iconHidden === 'true' && tab.iconFocusable === 'false')).toBe(true)
+      expect(geometry.tabs.every((tab) => tab.iconBottom <= tab.labelTop && Math.abs(tab.iconCenter - tab.labelCenter) <= 1)).toBe(true)
+      expect(geometry.indicatorLeft).toBeGreaterThanOrEqual(geometry.activeLeft - 2)
+      expect(geometry.indicatorRight).toBeLessThanOrEqual(geometry.activeRight + 2)
+    }
+  })
+
   test('keeps Catalog and Search contexts while preserving search-result provenance and BackButton', async ({ page }) => {
     await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: false } }))
     await page.setViewportSize({ width: 390, height: 844 })
@@ -135,6 +177,25 @@ test.describe('persistent bottom navigation', () => {
   test('captures root, nested Catalog, Search, admin and scrolled footer for visual review', async ({ page }, testInfo) => {
     await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: false } }))
     await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/')
+    const nav = page.getByRole('navigation', { name: 'Основная навигация' })
+    for (const [label, file] of [['Каталог', 'catalog'], ['Поиск', 'search'], ['Расписание', 'schedule'], ['Профиль', 'profile']] as const) {
+      const tab = nav.getByRole('link', { name: label })
+      await tab.click()
+      await expect(tab).toHaveAttribute('aria-current', 'page')
+      await page.locator('.bottom-touch-bar').screenshot({ path: testInfo.outputPath(`bottom-bar-${file}.png`) })
+    }
+    await page.evaluate(() => {
+      const webApp = (window as Window & { Telegram: { WebApp: { colorScheme: string; themeParams: Record<string, string> } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      webApp.colorScheme = 'dark'
+      Object.assign(webApp.themeParams, { bg_color: '#0d203a', text_color: '#f5f7fb', secondary_bg_color: '#14345b', button_color: '#1688ff', button_text_color: '#fff' })
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('themeChanged')
+    })
+    await page.locator('.bottom-touch-bar').screenshot({ path: testInfo.outputPath('bottom-bar-profile-dark.png') })
+    await page.setViewportSize({ width: 320, height: 844 })
+    await nav.getByRole('link', { name: 'Расписание' }).click()
+    await page.locator('.bottom-touch-bar').screenshot({ path: testInfo.outputPath('bottom-bar-schedule-320-dark.png') })
+    await page.evaluate(() => { window.scrollTo(0, 0) })
     await page.goto('/#/')
     await page.screenshot({ path: testInfo.outputPath('catalog-root.png'), fullPage: true })
     await page.locator('.bottom-touch-bar').screenshot({ path: testInfo.outputPath('bottom-bar-capsule.png') })

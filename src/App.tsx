@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
+import { CalendarDays, LibraryBig, Search, UserRound } from 'lucide-react'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
@@ -22,6 +23,12 @@ function useCatalog() {
   return data
 }
 const isCatalogRoute = (path: string) => path === '/' || /^\/(?:course|semester|material)\/[^/]+$/.test(path) || /^\/subject\/[^/]+(?:\/[^/]+)?$/.test(path)
+const bottomTabs = [
+  { id: 'catalog', to: '/', label: 'Каталог', Icon: LibraryBig },
+  { id: 'search', to: '/search', label: 'Поиск', Icon: Search },
+  { id: 'schedule', to: '/schedule', label: 'Расписание', Icon: CalendarDays },
+  { id: 'profile', to: '/profile', label: 'Профиль', Icon: UserRound },
+] as const
 function Layout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -63,10 +70,9 @@ function Layout({ children }: { children: ReactNode }) {
         <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>
       </div>}
       <nav className="bottom-nav" aria-label="Основная навигация">
-        <Link to="/" aria-current={activeNav === 'catalog' ? 'page' : undefined}>Каталог</Link>
-        <Link to="/search" onClick={activateSearch} aria-current={activeNav === 'search' ? 'page' : undefined}>Поиск</Link>
-        <Link to="/schedule" aria-current={activeNav === 'schedule' ? 'page' : undefined}>Расписание</Link>
-        <Link to="/profile" aria-current={activeNav === 'profile' ? 'page' : undefined}>Профиль</Link>
+        {bottomTabs.map(({ id, to, label, Icon }) => <Link key={id} to={to} onClick={id === 'search' ? activateSearch : undefined} aria-current={activeNav === id ? 'page' : undefined}>
+          <Icon aria-hidden="true" focusable="false" /><span>{label}</span>
+        </Link>)}
       </nav>
     </div>
     {user && home && <p className="user-greeting">Привет, {user.firstName}</p>}
