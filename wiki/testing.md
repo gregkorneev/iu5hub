@@ -67,6 +67,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 
 2026-09-25: search UI now asserts that suggestions and full results display only the original folder name, without teacher, tag, or path text.
 
+2026-09-25: navigation glass group review passed at 320/390/428 px in Telegram light/dark fixtures. Playwright 63/63 (Chromium, mobile Chromium, WebKit); focused navigation checks 6/6. Existing hrefs remain `#/`, `#/search`, `#/admin/stats`; `aria-current` and one shared selection bubble track the current route. All three links retain ≥44×44 px hit areas; no horizontal overflow; bubble movement is suppressed by reduced motion; axe found no serious/critical admin-page issues. Actual Telegram iOS/Android WebView still requires device testing.
+
 ## Analytics adversarial checks
 
 Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` navigation as a student, invalid webhook secret, empty D1, one-user and high-cardinality results, repeated taps/reloads, unavailable D1/Worker, slow network and long repository labels. Verify a material or Disk link still opens when event delivery fails. Never place production tokens, real admin IDs or real initData into fixtures, snapshots or test output.
