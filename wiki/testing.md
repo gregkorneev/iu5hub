@@ -34,6 +34,7 @@ The Excel workbook is regenerated from CSV by `npm run search:workbook`; its hum
 - Analytics Worker: valid/invalid/expired Telegram `initData`, keyed user hashing, first/repeated open, event allowlist and ID validation, D1 total/DAU/WAU/MAU aggregates, and idempotent retention cleanup.
 - Favorites Worker: missing/tampered Telegram auth is rejected; favorites are isolated by stable `USER_ID_HMAC_SECRET` identity; duplicate PUT, scoped GET/DELETE, malformed/oversized JSON, invalid course/path/type/name, CORS methods, and migration constraints are covered.
 - Favorites browser flow: save a folder and file without triggering open/download, navigate to Profile, confirm grouped items, reload to confirm persistence, remove each item, and verify the three-item bar plus admin header action fit a 320 px viewport with accessible state. API requests are fixture-backed and do not touch production D1.
+- Favorite layout: compare rendered title-line rectangles against heart button bounds for semester cards, long root/nested folder names, long filenames, and Profile rows at 320/390/768 px; assert no horizontal overflow and save screenshots of root, nested and Profile views.
 - Authorization: admin allowlist success, direct non-admin admin API/route denial, `/stats` admin/non-admin handling, and webhook secret-header rejection.
 - Worker regressions: event before `app_open` creates the pseudonymous user without inflating launches; `/stats` never replies in a group; 7/30-day metrics use trailing hours; only declared GET statistics routes and periods are accepted; oversized event bodies stop during streaming.
 - Optional deploy configuration: both jobs require a public HTTPS `VITE_ANALYTICS_API_BASE` repository variable before building, while the general `verify` job remains independent of production configuration.
@@ -83,6 +84,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 2026-09-25: relocated Statistics from the bottom navigation to an admin-only header action beside the brand. The tab bar now has three primary destinations for both roles; admin route remains protected. Playwright regressions check student denial, admin access/current state, three-tab count, hit target, and no overlap/overflow at 320 px. Actual Telegram WebView remains device-only validation.
 
 2026-09-25: tagged search now shows a small parent-path caption in both live suggestions and full results. Playwright verifies the two «Физика» folders show different course/semester paths, as well as the shared title/path hierarchy for a regular result.
+
+2026-09-25: favorite-heart layout audit fixed the mobile folder-card overlap by keeping controls in the icon row above folder titles. `npm run qa` passed lint, typecheck, 22 Vitest, 45 Node/Worker tests, build and Playwright 90/90 in Chromium, mobile Chromium and WebKit. Geometry checks compared each rendered title line to the heart button on 320/390/768 px screens for course root, nested folders/files and Profile; no horizontal overflow. Screenshots: `test-results/favorites-keeps-favorite-h-65cea-out-the-catalog-and-profile-chromium/`. Real Telegram WebView remains a device-only check.
 
 ## Analytics adversarial checks
 

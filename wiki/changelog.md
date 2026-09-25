@@ -6,6 +6,7 @@
 - Production folder search now reads only curated «Теги» and «Преподаватель» values from the 29-folder workbook queue. Both fields are equal, blank cells are excluded, case-insensitive prefix suggestions appear from one character, and selecting one opens its folder directly. A compact local index is generated from the CSV tables; text search does not call Yandex API.
 - Fixed search navigation to Yandex Disk: searchable rows retain their display path and now carry the API-relative `diskPath`, omitting the public root name and preserving the leading slash required by Yandex's public-resource endpoint. Reproduced the former 404 and verified the corrected path returns the selected folder.
 - Search suggestions and result cards keep tags, teacher values, and API paths hidden while showing the parent course/semester path below each folder name, so duplicates such as «Физика» can be distinguished.
+- Fixed favorite-heart overlap in narrow folder cards: the heart shares the top icon row and long folder titles start below it. Added rendered-line intersection checks across catalog, nested folders, files and Profile.
 - Moved the server-confirmed admin-only Statistics link from the bottom tab bar to a compact header action at the right of the brand; Catalog, Search and Profile remain the three shared bottom destinations.
 
 ## 2026-09-24
