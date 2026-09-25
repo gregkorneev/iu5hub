@@ -66,7 +66,7 @@ function SearchPage() {
   const [params] = useSearchParams()
   const query = params.get('q') ?? ''
   const results = query.trim() ? searchFolders(query) : []
-  return <><h1>Поиск</h1><SearchBox key={query} initial={query} />{query ? <p className="result-count">{results.length ? `Найдено папок: ${results.length}` : 'Ничего не найдено'}</p> : <p className="lead">Введите тег или имя преподавателя.</p>}{results.length > 0 && <div className="disk-list">{results.map((item) => <Link className="disk-item disk-item--folder" key={item.objectKey} to={`/course/${item.courseId}?path=${encodeURIComponent(item.diskPath)}`}><span aria-hidden="true">📁</span><strong>{item.name}</strong><small>{item.path} · {item.matchedTerms.join(', ')}</small></Link>)}</div>}</>
+  return <><h1>Поиск</h1><SearchBox key={query} initial={query} />{query ? <p className="result-count">{results.length ? `Найдено папок: ${results.length}` : 'Ничего не найдено'}</p> : <p className="lead">Введите тег или имя преподавателя.</p>}{results.length > 0 && <div className="disk-list">{results.map((item) => <Link className="disk-item disk-item--folder" key={item.objectKey} to={`/course/${item.courseId}?path=${encodeURIComponent(item.diskPath)}`}><strong>{item.name}</strong></Link>)}</div>}</>
 }
 function NotFound() { return <EmptyState title="Страница не найдена">Такого адреса в Студент ИУ5 нет.</EmptyState> }
 function AdminStatsPage() { const { subjects, materials } = useCatalog(); return <AdminStats names={new Map([...subjects, ...materials].map((item) => [item.id, item.title]))} /> }

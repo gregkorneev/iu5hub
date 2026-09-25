@@ -4,6 +4,7 @@
 
 - Production folder search now reads only curated «Теги» and «Преподаватель» values from the 29-folder workbook queue. Both fields are equal, blank cells are excluded, case-insensitive prefix suggestions appear from one character, and selecting one opens its folder directly. A compact local index is generated from the CSV tables; text search does not call Yandex API.
 - Fixed search navigation to Yandex Disk: searchable rows retain their display path and now carry the API-relative `diskPath`, omitting the public root name and preserving the leading slash required by Yandex's public-resource endpoint. Reproduced the former 404 and verified the corrected path returns the selected folder.
+- Search suggestions and result cards now display only the original folder name; matching tags, teacher values, and technical paths remain hidden from the student.
 
 ## 2026-09-24
 

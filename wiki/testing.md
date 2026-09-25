@@ -65,6 +65,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 
 2026-09-25: tagged-search navigation regression reproduced and fixed. Direct read-only calls to the live public Yandex API returned 404 for the inventory display path including `1 course/`, and 200 with the expected folder for API-relative `/1 Семестр/Аналитическая геометрия`. Browser regression now asserts the decoded route path and that the folder contents (fixture file) render. After fix, run full release gate and Playwright across Chromium, mobile Chromium, and WebKit.
 
+2026-09-25: search UI now asserts that suggestions and full results display only the original folder name, without teacher, tag, or path text.
+
 ## Analytics adversarial checks
 
 Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` navigation as a student, invalid webhook secret, empty D1, one-user and high-cardinality results, repeated taps/reloads, unavailable D1/Worker, slow network and long repository labels. Verify a material or Disk link still opens when event delivery fails. Never place production tokens, real admin IDs or real initData into fixtures, snapshots or test output.
