@@ -17,8 +17,8 @@ html:has(.app--home), body:has(.app--home) { overflow: hidden; }
   header { min-height: 58px; gap: 10px; padding-inline: 8px; }
   .brand { gap: 8px; font-size: 1rem; }
   .brand img { width: 32px; height: 32px; }
-  nav { gap: 4px; font-size: .86rem; }
-  nav a { min-height: 44px; display:inline-flex; align-items:center; padding-inline:8px; }
+  .bottom-nav { gap: 0; font-size: .86rem; }
+  .bottom-nav a { min-height: 44px; display:inline-flex; align-items:center; padding-inline:8px; }
   main { padding-top: 20px; }
   .hero { margin-bottom: 20px; padding: 18px; border-radius: 16px; }
   .hero > p:not(.eyebrow) { margin: 0; font-size: .92rem; }
@@ -41,12 +41,11 @@ html:has(.app--home), body:has(.app--home) { overflow: hidden; }
   .filters a { min-height: 40px; display:inline-flex; align-items:center; }
   .material-detail dl { gap: 10px; margin: 24px 0; }
   .user-greeting { margin: 14px 8px -2px; }
-  .course-actions { margin-bottom: 14px; }
 }
 
 @media (max-width: 380px) {
   .brand { font-size: .92rem; }
-  nav a { padding-inline: 5px; }
+  .bottom-nav a { padding-inline: 5px; }
   .search { flex-direction: column; }
   .search button { width: 100%; }
 }
@@ -55,6 +54,6 @@ html:has(.app--home), body:has(.app--home) { overflow: hidden; }
   header { gap: 4px; padding-inline: 5px; }
   .brand { gap: 5px; font-size: .78rem; }
   .brand img { width: 27px; height: 27px; }
-  nav { font-size: .76rem; }
-  nav a { padding-inline: 3px; }
+  .bottom-nav { font-size: .76rem; }
+  .bottom-nav a { padding-inline: 3px; }
 }
