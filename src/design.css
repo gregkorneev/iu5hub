@@ -197,6 +197,7 @@ header::before {
 .bottom-nav:has(> a:only-child) { --nav-count: 1; }
 .bottom-nav:has(> a:nth-child(3)) { --nav-count: 3; }
 .bottom-nav:has(> a:nth-child(4)) { --nav-count: 4; }
+.bottom-nav:has(> a:nth-child(4)) { font-size: clamp(.64rem, 3.2vw, .875rem); }
 .bottom-nav:has(> a:nth-child(2)[aria-current="page"]) { --nav-shift: 100%; }
 .bottom-nav:has(> a:nth-child(3)[aria-current="page"]) { --nav-shift: 200%; }
 .bottom-nav:has(> a:nth-child(4)[aria-current="page"]) { --nav-shift: 300%; }
@@ -473,5 +474,6 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 @media (max-width: 380px) { .bottom-nav { font-size: .76rem; } .bottom-nav a { padding-inline: .3rem; } .disk-file { grid-template-columns: minmax(0, 1fr) 2.75rem 2.75rem; gap: 0; } .disk-file__open { padding-inline: .75rem; } }
 @media (max-width: 620px) {
   .favorite-card > .favorite-button { top: .5rem; transform: none; }
+  .semester-subject-grid .favorite-card--folder > .disk-item--folder { padding-right: var(--space-2); }
   .semester-button-grid .favorite-card > .disk-item--folder strong { font-size: clamp(.625rem, 3.5vw, .875rem); }
 }
