@@ -2,6 +2,7 @@
 
 | Status | Issue | Impact / resolution |
 | --- | --- | --- |
+| Open | Schedule UI has not yet been smoke-tested in production Telegram WebView, and preference sync has not yet been checked across two real Telegram accounts/devices | Playwright fixtures cover navigation, local selection, profile placement, and schedule states. Confirm real viewport/safe-area behavior and cross-device preference after the Worker and Pages release. |
 | Resolved | Tagged search opened the course screen, but folder contents showed «Каталог пока недоступен» | The CSV display path includes the public share root folder name, while Yandex's public-resource API expects a slash-prefixed path relative to that root. The generated index now stores a separate `diskPath`; Playwright confirms the API request targets the selected tagged folder and its fixture file appears. |
 | Resolved | Search results with duplicate folder names such as «Физика» were indistinguishable | Suggestions and result cards now show the parent course/semester path as small secondary text; search matching and result destinations are unchanged. |
 | Resolved | На узком экране длинные названия папок могли заходить под кнопку избранного | В мобильных карточках папок сердечко остаётся в верхней строке с иконкой, а текст начинается ниже; названия ограничены шириной grid-колонки. Проверено измерением строк текста и кнопки для корневых/вложенных папок, файлов и профиля на 320/390/768 px в Chromium, mobile Chromium и WebKit. |

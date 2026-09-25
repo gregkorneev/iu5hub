@@ -15,7 +15,15 @@ function initData(id) {
 
 class FakeDb {
   items = new Map()
+  preferences = new Map()
   prepare(sql) {
+    if (sql.includes('profile_preferences')) return { bind: (...args) => ({
+      first: async () => {
+        const row = this.preferences.get(args[0])
+        return row ? { groupId: row.groupId, updatedAt: row.updatedAt } : null
+      },
+      run: async () => this.preferences.set(args[0], { userHash: args[0], groupId: args[1], updatedAt: args[2] }),
+    }) }
     if (sql.startsWith('SELECT') || sql.startsWith('DELETE')) assert.match(sql, /WHERE user_hash = \?/, 'favorites query must be owner-scoped')
     if (sql.startsWith('DELETE')) assert.match(sql, /course_id = \? AND item_path = \?/, 'favorites delete must bind the complete key')
     return { bind: (...args) => ({
@@ -37,6 +45,14 @@ function request(method, user = 1, body, environment = env, origin) {
   return worker.fetch(new Request('https://worker.example/api/profile/favorites', {
     method,
     headers: { 'X-Telegram-Init-Data': initData(user), 'Content-Type': 'application/json', ...(origin && { Origin: origin }) },
+    ...(body !== undefined && { body: typeof body === 'string' ? body : JSON.stringify(body) }),
+  }), environment)
+}
+
+function preferenceRequest(method, user = 1, body, environment = env) {
+  return worker.fetch(new Request('https://worker.example/api/profile/schedule-group', {
+    method,
+    headers: { 'X-Telegram-Init-Data': initData(user), 'Content-Type': 'application/json' },
     ...(body !== undefined && { body: typeof body === 'string' ? body : JSON.stringify(body) }),
   }), environment)
 }
@@ -88,4 +104,32 @@ test('favorite input, payload size, methods and CORS are constrained', async () 
   const preflight = await worker.fetch(new Request('https://worker.example/api/profile/favorites', { method: 'OPTIONS', headers: { Origin: 'https://iu5hub.pages.dev' } }), environment)
   assert.match(preflight.headers.get('Access-Control-Allow-Methods'), /PUT, DELETE/)
   assert.equal(environment.ANALYTICS_DB.items.size, 0)
+})
+
+test('schedule group preference is HMAC-owned, cross-device readable, and isolated from favorites', async () => {
+  const database = new FakeDb()
+  const environment = { ...env, ANALYTICS_DB: database }
+  assert.deepEqual(await (await preferenceRequest('GET', 1, undefined, environment)).json(), { groupId: null, updatedAt: null })
+  const saved = await preferenceRequest('PUT', 1, { groupId: 'iu5-34b' }, environment)
+  assert.equal(saved.status, 200)
+  assert.deepEqual(await saved.json(), { groupId: 'iu5-34b', updatedAt: Math.floor(Date.now() / 1000) })
+  assert.deepEqual(await (await preferenceRequest('GET', 1, undefined, environment)).json(), { groupId: 'iu5-34b', updatedAt: Math.floor(Date.now() / 1000) })
+  assert.deepEqual(await (await preferenceRequest('GET', 2, undefined, environment)).json(), { groupId: null, updatedAt: null })
+  assert.match([...database.preferences.keys()][0], /^[a-f0-9]{64}$/)
+  assert.notEqual([...database.preferences.keys()][0], '1')
+  assert.equal((await request('PUT', 1, item, environment)).status, 204)
+  assert.equal((await request('GET', 1, undefined, environment)).status, 200)
+  assert.equal(database.items.size, 1)
+})
+
+test('schedule group preference rejects invalid ids, extra body fields, and unauthenticated requests', async () => {
+  const environment = { ...env, ANALYTICS_DB: new FakeDb() }
+  for (const body of [
+    { groupId: '../iu5-34b' }, { groupId: 'iu4-34b' }, { groupId: '' },
+    { groupId: 'iu5-34b', userId: '2' }, {}, null,
+  ]) assert.equal((await preferenceRequest('PUT', 1, body, environment)).status, 400)
+  assert.equal((await preferenceRequest('PUT', 1, '{', environment)).status, 400)
+  assert.equal((await preferenceRequest('POST', 1, { groupId: 'iu5-34b' }, environment)).status, 404)
+  assert.equal((await worker.fetch(new Request('https://worker.example/api/profile/schedule-group'), environment)).status, 401)
+  assert.equal(environment.ANALYTICS_DB.preferences.size, 0)
 })

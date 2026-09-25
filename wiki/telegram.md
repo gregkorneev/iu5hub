@@ -15,7 +15,9 @@
 
 ## Navigation invariant
 
-`HashRouter`, список маршрутов и иерархия каталога (курс → семестр/папка → предмет → материал) остаются прежними. Единая плавающая нижняя панель служит верхнеуровневой навигацией Каталог / Поиск / Профиль для всех ролей. Подтверждённые администраторы дополнительно получают ссылку «Статистика» в правой части шапки; она не занимает tab bar. В нижнем contextual row остаётся только кнопка «Назад», использующая `goBack`; shortcut «К корню курса» удалён. Панель остаётся видимой на корневых и вложенных страницах, включая Search results и footer; на неизвестном и недоступном admin route она не выбирает несуществующую вкладку.
+Current destinations are Каталог / Поиск / Расписание / Профиль for all roles, in that order. `/schedule` is a top-level route with no contextual Back button. Existing admin Statistics remains a separate server-confirmed header action. The same glass capsule already supports four links; «Расписание» is verified at 320/390/428 px with 44 px hit areas. The route is listed below with Catalog/Search/Profile mapping.
+
+`HashRouter`, список маршрутов и иерархия каталога (курс → семестр/папка → предмет → материал) остаются прежними. Единая плавающая нижняя панель служит верхнеуровневой навигацией Каталог / Поиск / Расписание / Профиль для всех ролей. Подтверждённые администраторы дополнительно получают ссылку «Статистика» в правой части шапки; она не занимает tab bar. В нижнем contextual row остаётся только кнопка «Назад», использующая `goBack`; shortcut «К корню курса» удалён. Панель остаётся видимой на корневых и вложенных страницах, включая Search results и footer; на неизвестном и недоступном admin route она не выбирает несуществующую вкладку.
 
 ### Route → tab mapping
 
@@ -23,16 +25,17 @@
 
 | Route | Navigation root / active tab | Bar and available tabs | Existing Back behavior |
 | --- | --- | --- | --- |
-| `/` | Catalog | Visible; Catalog + Search + Profile; Statistics link in header only for confirmed admins | Telegram BackButton hidden; no in-app Back |
+| `/` | Catalog | Visible; Catalog + Search + Schedule + Profile; Statistics link in header only for confirmed admins | Telegram BackButton hidden; no in-app Back |
 | `/course/:id` and `?path=…` | Catalog; Search while opened from Search results/suggestions (`location.state.fromTab`) | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack`; fallback to `/` when no in-app history |
 | `/semester/:id` | Catalog | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack` |
 | `/subject/:id` | Catalog | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack` |
 | `/subject/:id/:category` | Catalog | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack` |
 | `/material/:id` | Catalog | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack` |
 | `/search?q=…` | Search | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack` |
-| `/admin/stats` | No selected bottom tab; header Statistics link selected for confirmed admins | Visible; Catalog + Search + Profile; header Statistics link only for confirmed admins | Telegram BackButton uses `goBack`; AdminStats remains server-authorized |
+| `/schedule` | Schedule | Visible; Catalog + Search + Schedule + Profile | Top-level destination; no contextual Back |
+| `/admin/stats` | No selected bottom tab; header Statistics link selected for confirmed admins | Visible; Catalog + Search + Schedule + Profile; header Statistics link only for confirmed admins | Telegram BackButton uses `goBack`; AdminStats remains server-authorized |
 | `/profile` | Profile | Visible; same role-based set; no contextual Back | Existing profile flow |
-| `*` | No selected tab | Visible; Catalog + Search + Profile; header Statistics link only for confirmed admins | Contextual Back and Telegram BackButton use existing `goBack` fallback |
+| `*` | No selected tab | Visible; Catalog + Search + Schedule + Profile; header Statistics link only for confirmed admins | Contextual Back and Telegram BackButton use existing `goBack` fallback |
 
 The Search-to-course provenance keeps the Search tab selected while following an existing result/suggestion into its course folder and nested folders. The same URL opened directly or reloaded without that router state maps to Catalog, because the URL belongs to the catalog route. Search suggestions carry the search query URL in transient router state so returning to Search restores the query. Selecting Catalog always opens `/`; selecting Search restores its last query while the app stays mounted and focuses the search field, requesting the mobile keyboard. Selecting Search again while already on the Search page focuses the existing field directly. This uses no parallel navigation stack and does not change route destinations. Browser/Telegram Back remains the existing history-based `goBack`; tab selection and Back are separate controls.
 

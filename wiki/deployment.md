@@ -46,6 +46,8 @@ The Pages URL is a technical HTTPS endpoint for the Telegram Mini App. Do not ma
 
 ## Current Cloudflare Pages release
 
+Schedule JSON is included in the existing static Pages `dist/` artifact and is deployed by the already-connected GitHub integration when `main` changes. `.github/workflows/schedule-sync.yml` only refreshes, validates and commits static source data; it does not run a second Cloudflare deploy. The initial release also applies Worker D1 migration `0003_profile_preferences.sql` and deploys the small preference API. No schedule lesson data enters D1.
+
 On 2026-09-21 the production build was published by Cloudflare Pages Direct Upload at [`https://iu5hub.pages.dev`](https://iu5hub.pages.dev), configured as both the Main App and menu-button URL in BotFather, and verified by opening it in Telegram. It contains only generated `dist/` files; no Telegram token, bot relay, or support backend is included.
 
 The Telegram Web App SDK script must remain in `<head>` before the Vite module script. This lets `initializeTelegram()` call `Telegram.WebApp.ready()` when the Mini App starts and prevents Telegram's native loading indicator from remaining on screen.

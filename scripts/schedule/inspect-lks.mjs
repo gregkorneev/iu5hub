@@ -1,0 +1,38 @@
+import { findGroups, getJson, LKS, parseCalendar, STRUCTURE, slug } from './common.mjs'
+
+const listResponse = await fetch(`${LKS}/schedule/list`, { signal: AbortSignal.timeout(20000) })
+if (!listResponse.ok) throw new Error(`LKS schedule list: HTTP ${listResponse.status}`)
+const listHtml = await listResponse.text()
+if (!listHtml.includes('<html')) throw new Error('Unexpected LKS schedule list response')
+const structure = await getJson(STRUCTURE)
+const groups = findGroups(structure.data).sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true }))
+if (!groups.length) throw new Error('No IU5 groups found')
+console.log(`LKS schedule list: OK (HTTP ${listResponse.status}, SPA shell; group data from public API)`)
+console.log(`IU5 groups found: ${groups.length}`)
+const sample = groups.find((group) => group.name === 'ИУ5-31Б') ?? groups[0]
+const api = await getJson(`${LKS}/lks-back/api/v1/schedules/groups/${sample.sourceId}/public`)
+if (!api?.data?.link) throw new Error(`No public calendar for sample ${sample.name}`)
+const response = await fetch(api.data.link, { headers: { 'User-Agent': 'Student-IU5-Schedule-Sync/1.0' }, signal: AbortSignal.timeout(20000) })
+const body = await response.text()
+const { events, root } = parseCalendar(body)
+const dates = []
+for (const event of events) {
+  const iterator = event.iterator()
+  for (let occurrence = iterator.next(), count = 0; occurrence && count++ < 300; occurrence = iterator.next()) dates.push(event.getOccurrenceDetails(occurrence).startDate.toJSDate())
+}
+dates.sort((a, b) => a - b)
+const fields = [...new Set(events.flatMap((event) => event.component.getAllProperties().map((property) => property.name.toUpperCase())))].sort()
+const rules = events.map((event) => event.component.getFirstPropertyValue('rrule')).filter(Boolean)
+console.log(`ICS public: ${response.ok ? 'yes' : 'no'}`)
+console.log(`ICS endpoint: ${response.url}`)
+console.log(`Sample: ${sample.name} (${slug(sample.name)})`)
+console.log(`HTTP: ${response.status}; redirects: ${response.redirected ? 'yes' : 'no'}; authentication: none`)
+console.log(`Content-Type: ${response.headers.get('content-type')}; Content-Disposition: ${response.headers.get('content-disposition') ?? 'none'}`)
+console.log(`VEVENT count: ${events.length}`)
+console.log(`First event: ${events[0].summary} — ${events[0].startDate.toString()}`)
+console.log(`Last event: ${events.at(-1).summary} — ${events.at(-1).startDate.toString()}`)
+console.log(`Fields: ${fields.join(', ')}`)
+console.log(`Timezone: ${[...new Set(events.map((event) => event.startDate.zone?.tzid ?? 'UTC'))].join(', ')} → ${Intl.DateTimeFormat().resolvedOptions().timeZone} host; rendered as Europe/Moscow`)
+console.log(`Weekly recurrences: ${rules.filter((rule) => rule.freq === 'WEEKLY' && Number(rule.interval ?? 1) === 1).length}`)
+console.log(`Biweekly recurrences: ${rules.filter((rule) => rule.freq === 'WEEKLY' && Number(rule.interval ?? 1) === 2).length}`)
+console.log(`Calendar coverage: ${dates[0]?.toISOString()} — ${dates.at(-1)?.toISOString()}`)

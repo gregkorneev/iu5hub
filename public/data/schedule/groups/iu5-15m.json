@@ -1,0 +1,18 @@
+{
+  "group": {
+    "id": "iu5-15m",
+    "name": "ИУ5-15М"
+  },
+  "source": {
+    "provider": "LKS BMSTU",
+    "syncedAt": "2026-09-25T08:30:20.078Z",
+    "sourceId": "ad0b8408-a766-11f1-900a-005056aae53e"
+  },
+  "semester": {
+    "academicYear": "",
+    "term": 1,
+    "weekOneStart": "2026-08-31"
+  },
+  "availability": "no-schedule",
+  "days": {}
+}

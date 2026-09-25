@@ -24,6 +24,8 @@ The system stores only a keyed pseudonymous `user_hash`; first/last activity tim
 
 `POST /api/analytics/event` has an allowlist, small body limit and strict ID validation. Identity comes only from validated `initData`, never a frontend user ID. Delivery is fire-and-forget: unavailable analytics never prevents study navigation. A short server-side per-user deduplication window reduces accidental reload inflation for `app_open`. Rate limiting is not configured yet; add a Cloudflare edge rule before relying on it to protect D1 from scripted event flooding.
 
+Schedule routes do not emit group selection or schedule access analytics. Group slugs and LKS source identifiers are not accepted as analytics dimensions.
+
 ## Retention
 
 The approved retention policy is **90 days for raw `events`**. The Worker has an idempotent daily cleanup trigger which deletes only older events; include its execution in release verification. Pseudonymous `users` aggregate rows remain while the service operates for all-time unique users and launches. Reassess retention before collecting any additional dimension; a future erasure policy must delete the corresponding events with a user row.

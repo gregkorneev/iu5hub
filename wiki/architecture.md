@@ -51,4 +51,6 @@ Cloudflare Pages хранит только `dist/`: HTML, JS/CSS bundles, icons,
 
 ## Non-goals MVP
 
+Расписание загружается отдельным frontend domain из `/data/schedule/groups*.json`. Build-time GitHub sync получает публичные LKS calendars, разворачивает recurrence и публикует validated JSON; Mini App не обращается к LKS. Worker/D1 хранит только HMAC-scoped выбранный slug группы, не расписание. Подробности и проверенный source format — в `schedule.md`.
+
 Публичный website, landing page, Taplink, собственный домен как обязательная пользовательская точка входа, роли, Docker и сложное глобальное состояние не создаются без подтверждённой необходимости. Существующий Worker обслуживает приватную статистику, `/stats` и персональное избранное; он не является защищённым каталогом Диска. Backend для non-public/authorized каталога остаётся отдельным scope.

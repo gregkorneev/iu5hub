@@ -27,3 +27,9 @@ The key is `courseId + path`, as returned by the current catalog. Opening a save
 ## Release
 
 Production release (2026-09-25): migration `0002_favorites.sql` was applied to existing D1, a strong unique `USER_ID_HMAC_SECRET` was provisioned as a Worker secret, the Worker and Pages frontend were deployed, and production auth/CORS smoke checks passed. Keep the secret stable; its value is not stored in Git, `wrangler.toml`, Vite variables or logs. Complete a real Mini App check with two Telegram accounts and a reload or second device; local browser fixtures cannot prove that device-level synchronization.
+
+## Schedule group preference
+
+The profile's compact «Учебная группа» section shares the selected IU5 group with the Schedule route. Static lesson data remains on Pages. The browser keeps a local slug fallback and calls `GET/PUT /api/profile/schedule-group`; the Worker validates fresh Telegram `initData` and stores only `{user_hash, schedule_group_id, updated_at}` in migration `0003_profile_preferences.sql`. Favorites loading is independent. Schedule group choices are not analytics events. See `schedule.md` for data generation and release state.
+
+Production migration `0003_profile_preferences.sql` is applied and the Worker deployment is complete. Production unauthenticated and CORS checks passed; reading/writing a real user's preference still needs a valid Telegram Mini App session.

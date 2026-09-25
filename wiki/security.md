@@ -20,6 +20,8 @@ Use least-privilege deploy credentials, parameterized D1 statements, body/ID/eve
 
 `GET`, `PUT` and `DELETE /api/profile/favorites` require fresh, valid Telegram `initData`. The Worker derives the owner with `USER_ID_HMAC_SECRET`; the client never chooses the owner. Queries and deletion include `user_hash`, and a composite primary key prevents duplicate favorites. Input is length-bounded and checked before parameterized D1 statements. The private profile stores only course, path, type, name and creation time; Telegram name and username are UI-only, and photos/avatars are never collected. See `profile.md` and ADR-0004. Keep `USER_ID_HMAC_SECRET` stable, or migrate hashes deliberately before rotating it.
 
+Schedule preference uses the same validated identity and a separate `profile_preferences` row containing only the `iu5-*` slug and timestamp. Lesson JSON is public static Pages data. Schedule never logs a group identifier to analytics and never requests LKS from the user's browser. See `schedule.md`.
+
 ## Required review checks
 
 - Tampered/expired initData cannot write events or read stats.

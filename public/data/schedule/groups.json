@@ -1,0 +1,427 @@
+{
+  "generatedAt": "2026-09-25T08:30:20.078Z",
+  "provider": "LKS BMSTU",
+  "cycleAnchor": "2026-08-31",
+  "groups": [
+    {
+      "id": "iu5-11-4",
+      "name": "ИУ5-11/4",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-11-6",
+      "name": "ИУ5-11/6",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-11a",
+      "name": "ИУ5-11А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-11v-4",
+      "name": "ИУ5-11В/4",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-11m",
+      "name": "ИУ5-11М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-12-4",
+      "name": "ИУ5-12/4",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-12-6",
+      "name": "ИУ5-12/6",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-12a",
+      "name": "ИУ5-12А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-12m",
+      "name": "ИУ5-12М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-13-4",
+      "name": "ИУ5-13/4",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-13-6",
+      "name": "ИУ5-13/6",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-13a",
+      "name": "ИУ5-13А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-13m",
+      "name": "ИУ5-13М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-14-4",
+      "name": "ИУ5-14/4",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-14-6",
+      "name": "ИУ5-14/6",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-14a",
+      "name": "ИУ5-14А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-14m",
+      "name": "ИУ5-14М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-15a",
+      "name": "ИУ5-15А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-15m",
+      "name": "ИУ5-15М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-16a",
+      "name": "ИУ5-16А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-17a",
+      "name": "ИУ5-17А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-18a",
+      "name": "ИУ5-18А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-19-6",
+      "name": "ИУ5-19/6",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-19a",
+      "name": "ИУ5-19А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-31a",
+      "name": "ИУ5-31А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-31b",
+      "name": "ИУ5-31Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-31bv",
+      "name": "ИУ5-31БВ",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-31m",
+      "name": "ИУ5-31М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-32a",
+      "name": "ИУ5-32А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-32b",
+      "name": "ИУ5-32Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-32m",
+      "name": "ИУ5-32М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-33a",
+      "name": "ИУ5-33А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-33b",
+      "name": "ИУ5-33Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-33bv",
+      "name": "ИУ5-33БВ",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-33m",
+      "name": "ИУ5-33М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-34a",
+      "name": "ИУ5-34А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-34b",
+      "name": "ИУ5-34Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-34bv",
+      "name": "ИУ5-34БВ",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-34m",
+      "name": "ИУ5-34М",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-35a",
+      "name": "ИУ5-35А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-35b",
+      "name": "ИУ5-35Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-35bv",
+      "name": "ИУ5-35БВ",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-35mv",
+      "name": "ИУ5-35МВ",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-36a",
+      "name": "ИУ5-36А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-36b",
+      "name": "ИУ5-36Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-37a",
+      "name": "ИУ5-37А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-38a",
+      "name": "ИУ5-38А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-39a",
+      "name": "ИУ5-39А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-51a",
+      "name": "ИУ5-51А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-51b",
+      "name": "ИУ5-51Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-51bv",
+      "name": "ИУ5-51БВ",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-52a",
+      "name": "ИУ5-52А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-52b",
+      "name": "ИУ5-52Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-53a",
+      "name": "ИУ5-53А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-53b",
+      "name": "ИУ5-53Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-53bv",
+      "name": "ИУ5-53БВ",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-54a",
+      "name": "ИУ5-54А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-54b",
+      "name": "ИУ5-54Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-54bv",
+      "name": "ИУ5-54БВ",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-55a",
+      "name": "ИУ5-55А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-55b",
+      "name": "ИУ5-55Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-56a",
+      "name": "ИУ5-56А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-56b",
+      "name": "ИУ5-56Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-57a",
+      "name": "ИУ5-57А",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": false
+    },
+    {
+      "id": "iu5-71b",
+      "name": "ИУ5-71Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-72b",
+      "name": "ИУ5-72Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-73b",
+      "name": "ИУ5-73Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-74b",
+      "name": "ИУ5-74Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-75b",
+      "name": "ИУ5-75Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    },
+    {
+      "id": "iu5-76b",
+      "name": "ИУ5-76Б",
+      "weekOneStart": "2026-08-31",
+      "hasSchedule": true
+    }
+  ]
+}

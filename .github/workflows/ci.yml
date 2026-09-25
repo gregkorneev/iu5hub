@@ -27,6 +27,7 @@ jobs:
       - run: npm run search:validate
       - run: npm run search:build:check
       - run: npm run search:tagging-queue:check
+      - run: npm run schedule:validate
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui -- --project=chromium

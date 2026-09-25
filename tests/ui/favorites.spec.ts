@@ -91,12 +91,12 @@ test('keeps favorite hearts clear of folder and file titles throughout the catal
   }
 })
 
-test('keeps three primary tabs and the administrator header action within a 320px viewport', async ({ page }) => {
+test('keeps four primary tabs and the administrator header action within a 320px viewport', async ({ page }) => {
   await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: true } }))
   await page.setViewportSize({ width: 320, height: 700 })
   await page.goto('/#/profile')
   const nav = page.getByRole('navigation', { name: 'Основная навигация' })
-  await expect(nav.getByRole('link')).toHaveCount(3)
+  await expect(nav.getByRole('link')).toHaveCount(4)
   const statistics = page.locator('header').getByRole('link', { name: 'Статистика' })
   await expect(statistics).toBeVisible()
   await expect(nav.getByRole('link', { name: 'Статистика' })).toHaveCount(0)

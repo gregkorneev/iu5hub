@@ -1,0 +1,55 @@
+name: Schedule sync
+
+on:
+  schedule:
+    # 20:00 Moscow on Sunday, before a new Monday week.
+    - cron: '0 17 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: schedule-sync-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check the local 14-day cycle
+        id: cycle
+        if: github.event_name == 'schedule'
+        run: |
+          output="$(npm run --silent schedule:sync:check)"
+          printf '%s\n' "$output"
+          if [[ "$output" == *"due: yes"* ]]; then echo "due=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Download, validate and stage schedule data
+        if: github.event_name == 'workflow_dispatch' || steps.cycle.outputs.due == 'true'
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            npm run schedule:sync -- --force
+          else
+            npm run schedule:sync -- --force
+          fi
+          npm run schedule:validate
+      - name: Commit changed schedule data
+        if: github.event_name == 'workflow_dispatch' || steps.cycle.outputs.due == 'true'
+        run: |
+          if git diff --quiet -- public/data/schedule; then
+            echo "Schedule JSON unchanged; no commit or deployment."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/schedule
+          git commit -m "chore: sync IU5 schedules"
+          git push origin HEAD:main

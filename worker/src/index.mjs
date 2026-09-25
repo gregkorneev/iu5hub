@@ -80,6 +80,30 @@ async function favorites(request, env, telegramUserId) {
   return new Response(null, { status: 204 })
 }
 
+async function scheduleGroupPreference(request, env, telegramUserId) {
+  const userHash = await hashTelegramUserId(telegramUserId, env.USER_ID_HMAC_SECRET)
+  const db = env.ANALYTICS_DB
+  if (request.method === 'GET') {
+    const row = await queryOne(db, 'SELECT schedule_group_id AS groupId, updated_at AS updatedAt FROM profile_preferences WHERE user_hash = ?', userHash)
+    return json(row ?? { groupId: null, updatedAt: null })
+  }
+  if (request.method !== 'PUT') return new Response('Not found', { status: 404 })
+  const raw = await readBody(request, 256)
+  if (raw === null) return json({ error: 'Payload too large' }, 413)
+  let preference
+  try { preference = JSON.parse(raw) } catch { return json({ error: 'Invalid JSON' }, 400) }
+  if (!preference || typeof preference !== 'object' || Array.isArray(preference) ||
+      Object.keys(preference).length !== 1 || !Object.hasOwn(preference, 'groupId') ||
+      typeof preference.groupId !== 'string' || !/^iu5-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(preference.groupId)) {
+    return json({ error: 'Invalid schedule group' }, 400)
+  }
+  const updatedAt = unixNow()
+  await db.prepare(`INSERT INTO profile_preferences (user_hash, schedule_group_id, updated_at) VALUES (?, ?, ?)
+    ON CONFLICT(user_hash) DO UPDATE SET schedule_group_id = excluded.schedule_group_id, updated_at = excluded.updated_at`)
+    .bind(userHash, preference.groupId, updatedAt).run()
+  return json({ groupId: preference.groupId, updatedAt })
+}
+
 async function trackOpen(db, userHash, now) {
   const minute = Math.floor(now / 60)
   await db.batch([
@@ -157,6 +181,7 @@ async function handle(request, env) {
     if (!user) return json({ error: 'Unauthorized' }, 401)
     if (url.pathname === '/api/admin/me' && request.method === 'GET') return json({ isAdmin: user.isAdmin })
     if (url.pathname === '/api/profile/favorites') return favorites(request, env, user.telegramUserId)
+    if (url.pathname === '/api/profile/schedule-group') return scheduleGroupPreference(request, env, user.telegramUserId)
     if (url.pathname === '/api/analytics/open' && request.method === 'POST') { await trackOpen(env.ANALYTICS_DB, await hashTelegramUserId(user.telegramUserId, env.ANALYTICS_HMAC_SECRET), unixNow()); return new Response(null, { status: 204 }) }
     if (url.pathname === '/api/analytics/event' && request.method === 'POST') {
       const raw = await readBody(request, 1024)
