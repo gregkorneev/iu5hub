@@ -27,8 +27,10 @@ test.describe('persistent bottom navigation', () => {
     expect(backBounds!.height).toBeGreaterThanOrEqual(44)
     expect(courseRootBounds!.height).toBeGreaterThanOrEqual(44)
     await nav.getByRole('link', { name: 'Поиск' }).click()
-    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).fill('ГРИБ')
-    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).press('Enter')
+    const searchInput = page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' })
+    await expect(searchInput).toBeFocused()
+    await searchInput.fill('ГРИБ')
+    await searchInput.press('Enter')
     const searchPath = new URL(page.url()).hash
     await page.getByRole('link', { name: 'Аналитическая геометрия' }).click()
     await expect(nav.getByRole('link', { name: 'Поиск' })).toHaveAttribute('aria-current', 'page')
@@ -47,6 +49,10 @@ test.describe('persistent bottom navigation', () => {
 
     await nav.getByRole('link', { name: 'Поиск' }).click()
     expect(new URL(page.url()).hash).toBe(searchPath)
+    await expect(searchInput).toBeFocused()
+    await searchInput.evaluate((input: HTMLInputElement) => input.blur())
+    await nav.getByRole('link', { name: 'Поиск' }).click()
+    await expect(searchInput).toBeFocused()
   })
 
   test('shows Statistics only for confirmed admins and maps direct routes, unknown paths, and role denial', async ({ page }) => {

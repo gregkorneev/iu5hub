@@ -8,7 +8,7 @@ export function MaterialTag({ category }: { category: Category }) {
   return <span className={`tag tag--${category}`}>{categoryNames[category]}</span>
 }
 
-export function SearchBox({ initial = '', compact = false }: { initial?: string; compact?: boolean }) {
+export function SearchBox({ initial = '', compact = false, autoFocus = false }: { initial?: string; compact?: boolean; autoFocus?: boolean }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState(initial)
   const [focused, setFocused] = useState(false)
@@ -20,7 +20,7 @@ export function SearchBox({ initial = '', compact = false }: { initial?: string;
     const value = query.trim()
     if (value) { track('search'); navigate(`/search?q=${encodeURIComponent(value)}`) }
   }
-  return <div className="search-shell"><form className={`search ${compact ? 'search--compact' : ''}`} role="search" onSubmit={submit}><label className="sr-only" htmlFor={listId}>Поиск по тегам и преподавателям</label><input id={listId} name="q" type="search" value={query} onFocus={() => setFocused(true)} onBlur={() => globalThis.setTimeout(() => setFocused(false), 150)} onChange={({ target }) => setQuery(target.value)} placeholder="Найти по тегу или преподавателю" autoComplete="off" /><button type="submit">Найти</button></form>{focused && currentSuggestions.length > 0 && <div className="search-suggestions" aria-label="Подсказки поиска">{currentSuggestions.map((item) => <button key={item.objectKey} type="button" onClick={() => openFolder(item)}><strong>{item.name}</strong></button>)}</div>}</div>
+  return <div className="search-shell"><form className={`search ${compact ? 'search--compact' : ''}`} role="search" onSubmit={submit}><label className="sr-only" htmlFor={listId}>Поиск по тегам и преподавателям</label><input id={listId} name="q" type="search" value={query} onFocus={() => setFocused(true)} onBlur={() => globalThis.setTimeout(() => setFocused(false), 150)} onChange={({ target }) => setQuery(target.value)} placeholder="Найти по тегу или преподавателю" autoComplete="off" autoFocus={autoFocus} /><button type="submit">Найти</button></form>{focused && currentSuggestions.length > 0 && <div className="search-suggestions" aria-label="Подсказки поиска">{currentSuggestions.map((item) => <button key={item.objectKey} type="button" onClick={() => openFolder(item)}><strong>{item.name}</strong></button>)}</div>}</div>
 }
 
 export function SubjectCard({ subject, count }: { subject: Subject; count?: number }) {
