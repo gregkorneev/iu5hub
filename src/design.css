@@ -159,9 +159,10 @@ header::before {
 }
 .bottom-context-actions .in-app-back {
   display: inline-flex;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-width: 44px;
   min-height: 44px;
   margin: 0;
