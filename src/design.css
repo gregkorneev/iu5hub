@@ -461,6 +461,8 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 .favorite-card > a.semester-button { padding-right: var(--space-4); }
 .favorite-card > .favorite-button { position: absolute; z-index: 1; top: 50%; right: .5rem; transform: translateY(-50%); }
 .favorite-card--folder > .disk-item--folder { grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--space-2); padding-right: var(--space-4); }
+.favorite-card--folder > .disk-item--folder > span:first-child,
+.favorite-card--folder > .disk-item--folder > strong { grid-column: 1; justify-self: start; margin-inline-start: 0; }
 .favorite-card--folder > .disk-item--folder > span:first-child { grid-row: auto; min-height: 2.75rem; }
 .favorite-card--folder > .disk-item--folder > strong { display: block; min-width: 0; line-height: 1.25; text-align: left; overflow-wrap: normal; word-break: normal; hyphens: none; }
 .favorite-card--folder > .favorite-button { top: .5rem; transform: none; }
