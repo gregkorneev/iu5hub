@@ -27,12 +27,20 @@ test('saves folders and files without opening them, restores them after reload, 
   await expect(page.getByRole('heading', { name: 'В избранном пока ничего нет' })).toBeVisible()
 })
 
-test('keeps four administrator tabs and their slider within a 320px viewport', async ({ page }) => {
+test('keeps three primary tabs and the administrator header action within a 320px viewport', async ({ page }) => {
   await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: true } }))
   await page.setViewportSize({ width: 320, height: 700 })
   await page.goto('/#/profile')
   const nav = page.getByRole('navigation', { name: 'Основная навигация' })
-  await expect(nav.getByRole('link')).toHaveCount(4)
+  await expect(nav.getByRole('link')).toHaveCount(3)
+  const statistics = page.locator('header').getByRole('link', { name: 'Статистика' })
+  await expect(statistics).toBeVisible()
+  await expect(nav.getByRole('link', { name: 'Статистика' })).toHaveCount(0)
+  const brandBounds = await page.locator('.brand').boundingBox()
+  const statsBounds = await statistics.boundingBox()
+  expect(brandBounds && statsBounds).toBeTruthy()
+  expect(brandBounds!.x + brandBounds!.width).toBeLessThanOrEqual(statsBounds!.x)
+  expect(statsBounds!.height).toBeGreaterThanOrEqual(44)
   for (const link of await nav.getByRole('link').all()) {
     const box = await link.boundingBox()
     expect(box?.width).toBeGreaterThanOrEqual(44)

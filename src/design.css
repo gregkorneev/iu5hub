@@ -131,6 +131,9 @@ header::before {
 }
 .brand { gap: var(--space-3); color: var(--text-primary); font-family: "ALS Sector", -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing: -.02em; font-size: var(--type-body); font-weight: var(--weight-strong); }
 .brand img { width: 2.25rem; height: 2.25rem; border-radius: var(--radius-small); box-shadow: none; }
+.admin-stats-link { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: var(--space-2); min-height: 44px; padding-inline: var(--space-3); border: 1px solid transparent; border-radius: var(--radius-pill); background: var(--material-thin); box-shadow: inset 0 1px 0 var(--material-highlight); color: var(--action-quiet); font-size: .875rem; font-weight: var(--weight-strong); white-space: nowrap; }
+.admin-stats-link svg { width: 1.125rem; height: 1.125rem; }
+.admin-stats-link[aria-current="page"] { background: var(--action-glass); color: var(--action-glass-text); }
 .bottom-touch-bar {
   position: fixed;
   z-index: 10;
@@ -325,16 +328,16 @@ section + section { margin-top: 2.5rem; }
   .bottom-nav a:hover { color: var(--action-quiet); }
   .section-title > a:hover { color: var(--action); }
 }
-:is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search button, .button, .download-button, .in-app-back, .course-root-link, .filters a, .bottom-nav a, .stats-periods button):active {
+:is(.admin-stats-link, .course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search button, .button, .download-button, .in-app-back, .course-root-link, .filters a, .bottom-nav a, .stats-periods button):active {
   transform: scale(.985);
   transition-duration: var(--duration-press);
 }
-:is(.search button, .button, .download-button, .in-app-back, .course-root-link, .filters a, .bottom-nav a, .stats-periods button):focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
-:is(.brand, .breadcrumb a, .plain-link, .search-suggestions button, .disk-file__open):active { opacity: .72; }
+:is(.admin-stats-link, .search button, .button, .download-button, .in-app-back, .course-root-link, .filters a, .bottom-nav a, .stats-periods button):focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+:is(.brand, .admin-stats-link, .breadcrumb a, .plain-link, .search-suggestions button, .disk-file__open):active { opacity: .72; }
 
 @media (max-width: 620px) {
   .app { width: min(100% - 1.5rem, 58rem); }
-  header { min-height: 3.75rem; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-2); }
+  header { min-height: 3.75rem; flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-2); }
   .brand { font-size: .9375rem; }
   .brand img { width: 2rem; height: 2rem; }
   main { padding: var(--space-5) 0 2rem; }

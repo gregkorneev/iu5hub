@@ -52,7 +52,29 @@ function Layout({ children }: { children: ReactNode }) {
     const target = searchPath.current
     navigate(target, { state: { focusSearch: true } })
   }
-  return <div className={`app${home ? ' app--home' : ''}`}><header><Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link></header><div className={`bottom-touch-bar${showBack || showCourseRoot ? ' bottom-touch-bar--context' : ''}`}>{(showBack || showCourseRoot) && <div className="bottom-context-actions" role="group" aria-label="Действия текущего раздела">{showBack && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}{showCourseRoot && <Link className="course-root-link" to={`/course/${courseRoute?.[1]}`} state={searchResultState}>К корню курса</Link>}</div>}<nav className="bottom-nav" aria-label="Основная навигация"><Link to="/" aria-current={activeNav === 'catalog' ? 'page' : undefined}>Каталог</Link><Link to="/search" onClick={activateSearch} aria-current={activeNav === 'search' ? 'page' : undefined}>Поиск</Link><Link to="/profile" aria-current={activeNav === 'profile' ? 'page' : undefined}>Профиль</Link>{admin && <Link to="/admin/stats" aria-current={activeNav === 'stats' ? 'page' : undefined}>Статистика</Link>}</nav></div>{user && home && <p className="user-greeting">Привет, {user.firstName}</p>}<main key={`${location.pathname}${location.search}`} data-navigation={direction}>{children}</main><footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer></div>
+  return <div className={`app${home ? ' app--home' : ''}`}>
+    <header>
+      <Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link>
+      {admin && <Link className="admin-stats-link" to="/admin/stats" aria-label="Статистика" aria-current={activeNav === 'stats' ? 'page' : undefined}>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 20V11M9 20V5M15 20v-8M21 20V8" /></svg>
+        <span>Статистика</span>
+      </Link>}
+    </header>
+    <div className={`bottom-touch-bar${showBack || showCourseRoot ? ' bottom-touch-bar--context' : ''}`}>
+      {(showBack || showCourseRoot) && <div className="bottom-context-actions" role="group" aria-label="Действия текущего раздела">
+        {showBack && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}
+        {showCourseRoot && <Link className="course-root-link" to={`/course/${courseRoute?.[1]}`} state={searchResultState}>К корню курса</Link>}
+      </div>}
+      <nav className="bottom-nav" aria-label="Основная навигация">
+        <Link to="/" aria-current={activeNav === 'catalog' ? 'page' : undefined}>Каталог</Link>
+        <Link to="/search" onClick={activateSearch} aria-current={activeNav === 'search' ? 'page' : undefined}>Поиск</Link>
+        <Link to="/profile" aria-current={activeNav === 'profile' ? 'page' : undefined}>Профиль</Link>
+      </nav>
+    </div>
+    {user && home && <p className="user-greeting">Привет, {user.firstName}</p>}
+    <main key={`${location.pathname}${location.search}`} data-navigation={direction}>{children}</main>
+    <footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer>
+  </div>
 }
 function FavoriteButton({ item }: { item: FavoriteInput }) {
   const { keys, loading, error, pending, toggle } = useFavorites()

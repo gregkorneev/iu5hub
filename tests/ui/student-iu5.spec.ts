@@ -202,7 +202,7 @@ test.describe('Студент ИУ5 critical UI', () => {
   test('keeps a direct admin route closed for a student', async ({ page }) => {
     await page.goto('/#/admin/stats')
     await expect(page.getByRole('heading', { name: 'Статистика недоступна' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Статистика' })).toBeHidden()
+    await expect(page.locator('header').getByRole('link', { name: 'Статистика' })).toHaveCount(0)
   })
 
   test('renders protected statistics, switches periods and tolerates long names', async ({ page }) => {
@@ -213,7 +213,8 @@ test.describe('Студент ИУ5 critical UI', () => {
     await page.route('**/api/admin/stats/materials?period=*', (route) => route.fulfill({ json: { items: [{ id: 'Очень длинное название материала которое не должно ломать мобильную вёрстку', count: 17 }] } }))
     await page.goto('/#/admin/stats')
     await expect(page.getByRole('heading', { name: 'Статистика' })).toBeVisible()
-    await expect(page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Статистика' })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link')).toHaveCount(3)
+    await expect(page.locator('header').getByRole('link', { name: 'Статистика' })).toBeVisible()
     await expect(page.getByText('428')).toBeVisible()
     await expect(page.getByRole('img', { name: /График/ })).toBeVisible()
     await page.setViewportSize({ width: 320, height: 568 })
@@ -235,7 +236,10 @@ test.describe('Студент ИУ5 critical UI', () => {
     await page.route('**/api/admin/stats/subjects?period=*', (route) => route.fulfill({ json: { items: [] } }))
     await page.route('**/api/admin/stats/materials?period=*', (route) => route.fulfill({ json: { items: [] } }))
     await page.goto('/#/')
-    await page.getByRole('link', { name: 'Статистика' }).click()
+    const nav = page.getByRole('navigation', { name: 'Основная навигация' })
+    await expect(nav.getByRole('link')).toHaveCount(3)
+    await expect(nav.getByRole('link', { name: 'Статистика' })).toHaveCount(0)
+    await page.locator('header').getByRole('link', { name: 'Статистика' }).click()
     await expect(page).toHaveURL(/#\/admin\/stats$/)
     await expect(page.getByRole('heading', { name: 'Статистика' })).toBeVisible()
   })
