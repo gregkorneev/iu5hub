@@ -102,7 +102,11 @@ button, a, [role="button"] { touch-action: manipulation; user-select: none; -web
 
 body { background: radial-gradient(ellipse 80% 22rem at 50% -8rem, var(--ambient-glow), transparent 80%), radial-gradient(ellipse 70% 24rem at 100% 72%, color-mix(in srgb, var(--action) 5%, transparent), transparent 75%), var(--surface-primary); color: var(--text-primary); }
 body::before, body::after, .hero::after { display: none; }
-.app { width: min(100% - 2rem, 58rem); }
+.app {
+  --bottom-nav-clearance: calc(max(env(safe-area-inset-bottom, 0px), var(--tg-safe-area-bottom)) + 5rem);
+  width: min(100% - 2rem, 58rem);
+}
+.app footer { margin-block-end: var(--bottom-nav-clearance); }
 header {
   position: sticky;
   top: max(env(safe-area-inset-top, 0px), var(--tg-safe-area-top));
@@ -129,12 +133,14 @@ header::before {
 nav {
   --nav-count: 2;
   --nav-shift: 0%;
-  position: relative;
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: calc(max(env(safe-area-inset-bottom, 0px), var(--tg-safe-area-bottom)) + var(--space-3));
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(max-content, 1fr);
+  grid-template-columns: repeat(var(--nav-count), minmax(0, 1fr));
   width: max-content;
-  max-width: 100%;
+  max-width: calc(100vw - 2rem - max(env(safe-area-inset-left, 0px), var(--tg-safe-area-left)) - max(env(safe-area-inset-right, 0px), var(--tg-safe-area-right)));
   gap: 0;
   padding: 3px;
   border: 1px solid var(--material-edge);
@@ -143,6 +149,7 @@ nav {
   box-shadow: inset 0 1px 0 var(--material-highlight), 0 .25rem .75rem var(--material-shadow);
   color: var(--text-secondary);
   font-size: .875rem;
+  transform: translateX(-50%);
 }
 nav:has(> a:only-child) { --nav-count: 1; }
 nav:has(> a:nth-child(3)) { --nav-count: 3; }
@@ -175,7 +182,7 @@ nav a {
   transition: color var(--duration-transition) ease-out;
 }
 nav a[aria-current="page"] { color: var(--text-primary); font-weight: var(--weight-strong); }
-main { padding: var(--space-6) 0 3rem; animation: page-enter var(--duration-transition) var(--curve-exit) both; }
+main { flex: 1 1 auto; padding: var(--space-6) 0 3rem; animation: page-enter var(--duration-transition) var(--curve-exit) both; }
 main[data-navigation="back"] { animation-name: page-return; }
 @keyframes page-enter { from { opacity: .65; transform: translateX(.75rem); } to { opacity: 1; transform: translateX(0); } }
 @keyframes page-return { from { opacity: .65; transform: translateX(-.75rem); } to { opacity: 1; transform: translateX(0); } }
@@ -289,7 +296,6 @@ section + section { margin-top: 2.5rem; }
 @media (max-width: 620px) {
   .app { width: min(100% - 1.5rem, 58rem); }
   header { min-height: 3.75rem; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-2); }
-  header nav { align-self: center; }
   .brand { font-size: .9375rem; }
   .brand img { width: 2rem; height: 2rem; }
   main { padding: var(--space-5) 0 2rem; }
@@ -313,15 +319,10 @@ section + section { margin-top: 2.5rem; }
   .search { flex-direction: row; }
   .search button { min-width: 4.25rem; }
   .search input { padding-inline: var(--space-2); }
-  header nav:has(a:nth-child(3)) { grid-auto-columns: minmax(0, 1fr); }
 }
 
-@media (max-height: 740px) and (orientation: portrait) {
-  .app--home { height: auto; min-height: var(--tg-viewport-height); overflow: visible; }
-  html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: auto; }
-}
-.app--home:has(input:focus) { height: auto; min-height: var(--tg-viewport-height); overflow: visible; }
-html:has(.app--home input:focus), body:has(.app--home input:focus) { overflow-x: hidden; overflow-y: auto; }
+.app--home { height: auto; min-height: var(--tg-viewport-height); overflow: visible; }
+html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: auto; }
 
 @supports (backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {

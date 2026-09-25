@@ -1,0 +1,99 @@
+import { test, expect } from './fixtures'
+
+test.describe('persistent bottom navigation', () => {
+  test('keeps Catalog and Search contexts while preserving search-result provenance and BackButton', async ({ page }) => {
+    await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: false } }))
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/')
+    const nav = page.getByRole('navigation', { name: 'Основная навигация' })
+    await expect(nav.getByRole('link')).toHaveCount(2)
+    await expect(nav.getByRole('link', { name: 'Каталог' })).toHaveAttribute('aria-current', 'page')
+
+    await page.getByRole('link', { name: /Курс 1/ }).click()
+    await expect(nav.getByRole('link', { name: 'Каталог' })).toHaveAttribute('aria-current', 'page')
+    await page.getByRole('link', { name: /1 семестр/ }).click()
+    const catalogPath = new URL(page.url()).hash
+
+    await nav.getByRole('link', { name: 'Поиск' }).click()
+    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).fill('ГРИБ')
+    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).press('Enter')
+    const searchPath = new URL(page.url()).hash
+    await page.getByRole('link', { name: 'Аналитическая геометрия' }).click()
+    await expect(nav.getByRole('link', { name: 'Поиск' })).toHaveAttribute('aria-current', 'page')
+    await page.getByRole('link', { name: 'К корню курса' }).click()
+    await expect(nav.getByRole('link', { name: 'Поиск' })).toHaveAttribute('aria-current', 'page')
+
+    await nav.getByRole('link', { name: 'Каталог' }).click()
+    expect(new URL(page.url()).hash).toBe(catalogPath)
+    await nav.getByRole('link', { name: 'Поиск' }).click()
+    expect(new URL(page.url()).hash).toBe(searchPath)
+    await page.evaluate(() => (window as Window & { Telegram: { WebApp: { BackButton: { trigger(): void } } } }).Telegram.WebApp.BackButton.trigger())
+    await expect(page).toHaveURL(/#\/course\/course-1\?path=/)
+  })
+
+  test('shows Statistics only for confirmed admins and maps direct routes, unknown paths, and role denial', async ({ page }) => {
+    await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: true } }))
+    await page.goto('/#/admin/stats')
+    const nav = page.getByRole('navigation', { name: 'Основная навигация' })
+    await expect(nav.getByRole('link')).toHaveCount(3)
+    await expect(nav.getByRole('link', { name: 'Статистика' })).toHaveAttribute('aria-current', 'page')
+    await expect(nav.getByRole('link', { name: 'Статистика' })).toHaveCSS('min-height', '44px')
+
+    await page.unroute('**/api/admin/me')
+    await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: false } }))
+    await page.reload()
+    await expect(nav.getByRole('link')).toHaveCount(2)
+    await expect(nav.locator('[aria-current="page"]')).toHaveCount(0)
+    await page.goto('/#/unrecognized')
+    await expect(nav.locator('[aria-current="page"]')).toHaveCount(0)
+    await page.goto('/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
+    await page.reload()
+    await expect(nav.getByRole('link', { name: 'Каталог' })).toHaveAttribute('aria-current', 'page')
+    await page.goto('/#/search?q=ГРИБ')
+    await expect(nav.getByRole('link', { name: 'Поиск' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  test('keeps the bar in the safe area and preserves touch targets at narrow and keyboard-like heights', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 844 })
+    await page.goto('/#/search')
+    const nav = page.getByRole('navigation', { name: 'Основная навигация' })
+    const geometry = await nav.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      const links = [...element.querySelectorAll('a')].map((link) => link.getBoundingClientRect())
+      return { bottom: box.bottom, right: box.right, widths: links.map((link) => link.width), heights: links.map((link) => link.height), viewport: innerWidth }
+    })
+    expect(geometry.bottom).toBeLessThanOrEqual(844)
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewport)
+    expect(geometry.widths.every((width) => width >= 44)).toBe(true)
+    expect(geometry.heights.every((height) => height >= 44)).toBe(true)
+
+    await page.setViewportSize({ width: 390, height: 500 })
+    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).focus()
+    await expect(nav).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  })
+
+  test('captures root, nested Catalog, Search, admin and scrolled footer for visual review', async ({ page }, testInfo) => {
+    await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: false } }))
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/')
+    await page.screenshot({ path: testInfo.outputPath('catalog-root.png'), fullPage: true })
+    await page.getByRole('link', { name: /Курс 1/ }).click()
+    await page.getByRole('link', { name: /1 семестр/ }).click()
+    await page.screenshot({ path: testInfo.outputPath('catalog-nested.png'), fullPage: true })
+    await page.locator('nav.bottom-nav').getByRole('link', { name: 'Поиск' }).click()
+    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).fill('ГРИБ')
+    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).press('Enter')
+    await page.screenshot({ path: testInfo.outputPath('search-results.png'), fullPage: true })
+    await page.setViewportSize({ width: 390, height: 500 })
+    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).focus()
+    await page.screenshot({ path: testInfo.outputPath('search-keyboard-like.png'), fullPage: true })
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    await page.screenshot({ path: testInfo.outputPath('footer-scrolled.png') })
+
+    await page.unroute('**/api/admin/me')
+    await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: true } }))
+    await page.goto('/#/admin/stats')
+    await page.screenshot({ path: testInfo.outputPath('admin-statistics.png'), fullPage: true })
+  })
+})

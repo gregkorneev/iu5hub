@@ -15,7 +15,41 @@
 
 ## Navigation invariant
 
-При визуальной полировке сохраняются `HashRouter`, существующий список маршрутов и иерархия каталога: курс → семестр/папка → предмет → материал. Папки из результатов поиска продолжают открывать внутренний каталог, файлы скачиваются через существующий Telegram-compatible путь. Внутренняя кнопка назад и Telegram BackButton используют текущий `goBack`: возврат к предыдущему маршруту Mini App, а при отсутствии внутренней истории — замена маршрута на главную. Не вводить tabs, sidebar, swipe navigation, новую модель stack или жесты возврата только ради оформления.
+`HashRouter`, список маршрутов и иерархия каталога (курс → семестр/папка → предмет → материал) остаются прежними. Единая плавающая нижняя панель теперь служит верхнеуровневой навигацией Каталог / Поиск / Статистика; это presentation/navigation shell поверх существующего router, а не новый router или отдельные stacks. Панель остаётся видимой на корневых и вложенных страницах, включая Search results и footer; на неизвестном и недоступном admin route она не выбирает несуществующую вкладку. Статистика включается только после подтверждения существующей `/api/admin/me` проверки.
+
+### Route → tab mapping
+
+Централизованное соответствие в `src/App.tsx` (helper `isCatalogRoute` и вычисление `activeNav`):
+
+| Route | Navigation root / active tab | Bar and available tabs | Existing Back behavior |
+| --- | --- | --- | --- |
+| `/` | Catalog | Visible; Catalog + Search; Stats only after admin confirmation | Telegram BackButton hidden; no in-app Back |
+| `/course/:id` and `?path=…` | Catalog; Search while opened from Search results/suggestions (`location.state.fromTab`) | Visible; same role-based set | Course’s own Back and Telegram BackButton call `goBack`; fallback to `/` when no in-app history |
+| `/semester/:id` | Catalog | Visible; same role-based set | Layout in-app Back and Telegram BackButton call `goBack` |
+| `/subject/:id` | Catalog | Visible; same role-based set | Layout in-app Back and Telegram BackButton call `goBack` |
+| `/subject/:id/:category` | Catalog | Visible; same role-based set | Layout in-app Back and Telegram BackButton call `goBack` |
+| `/material/:id` | Catalog | Visible; same role-based set | Layout in-app Back and Telegram BackButton call `goBack` |
+| `/search?q=…` | Search | Visible; same role-based set | Layout in-app Back and Telegram BackButton call `goBack` |
+| `/admin/stats` | Statistics when admin is confirmed; no selected available tab otherwise | Visible; Stats only for confirmed admins | Telegram BackButton uses `goBack`; AdminStats remains server-authorized |
+| `*` | No selected tab | Visible; Catalog + Search; Stats only for confirmed admins | Layout in-app Back and Telegram BackButton use existing `goBack` fallback |
+
+The Search-to-course provenance keeps the Search tab selected while following an existing result/suggestion into its course folder and nested folders. The same URL opened directly or reloaded without that router state maps to Catalog, because the URL belongs to the catalog route. Search suggestions carry the search query URL in transient router state so returning to Search restores the query. Catalog and Search remember their latest in-app path while the app stays mounted; selecting a tab restores that path. This uses no parallel navigation stack and does not change route destinations. Browser/Telegram Back remains the existing history-based `goBack`; tab selection and Back are separate controls.
+
+### Apple guidance and web adaptation
+
+Apple HIG defines tab bars as top-level navigation, says to keep them visible across sections, and calls out preserving each section’s navigation state. On iOS the bar floats above content on a Liquid Glass surface; the materials guidance distinguishes this functional layer from content. Apple documents minimizing on scroll as an explicit opt-in behavior, so this app keeps the bar expanded and available. Search is a supported dedicated tab pattern in multi-tab apps. Tab links remain links with `aria-current="page"` rather than implementing an ARIA tab widget, because they navigate to routes and preserve native link/keyboard behavior.
+
+This is a web/Telegram adaptation: CSS `position: fixed`, `env(safe-area-inset-*)`, and Telegram viewport/safe-area CSS variables place the bar over the WebView; the app adds a bottom content reserve so the footer and final list items can scroll above it. It keeps a bottom placement at tablet/desktop sizes per the product requirement (Apple’s iPadOS-specific native placement can differ). There is no native `TabView` state restoration, scroll-edge system effect, software-keyboard safe-area integration, or system Liquid Glass refraction in WebView; those are not implied by the CSS treatment.
+
+Official sources consulted and recorded for this decision:
+
+- [Apple HIG: Tab bars](https://developer.apple.com/design/human-interface-guidelines/tab-bars) — persistent top-level navigation and preserved section context.
+- [Apple HIG: Navigation and search](https://developer.apple.com/design/human-interface-guidelines/navigation-and-search) and [Searching](https://developer.apple.com/design/human-interface-guidelines/searching) — search tab/page pattern.
+- [Apple HIG: Materials](https://developer.apple.com/design/human-interface-guidelines/materials) — navigation’s functional Liquid Glass layer over content.
+- [Apple HIG: Buttons](https://developer.apple.com/design/human-interface-guidelines/buttons) — minimum 44×44 pt hit region and press feedback.
+- [Adopting Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass) — navigation floats in the Liquid Glass layer, separated from content.
+- [WWDC25: Get to know the new design system](https://developer.apple.com/videos/play/wwdc2025/356/) and [Build a SwiftUI app with the new design](https://developer.apple.com/videos/play/wwdc2025/323/) — tab navigation keeps per-section context; bar minimization is configurable.
+- [SwiftUI `TabView`](https://developer.apple.com/documentation/swiftui/tabview) and [`TabBarMinimizeBehavior`](https://developer.apple.com/documentation/swiftui/tabbarminimizebehavior) — official native API references; semantics inform but API is not copied into React.
 
 ## Security
 

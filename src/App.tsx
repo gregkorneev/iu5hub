@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
@@ -18,6 +18,7 @@ function useCatalog() {
   useEffect(() => { void Promise.all([repository.getSemesters(), repository.getSubjects(), repository.getMaterials(), repository.getCourses()]).then(([semesters, subjects, materials, courses]) => setData({ semesters, subjects, materials, courses })) }, [])
   return data
 }
+const isCatalogRoute = (path: string) => path === '/' || /^\/(?:course|semester|material)\/[^/]+$/.test(path) || /^\/subject\/[^/]+(?:\/[^/]+)?$/.test(path)
 function Layout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -27,8 +28,21 @@ function Layout({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState(false)
   useEffect(() => { let current = true; void adminFetch('/api/admin/me').then((response) => response.ok ? response.json() : null).then((data: { isAdmin?: boolean } | null) => { if (current) setAdmin(data?.isAdmin === true) }).catch(() => undefined); return () => { current = false } }, [])
   const home = location.pathname === '/'
-  const activeNav = location.pathname === '/search' ? 'search' : location.pathname.startsWith('/admin/') ? 'stats' : 'catalog'
-  return <div className={`app${home ? ' app--home' : ''}`}><header><Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link>{(!home || admin) && <nav aria-label="Основная навигация">{!home && <><Link to="/" aria-current={activeNav === 'catalog' ? 'page' : undefined}>Каталог</Link><Link to="/search" aria-current={activeNav === 'search' ? 'page' : undefined}>Поиск</Link></>}{admin && <Link to="/admin/stats" aria-current={activeNav === 'stats' ? 'page' : undefined}>Статистика</Link>}</nav>}</header>{user && home && <p className="user-greeting">Привет, {user.firstName}</p>}<main key={`${location.pathname}${location.search}`} data-navigation={direction}>{!home && !location.pathname.startsWith('/course/') && !location.pathname.startsWith('/admin/') && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}{children}</main><footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer></div>
+  const catalogRoute = isCatalogRoute(location.pathname)
+  const activeNav = location.pathname === '/admin/stats' ? 'stats' : location.pathname === '/search' || (catalogRoute && location.pathname.startsWith('/course/') && location.state?.fromTab === 'search') ? 'search' : catalogRoute ? 'catalog' : null
+  const tabPaths = useRef({ catalog: '/', search: '/search' })
+  useEffect(() => {
+    const path = location.pathname + location.search
+    if (activeNav === 'catalog') tabPaths.current.catalog = path
+    if (location.pathname === '/search') tabPaths.current.search = path
+    if (typeof location.state?.searchPath === 'string') tabPaths.current.search = location.state.searchPath
+  }, [activeNav, location.pathname, location.search, location.state])
+  const restoreTab = (tab: 'catalog' | 'search', event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    const target = tabPaths.current[tab]
+    if (target !== (tab === 'catalog' ? '/' : '/search')) { event.preventDefault(); navigate(target) }
+  }
+  return <div className={`app${home ? ' app--home' : ''}`}><header><Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link></header><nav className="bottom-nav" aria-label="Основная навигация"><Link to="/" onClick={(event) => restoreTab('catalog', event)} aria-current={activeNav === 'catalog' ? 'page' : undefined}>Каталог</Link><Link to="/search" onClick={(event) => restoreTab('search', event)} aria-current={activeNav === 'search' ? 'page' : undefined}>Поиск</Link>{admin && <Link to="/admin/stats" aria-current={activeNav === 'stats' ? 'page' : undefined}>Статистика</Link>}</nav>{user && home && <p className="user-greeting">Привет, {user.firstName}</p>}<main key={`${location.pathname}${location.search}`} data-navigation={direction}>{!home && !location.pathname.startsWith('/course/') && !location.pathname.startsWith('/admin/') && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}{children}</main><footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer></div>
 }
 function Home() {
   const { courses } = useCatalog()
@@ -37,6 +51,8 @@ function Home() {
 function CoursePage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
+  const routeState = useLocation().state
+  const fromTab = routeState?.fromTab === 'search' ? routeState : undefined
   const [params] = useSearchParams()
   const path = params.get('path') ?? ''
   const { courses } = useCatalog()
@@ -58,7 +74,7 @@ function CoursePage() {
   const catalogItems = currentCatalog.items.map((item) => ({ item, semester: !path && item.type === 'dir' ? semesterFromFolderName(item.name) : undefined }))
   const semesterFolder = semesterFromFolderName(path.split('/').pop() ?? '')
   if (!course) return courses.length ? <EmptyState title="Курс не найден">Проверьте адрес страницы.</EmptyState> : <p className="lead">Загружаем курс…</p>
-  return <><p className="breadcrumb"><Link to="/">Главная</Link> / {course.title}</p><div className="course-actions"><button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>{path && <Link className="course-root-link" to={`/course/${id}`}>К корню курса</Link>}</div><h1>{course.title}</h1><p className="lead">{path ? `Папка: ${path.split('/').pop()}` : course.description}</p>{currentCatalog.loading ? <p className="lead">Загружаем материалы…</p> : currentCatalog.error ? <EmptyState title="Каталог пока недоступен">{course.publicUrl ? 'Не удалось загрузить каталог. Попробуйте позже.' : 'Материалы для этого курса пока готовятся.'}</EmptyState> : currentCatalog.items.length ? <div className={catalogItems.some(({ semester }) => semester) ? 'semester-button-grid' : semesterFolder ? 'disk-list semester-subject-grid' : 'disk-list'}>{catalogItems.map(({ item, semester }) => semester ? <Link className="semester-button" key={item.path} to={`/course/${id}?path=${encodeURIComponent(item.path)}`}><span>{semester}</span><strong>семестр</strong><small>Открыть материалы →</small></Link> : item.type === 'dir' ? <Link className="disk-item disk-item--folder" key={item.path} to={`/course/${id}?path=${encodeURIComponent(item.path)}`}><span aria-hidden="true">📁</span><strong>{item.name}</strong><small>Открыть папку</small></Link> : <div className="disk-item disk-file" key={item.path}><button className="disk-file__open" onClick={() => downloadFile(item)}><span aria-hidden="true">📄</span><span><strong>{item.name}</strong><small>Скачать файл</small></span></button><button className="download-button" aria-label={`Скачать ${item.name}`} title="Скачать файл" onClick={() => downloadFile(item)}>⇩</button></div>)}</div> : <EmptyState title="В папке пока нет материалов">Добавьте файлы или подпапки на Яндекс.Диск — они появятся здесь при следующем открытии.</EmptyState>}</>
+  return <><p className="breadcrumb"><Link to="/">Главная</Link> / {course.title}</p><div className="course-actions"><button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>{path && <Link className="course-root-link" to={`/course/${id}`} state={fromTab}>К корню курса</Link>}</div><h1>{course.title}</h1><p className="lead">{path ? `Папка: ${path.split('/').pop()}` : course.description}</p>{currentCatalog.loading ? <p className="lead">Загружаем материалы…</p> : currentCatalog.error ? <EmptyState title="Каталог пока недоступен">{course.publicUrl ? 'Не удалось загрузить каталог. Попробуйте позже.' : 'Материалы для этого курса пока готовятся.'}</EmptyState> : currentCatalog.items.length ? <div className={catalogItems.some(({ semester }) => semester) ? 'semester-button-grid' : semesterFolder ? 'disk-list semester-subject-grid' : 'disk-list'}>{catalogItems.map(({ item, semester }) => semester ? <Link className="semester-button" key={item.path} to={`/course/${id}?path=${encodeURIComponent(item.path)}`} state={fromTab}><span>{semester}</span><strong>семестр</strong><small>Открыть материалы →</small></Link> : item.type === 'dir' ? <Link className="disk-item disk-item--folder" key={item.path} to={`/course/${id}?path=${encodeURIComponent(item.path)}`} state={fromTab}><span aria-hidden="true">📁</span><strong>{item.name}</strong><small>Открыть папку</small></Link> : <div className="disk-item disk-file" key={item.path}><button className="disk-file__open" onClick={() => downloadFile(item)}><span aria-hidden="true">📄</span><span><strong>{item.name}</strong><small>Скачать файл</small></span></button><button className="download-button" aria-label={`Скачать ${item.name}`} title="Скачать файл" onClick={() => downloadFile(item)}>⇩</button></div>)}</div> : <EmptyState title="В папке пока нет материалов">Добавьте файлы или подпапки на Яндекс.Диск — они появятся здесь при следующем открытии.</EmptyState>}</>
 }
 function SemesterPage() { const { id } = useParams(); const { subjects, materials } = useCatalog(); const semester = Number(id); if (!Number.isInteger(semester) || semester < 1) return <EmptyState title="Семестр не найден">Проверьте адрес страницы.</EmptyState>; const filtered = subjects.filter((subject) => subject.semester === semester); return <><p className="breadcrumb"><Link to="/">Главная</Link> / {semester} семестр</p><h1>{semester} семестр</h1>{filtered.length ? <div className="card-grid">{filtered.map((subject) => <SubjectCard key={subject.id} subject={subject} count={materials.filter((item) => item.subjectId === subject.id).length} />)}</div> : <EmptyState title="Пока пусто">Материалы для этого семестра ещё не добавлены.</EmptyState>}</> }
 function SubjectPage() { const { id, category } = useParams(); const { subjects, materials } = useCatalog(); const subject = subjects.find((item) => item.id === id); useEffect(() => { if (subject) track('subject_open', { subjectId: subject.id }) }, [subject]); if (!subject) return <EmptyState title="Предмет не найден">Возможно, ссылка устарела.</EmptyState>; const filtered = materials.filter((item) => item.subjectId === id && (!category || item.category === category)); return <><p className="breadcrumb"><Link to="/">Главная</Link> / <Link to={`/semester/${subject.semester}`}>{subject.semester} семестр</Link></p><h1>{subject.title}</h1><p className="lead">{subject.description}</p><div className="filters" aria-label="Категории материалов"><Link className={!category ? 'active' : ''} to={`/subject/${id}`}>Все</Link>{Array.from(new Set(materials.filter((item) => item.subjectId === id).map((item) => item.category))).map((key) => <Link key={key} className={category === key ? 'active' : ''} to={`/subject/${id}/${key}`}>{categoryNames[key]}</Link>)}</div>{filtered.length ? <div className="material-list">{filtered.map((material) => <MaterialCard key={material.id} material={material} subject={subject} />)}</div> : <EmptyState title="В этой категории пока нет материалов">Посмотрите все материалы предмета.</EmptyState>}</> }
@@ -67,7 +83,7 @@ function SearchPage() {
   const [params] = useSearchParams()
   const query = params.get('q') ?? ''
   const results = query.trim() ? searchFolders(query) : []
-  return <><h1>Поиск</h1><SearchBox key={query} initial={query} />{query ? <p className="result-count">{results.length ? `Найдено папок: ${results.length}` : 'Ничего не найдено'}</p> : <p className="lead">Введите тег или имя преподавателя.</p>}{results.length > 0 && <div className="disk-list">{results.map((item) => <Link className="disk-item disk-item--folder" key={item.objectKey} to={`/course/${item.courseId}?path=${encodeURIComponent(item.diskPath)}`}><strong>{item.name}</strong></Link>)}</div>}</>
+  return <><h1>Поиск</h1><SearchBox key={query} initial={query} />{query ? <p className="result-count">{results.length ? `Найдено папок: ${results.length}` : 'Ничего не найдено'}</p> : <p className="lead">Введите тег или имя преподавателя.</p>}{results.length > 0 && <div className="disk-list">{results.map((item) => <Link className="disk-item disk-item--folder" key={item.objectKey} to={`/course/${item.courseId}?path=${encodeURIComponent(item.diskPath)}`} state={{ fromTab: 'search' }}><strong>{item.name}</strong></Link>)}</div>}</>
 }
 function NotFound() { return <EmptyState title="Страница не найдена">Такого адреса в Студент ИУ5 нет.</EmptyState> }
 function AdminStatsPage() { const { subjects, materials } = useCatalog(); return <AdminStats names={new Map([...subjects, ...materials].map((item) => [item.id, item.title]))} /> }
