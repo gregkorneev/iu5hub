@@ -13,6 +13,14 @@ async function expectTitleClearOfHeart(title: Locator, heart: Locator) {
   expect(lines.some((line) => line.left < button!.x + button!.width && line.right > button!.x && line.top < button!.y + button!.height && line.bottom > button!.y)).toBeFalsy()
 }
 
+async function expectFolderTitleBelowIcon(card: Locator) {
+  const icon = await card.locator('.disk-item--folder > span').boundingBox()
+  const title = await card.locator('.disk-item--folder > strong').boundingBox()
+  expect(icon && title).toBeTruthy()
+  expect(Math.abs(title!.x - icon!.x)).toBeLessThanOrEqual(4)
+  expect(title!.y).toBeGreaterThanOrEqual(icon!.y + icon!.height)
+}
+
 test('saves folders and files without opening them, restores them after reload, and removes them', async ({ page }) => {
   await page.goto('/#/course/course-1')
   const semester = page.locator('.favorite-card').filter({ hasText: 'семестр' }).first()
@@ -55,6 +63,7 @@ test('keeps favorite hearts clear of folder and file titles throughout the catal
     const rootFolder = page.locator('.favorite-card').filter({ hasText: longRootName })
     await expect(rootFolder).toBeVisible()
     await expectTitleClearOfHeart(rootFolder.locator('.disk-item--folder strong'), rootFolder.locator('.favorite-button'))
+    await expectFolderTitleBelowIcon(rootFolder)
     if (width === 320) await rootFolder.getByRole('button', { name: /Добавить в избранное/ }).click()
     if (width === 320) await page.screenshot({ path: testInfo.outputPath('favorites-root-320.png') })
 
@@ -62,6 +71,7 @@ test('keeps favorite hearts clear of folder and file titles throughout the catal
     const nestedFolder = page.locator('.favorite-card').filter({ hasText: longSubjectName })
     await expect(nestedFolder).toBeVisible()
     await expectTitleClearOfHeart(nestedFolder.locator('.disk-item--folder strong'), nestedFolder.locator('.favorite-button'))
+    await expectFolderTitleBelowIcon(nestedFolder)
     const longFile = page.locator('.disk-file').filter({ hasText: longFileName })
     await expect(longFile).toBeVisible()
     await expectTitleClearOfHeart(longFile.locator('.disk-file__open strong'), longFile.locator('.favorite-button'))
