@@ -24,6 +24,8 @@
 .disk-item small { color:var(--muted) }
 .disk-item--folder { background:#eaf5ff }
 .disk-item--folder strong { overflow-wrap:normal; word-break:normal; hyphens:none }
+.search-result { grid-template-columns:minmax(0,1fr); gap:3px }
+.search-result small { font-size:.82rem; line-height:1.35 }
 .disk-file { grid-template-columns:minmax(0,1fr) 52px; padding:0; overflow:hidden }
 .disk-file__open { display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 12px; min-width:0; padding:16px; border:0; background:transparent; color:inherit; text-align:left }
 .disk-file__open > span:first-child { grid-row:span 2; font-size:1.3rem }

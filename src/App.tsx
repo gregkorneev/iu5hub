@@ -122,7 +122,7 @@ function SearchPage() {
   const [params] = useSearchParams()
   const query = params.get('q') ?? ''
   const results = query.trim() ? searchFolders(query) : []
-  return <><h1>Поиск</h1><SearchBox key={query} initial={query} autoFocus={location.state?.focusSearch === true} />{query ? <p className="result-count">{results.length ? `Найдено папок: ${results.length}` : 'Ничего не найдено'}</p> : <p className="lead">Введите тег или имя преподавателя.</p>}{results.length > 0 && <div className="disk-list">{results.map((item) => <Link className="disk-item disk-item--folder" key={item.objectKey} to={`/course/${item.courseId}?path=${encodeURIComponent(item.diskPath)}`} state={{ fromTab: 'search' }}><strong>{item.name}</strong></Link>)}</div>}</>
+  return <><h1>Поиск</h1><SearchBox key={query} initial={query} autoFocus={location.state?.focusSearch === true} />{query ? <p className="result-count">{results.length ? `Найдено папок: ${results.length}` : 'Ничего не найдено'}</p> : <p className="lead">Введите тег или имя преподавателя.</p>}{results.length > 0 && <div className="disk-list">{results.map((item) => <Link className="disk-item disk-item--folder search-result" key={item.objectKey} to={`/course/${item.courseId}?path=${encodeURIComponent(item.diskPath)}`} state={{ fromTab: 'search' }}><strong>{item.name}</strong><small>{item.path.split('/').slice(0, -1).join(' / ') || item.path}</small></Link>)}</div>}</>
 }
 function ProfilePage() {
   const user = getTelegramUser()

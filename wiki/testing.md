@@ -30,6 +30,7 @@ The Excel workbook is regenerated from CSV by `npm run search:workbook`; its hum
 - Disk search: a stalled Yandex Disk traversal is bounded to 10 seconds total and must turn into the existing visible search error rather than leaving `Ищем в папках и файлах…` indefinitely.
 - Disk search follows a matching folder before returning, so a matching file in a deeper nested folder (including the `УТП` fixture) is returned alongside the folder without a fixed depth limit.
 - Disk search combines matches from every connected course; unit and browser regressions verify both course results in one query.
+- Tagged search suggestions and result links show each folder's parent path in secondary text; the browser regression verifies the two «Физика» folders remain distinguishable by semester.
 - Analytics Worker: valid/invalid/expired Telegram `initData`, keyed user hashing, first/repeated open, event allowlist and ID validation, D1 total/DAU/WAU/MAU aggregates, and idempotent retention cleanup.
 - Favorites Worker: missing/tampered Telegram auth is rejected; favorites are isolated by stable `USER_ID_HMAC_SECRET` identity; duplicate PUT, scoped GET/DELETE, malformed/oversized JSON, invalid course/path/type/name, CORS methods, and migration constraints are covered.
 - Favorites browser flow: save a folder and file without triggering open/download, navigate to Profile, confirm grouped items, reload to confirm persistence, remove each item, and verify the three-item bar plus admin header action fit a 320 px viewport with accessible state. API requests are fixture-backed and do not touch production D1.
@@ -80,6 +81,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 2026-09-25: personal profile/favorites `npm run qa` passed lint, typecheck, 22 Vitest, 45 Node/Worker tests, production build, and Playwright 87/87 across Chromium, mobile Chromium and WebKit. Worker checks cover signed-user isolation, tampered initData, stable separate HMAC, parameterized owner-scoped SQL, malformed/oversized inputs, CORS and idempotent add/remove. Browser checks cover folder/file favorites, no accidental open/download on heart click, reload persistence, delete, optimistic rollback, removed Yandex file recovery, admin layout at 320 px, and mobile catalog overflow. Local and production D1 migrations applied; production Worker/Pages deployed; unauthenticated production API returns 401 and CORS preflight permits PUT/DELETE. The real Telegram account/device synchronization check remains manual.
 
 2026-09-25: relocated Statistics from the bottom navigation to an admin-only header action beside the brand. The tab bar now has three primary destinations for both roles; admin route remains protected. Playwright regressions check student denial, admin access/current state, three-tab count, hit target, and no overlap/overflow at 320 px. Actual Telegram WebView remains device-only validation.
+
+2026-09-25: tagged search now shows a small parent-path caption in both live suggestions and full results. Playwright verifies the two «Физика» folders show different course/semester paths, as well as the shared title/path hierarchy for a regular result.
 
 ## Analytics adversarial checks
 
