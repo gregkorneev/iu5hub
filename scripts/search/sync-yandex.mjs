@@ -14,7 +14,7 @@ export async function inventoryCourse(course, fetcher = fetch) {
     if (!response.ok) throw new Error(`${course.id}: Yandex Disk returned HTTP ${response.status} for ${path || '(root)'}`)
     return response.json()
   }
-  const root = await get('')
+  const root = await get(course.rootPath ?? '')
   if (!root.name || root.type !== 'dir') throw new Error(`${course.id}: public link did not resolve to a folder`)
   const records = [{ object_key: objectKeyForPath(course.id, root.name), course_id: course.id, course_title: course.title, type: 'folder', path: root.name, name: root.name }]
   const pending = [{ apiPath: '', displayPath: root.name, firstPage: root }]

@@ -9,6 +9,6 @@ export interface Semester { id: number; title: string }
 export interface Subject { id: string; title: string; semester: number; description: string; color: string }
 export interface Material { id: string; title: string; subjectId: string; category: Category; description?: string; url: string; keywords: string[]; addedAt: string }
 
-export interface Course { id: string; title: string; description: string; publicUrl: string; color: string }
+export interface Course { id: string; title: string; description: string; publicUrl: string; rootPath?: string; color: string }
 export interface DiskItem { name: string; path: string; type: 'dir' | 'file'; modified?: string }
 export interface DiskSearchResult extends DiskItem { courseId: string; courseTitle: string }

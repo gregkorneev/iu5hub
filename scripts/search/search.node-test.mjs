@@ -4,7 +4,7 @@ import { mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promi
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import ExcelJS from 'exceljs'
-import { parseCsv, stringifyCsv, objectKeyForPath, parseBoolean, readTable, tagColumns, legacyTagColumns, synonymColumns, writeTable } from './common.mjs'
+import { parseCsv, stringifyCsv, objectKeyForPath, parseBoolean, readCourses, readTable, tagColumns, legacyTagColumns, synonymColumns, writeTable } from './common.mjs'
 import { inventoryCourse, mergeInventory, sync } from './sync-yandex.mjs'
 import { build, compileIndex } from './build.mjs'
 import { validate } from './validate.mjs'
@@ -281,6 +281,27 @@ test('Yandex inventory recursively lists folders and uses pagination without net
   assert(objects.some(({ path, type }) => path === 'Курс 1' && type === 'folder'))
   assert(objects.some(({ path }) => path === 'Курс 1/Папка/Вложенная/Семинар.pdf'))
   assert(calls.some(([, offset]) => offset === 1000))
+})
+
+test('reads a nested public root for course 3 and inventories paths relative to that course', async () => {
+  const courses = await readCourses()
+  assert.deepEqual(courses.find(({ id }) => id === 'course-3'), {
+    id: 'course-3', title: 'Курс 3', publicUrl: 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ', rootPath: '/IU5/3 course',
+  })
+  const calls = []
+  const fetcher = async (url) => {
+    const path = new URL(url).searchParams.get('path')
+    calls.push(path)
+    const root = path === '/IU5/3 course'
+    const payload = root
+      ? { name: '3 course', type: 'dir', _embedded: { items: [{ name: '5 sem', path: '/IU5/3 course/5 sem', type: 'dir' }] } }
+      : { _embedded: { items: [] } }
+    return { ok: true, json: async () => payload }
+  }
+  const objects = await inventoryCourse(courses.find(({ id }) => id === 'course-3'), fetcher)
+  assert.deepEqual(calls, ['/IU5/3 course', '/IU5/3 course/5 sem'])
+  assert(objects.some(({ course_id, path, type }) => course_id === 'course-3' && path === '3 course' && type === 'folder'))
+  assert(objects.some(({ course_id, path, type }) => course_id === 'course-3' && path === '3 course/5 sem' && type === 'folder'))
 })
 
 test('failed course fetch does not overwrite the existing inventory snapshot', async () => {

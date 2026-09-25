@@ -30,6 +30,12 @@ const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 
   'course-1:long': [],
   'course-2:': [{ name: '2 семестр', path: '2 семестр', type: 'dir' }],
   'course-2:2 семестр': [],
+  'course-3:/IU5/3 course': [
+    { name: '5 sem', path: '/IU5/3 course/5 sem', type: 'dir' },
+    { name: '6 sem', path: '/IU5/3 course/6 sem', type: 'dir' },
+  ],
+  'course-3:/IU5/3 course/5 sem': [{ name: 'ОАД', path: '/IU5/3 course/5 sem/ОАД', type: 'dir' }],
+  'course-3:/IU5/3 course/5 sem/ОАД': [{ name: 'нирс', path: '/IU5/3 course/5 sem/ОАД/нирс', type: 'dir' }],
 }
 
 export const test = base.extend<{ telegram: TelegramState }>({
@@ -66,7 +72,8 @@ export const test = base.extend<{ telegram: TelegramState }>({
     })
     await page.route('https://cloud-api.yandex.net/**', async (route) => {
       const url = new URL(route.request().url())
-      const courseId = url.searchParams.get('public_key')?.includes('PoeWdke') ? 'course-2' : 'course-1'
+      const publicKey = url.searchParams.get('public_key') ?? ''
+      const courseId = publicKey.includes('PoeWdke') ? 'course-2' : publicKey.includes('4PO5hHMPMaeAEQ') ? 'course-3' : 'course-1'
       const path = url.searchParams.get('path') ?? ''
       if (url.pathname.endsWith('/download')) return route.fulfill({ json: { href: 'https://downloader.disk.yandex.ru/disk/public/file.pdf' } })
       const items = folders[`${courseId}:${path}`]

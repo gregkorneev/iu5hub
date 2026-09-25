@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { yandexDiskRepository } from './materials-repository'
 import { courses } from '../data/courses'
 
 describe('Yandex Disk public repository', () => {
-  const originalCourseUrls = courses.map(({ publicUrl }) => publicUrl)
-  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); courses.forEach((course, index) => { course.publicUrl = originalCourseUrls[index] }) })
+  const originalCourses = courses.map(({ publicUrl, rootPath }) => ({ publicUrl, rootPath }))
+  beforeEach(() => { courses[2].publicUrl = '' })
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); courses.forEach((course, index) => { course.publicUrl = originalCourses[index].publicUrl; course.rootPath = originalCourses[index].rootPath }) })
 
   it('uses the configured public key and encodes nested paths', async () => {
     courses[0].publicUrl = 'https://disk.yandex.ru/d/course-one'
@@ -12,6 +13,50 @@ describe('Yandex Disk public repository', () => {
     vi.stubGlobal('fetch', fetchMock)
     await expect(yandexDiskRepository.getFolder('course-1', 'disk:/Модуль 1')).resolves.toEqual([{ name: 'Тема 1', path: 'disk:/Тема 1', type: 'dir', modified: undefined }])
     expect(fetchMock.mock.calls[0][0]).toContain('path=disk%3A%2F%D0%9C%D0%BE%D0%B4%D1%83%D0%BB%D1%8C+1')
+  })
+
+  it('opens a nested public course root and prefixes relative or absolute paths only once', async () => {
+    courses[2].publicUrl = 'https://disk.yandex.com/d/course-three'
+    courses[2].rootPath = '/IU5/3 course'
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ _embedded: { items: [{ name: '5 sem', path: '/IU5/3 course/5 sem', type: 'dir' }] } })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ _embedded: { items: [{ name: 'ОАД', path: '/IU5/3 course/5 sem/ОАД', type: 'dir' }] } })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ _embedded: { items: [{ name: 'нирс', path: '/IU5/3 course/5 sem/ОАД/нирс', type: 'dir' }] } })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ href: 'https://downloader.disk.yandex.ru/disk/file.pdf' })))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(yandexDiskRepository.getFolder('course-3')).resolves.toEqual([{ name: '5 sem', path: '/IU5/3 course/5 sem', type: 'dir', modified: undefined }])
+    await expect(yandexDiskRepository.getFolder('course-3', '/IU5/3 course/5 sem')).resolves.toEqual([{ name: 'ОАД', path: '/IU5/3 course/5 sem/ОАД', type: 'dir', modified: undefined }])
+    await expect(yandexDiskRepository.getFolder('course-3', '/5 sem/ОАД')).resolves.toEqual([{ name: 'нирс', path: '/IU5/3 course/5 sem/ОАД/нирс', type: 'dir', modified: undefined }])
+    await expect(yandexDiskRepository.getFileUrl('course-3', '/IU5/3 course/5 sem/ОАД/нирс/file.pdf')).resolves.toBe('https://downloader.disk.yandex.ru/disk/file.pdf')
+    expect(fetchMock.mock.calls.map(([url]) => new URL(url as string).searchParams.get('path'))).toEqual([
+      '/IU5/3 course',
+      '/IU5/3 course/5 sem',
+      '/IU5/3 course/5 sem/ОАД',
+      '/IU5/3 course/5 sem/ОАД/нирс/file.pdf',
+    ])
+  })
+
+  it('searches within course 3 starting at its nested share path', async () => {
+    courses[0].publicUrl = ''
+    courses[1].publicUrl = ''
+    courses[2].publicUrl = 'https://disk.yandex.com/d/course-three'
+    const calls: string[] = []
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      const path = new URL(url).searchParams.get('path') ?? ''
+      calls.push(path)
+      const items = path === '/IU5/3 course'
+        ? [{ name: '5 sem', path: '/IU5/3 course/5 sem', type: 'dir' }]
+        : path === '/IU5/3 course/5 sem'
+          ? [{ name: 'ОАД', path: '/IU5/3 course/5 sem/ОАД', type: 'dir' }]
+          : [{ name: 'ОАД лекция.pdf', path: '/IU5/3 course/5 sem/ОАД лекция.pdf', type: 'file' }]
+      return Promise.resolve(new Response(JSON.stringify({ _embedded: { items } })))
+    }))
+    await expect(yandexDiskRepository.searchDisk('оад')).resolves.toEqual([
+      { name: 'ОАД', path: '/IU5/3 course/5 sem/ОАД', type: 'dir', modified: undefined, courseId: 'course-3', courseTitle: 'Курс 3' },
+      { name: 'ОАД лекция.pdf', path: '/IU5/3 course/5 sem/ОАД лекция.pdf', type: 'file', modified: undefined, courseId: 'course-3', courseTitle: 'Курс 3' },
+    ])
+    expect(calls[0]).toBe('/IU5/3 course')
   })
 
   it('rejects an untrusted download URL', async () => {

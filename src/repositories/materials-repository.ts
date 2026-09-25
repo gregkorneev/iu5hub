@@ -31,6 +31,12 @@ const apiUrl = (endpoint: string, publicUrl: string, path?: string) => {
   if (path) params.set('path', path)
   return `https://cloud-api.yandex.net/v1/disk/public/resources${endpoint}?${params}`
 }
+const publicResourcePath = (course: Course, path = '') => {
+  const rootPath = course.rootPath?.replace(/^\/+|\/+$/g, '') ?? ''
+  if (!rootPath) return path
+  const requestedPath = path.replace(/^\/+/, '')
+  return `/${requestedPath === rootPath || requestedPath.startsWith(`${rootPath}/`) ? requestedPath || rootPath : [rootPath, requestedPath].filter(Boolean).join('/')}`
+}
 const fetchWithTimeout = (url: string) => {
   const controller = new AbortController()
   const timeout = globalThis.setTimeout(() => controller.abort(), diskRequestTimeoutMs)
@@ -47,7 +53,7 @@ export const yandexDiskRepository = {
   async getCourses() { return courses },
   async getFolder(courseId: string, path = ''): Promise<DiskItem[]> {
     const course = configuredCourse(courseId)
-    const response = await fetchWithTimeout(apiUrl('', course.publicUrl, path))
+    const response = await fetchWithTimeout(apiUrl('', course.publicUrl, publicResourcePath(course, path)))
     if (response.status === 404) throw new Error('Папка больше недоступна.')
     if (!response.ok) throw new Error('Не удалось загрузить папку Яндекс.Диска.')
     const data = await response.json() as { _embedded?: { items?: Array<{ name?: string; path?: string; type?: string; modified?: string }> } }
@@ -55,7 +61,7 @@ export const yandexDiskRepository = {
   },
   async getFileUrl(courseId: string, path: string) {
     const course = configuredCourse(courseId)
-    const response = await fetchWithTimeout(apiUrl('/download', course.publicUrl, path))
+    const response = await fetchWithTimeout(apiUrl('/download', course.publicUrl, publicResourcePath(course, path)))
     if (response.status === 404) throw new Error('Файл был перемещён или удалён.')
     if (!response.ok) throw new Error('Не удалось открыть файл на Яндекс.Диске.')
     const data = await response.json() as { href?: string }

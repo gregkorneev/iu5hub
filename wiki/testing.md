@@ -91,6 +91,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 
 2026-09-25: removed the «К корню курса» action from nested Catalog/Search-result screens and deleted its component styles. `npm run qa` passed lint, typecheck, 22 Vitest, 45 Node/Worker tests, build and Playwright 90/90 in Chromium, mobile Chromium and WebKit. Browser regressions verify the shortcut is absent, the remaining Back control stays centered and usable, and Back / Telegram BackButton return through existing history.
 
+2026-09-25: connected Course 3 to the nested public path `/IU5/3 course` under the shared Yandex Disk root. `npm run qa` passed lint, typecheck, 24 Vitest, 46 Node/Worker tests, build and Playwright 93/93 across Chromium, mobile Chromium and WebKit. Checks cover relative and already-prefixed paths, inventory sync root selection, root→semester→subject browsing, searchDisk traversal and file download URL path construction. The live public API returned both `5 sem` and `6 sem` from the configured root.
+
 ## Analytics adversarial checks
 
 Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` navigation as a student, invalid webhook secret, empty D1, one-user and high-cardinality results, repeated taps/reloads, unavailable D1/Worker, slow network and long repository labels. Verify a material or Disk link still opens when event delivery fails. Never place production tokens, real admin IDs or real initData into fixtures, snapshots or test output.

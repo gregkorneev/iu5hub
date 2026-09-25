@@ -60,8 +60,8 @@ export const synonymKeyForTerm = (term) => `synonym:${createHash('sha256').updat
 // The config is intentionally read from courses.ts so the sync uses the same source as the app.
 export async function readCourses() {
   const source = await readFile(new URL('../../src/data/courses.ts', import.meta.url), 'utf8')
-  return [...source.matchAll(/\{\s*id:\s*'([^']+)'\s*,\s*title:\s*'([^']+)'[^\n]*?publicUrl:\s*'([^']*)'/g)]
-    .map(([, id, title, publicUrl]) => ({ id, title, publicUrl }))
+  return [...source.matchAll(/\{\s*id:\s*'([^']+)'\s*,\s*title:\s*'([^']+)'[^\n]*?publicUrl:\s*'([^']*)'(?:,\s*rootPath:\s*'([^']*)')?/g)]
+    .map(([, id, title, publicUrl, rootPath]) => ({ id, title, publicUrl, ...(rootPath ? { rootPath } : {}) }))
 }
 export async function readTable(path, expectedHeaders) {
   let text

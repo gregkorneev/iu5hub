@@ -32,6 +32,19 @@ test.describe('Студент ИУ5 critical UI', () => {
     await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true })
   })
 
+  test('opens the third course from its nested Yandex share and navigates semester folders', async ({ page }) => {
+    await page.goto('/#/')
+    await page.getByRole('link', { name: /Курс 3/ }).click()
+    await expect(page).toHaveURL(/#\/course\/course-3$/)
+    await expect(page.getByRole('heading', { name: 'Курс 3' })).toBeVisible()
+    await expect(page.getByRole('link', { name: /5\s*семестр/ })).toBeVisible()
+    await expect(page.getByRole('link', { name: /6\s*семестр/ })).toBeVisible()
+    await page.getByRole('link', { name: /5\s*семестр/ }).click()
+    await expect(page.getByRole('link', { name: /ОАД/ })).toBeVisible()
+    await page.getByRole('link', { name: /ОАД/ }).click()
+    await expect(page.getByRole('link', { name: /нирс/ })).toBeVisible()
+  })
+
   test('navigates folders, downloads an allowlisted file, and keeps no horizontal overflow', async ({ page }) => {
     await page.goto('/#/course/course-1')
     await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toContainText('Каталог')
