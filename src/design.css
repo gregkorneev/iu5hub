@@ -279,6 +279,7 @@ h1, .section-title h2 { color: var(--text-primary); font-size: var(--type-screen
 section + section { margin-top: 2.5rem; }
 .section-title { margin-bottom: var(--space-4); }
 .section-title h2 { font-size: var(--type-section); }
+.home-links__empty { margin: 0; padding: var(--space-4); border-radius: var(--radius-medium); background: var(--surface-secondary); color: var(--text-secondary); font-size: .9rem; }
 .course-grid, .semester-button-grid, .card-grid { gap: var(--space-3); }
 .course-grid a, .semester-button, .subject-card, .material-card, .disk-item {
   border: 0;
