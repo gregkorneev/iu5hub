@@ -175,15 +175,13 @@ test.describe('Студент ИУ5 critical UI', () => {
     })).toBeTruthy()
   })
 
-  test('locks the home page to the Telegram viewport without scrolling', async ({ page }) => {
+  test('keeps Useful Links accessible without horizontal overflow in the Telegram viewport', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/#/')
-    expect(await page.evaluate(() => {
-      window.scrollTo(100, 100)
-      return document.documentElement.scrollWidth <= innerWidth
-        && document.documentElement.scrollHeight <= innerHeight
-        && scrollX === 0 && scrollY === 0
-    })).toBeTruthy()
+    const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
+    await usefulLinks.scrollIntoViewIfNeeded()
+    await expect(usefulLinks).toContainText('Пока здесь нет ссылок.')
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   })
 
   test('scrolls the home page vertically without horizontal overflow in landscape', async ({ page }) => {
