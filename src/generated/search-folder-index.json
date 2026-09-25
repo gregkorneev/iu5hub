@@ -3,6 +3,7 @@
     "objectKey": "course-1:3a51a718f40c35c9",
     "courseId": "course-1",
     "path": "1 course/1 Семестр/Аналитическая геометрия",
+    "diskPath": "/1 Семестр/Аналитическая геометрия",
     "name": "Аналитическая геометрия",
     "tags": [
       "Ангем",
@@ -21,6 +22,7 @@
     "objectKey": "course-1:64073de5e82f10ad",
     "courseId": "course-1",
     "path": "1 course/1 Семестр/Английский",
+    "diskPath": "/1 Семестр/Английский",
     "name": "Английский",
     "tags": [
       "Англ",
@@ -32,6 +34,7 @@
     "objectKey": "course-1:21e907daa86424b2",
     "courseId": "course-1",
     "path": "1 course/1 Семестр/Информатика",
+    "diskPath": "/1 Семестр/Информатика",
     "name": "Информатика",
     "tags": [
       "Инфа",
@@ -46,6 +49,7 @@
     "objectKey": "course-1:09c5656ffd7f02be",
     "courseId": "course-1",
     "path": "1 course/1 Семестр/Математический анализ",
+    "diskPath": "/1 Семестр/Математический анализ",
     "name": "Математический анализ",
     "tags": [
       "Матан",
@@ -65,6 +69,7 @@
     "objectKey": "course-1:666495c21f8fd25f",
     "courseId": "course-1",
     "path": "1 course/1 Семестр/Начертательная геометрия",
+    "diskPath": "/1 Семестр/Начертательная геометрия",
     "name": "Начертательная геометрия",
     "tags": [
       "начерт",
@@ -81,6 +86,7 @@
     "objectKey": "course-1:97ec6c4cf3c95bed",
     "courseId": "course-1",
     "path": "1 course/1 Семестр/Основы программирования 2025",
+    "diskPath": "/1 Семестр/Основы программирования 2025",
     "name": "Основы программирования 2025",
     "tags": [
       "прога",
@@ -99,6 +105,7 @@
     "objectKey": "course-1:50434038c3c7ec8b",
     "courseId": "course-1",
     "path": "1 course/1 Семестр/Социология(2022)",
+    "diskPath": "/1 Семестр/Социология(2022)",
     "name": "Социология(2022)",
     "tags": [
       "Социология",
@@ -110,6 +117,7 @@
     "objectKey": "course-1:d30eed71958c44fc",
     "courseId": "course-1",
     "path": "1 course/1 Семестр/УТП ИУ5",
+    "diskPath": "/1 Семестр/УТП ИУ5",
     "name": "УТП ИУ5",
     "tags": [
       "утп",
@@ -128,6 +136,7 @@
     "objectKey": "course-1:4e707b79bf1cd7ba",
     "courseId": "course-1",
     "path": "1 course/2 Семестр/Инженерная графика",
+    "diskPath": "/2 Семестр/Инженерная графика",
     "name": "Инженерная графика",
     "tags": [
       "начерт",
@@ -144,6 +153,7 @@
     "objectKey": "course-1:9e0514d87dd5b452",
     "courseId": "course-1",
     "path": "1 course/2 Семестр/Интегралы и Дифференциальные уравнения",
+    "diskPath": "/2 Семестр/Интегралы и Дифференциальные уравнения",
     "name": "Интегралы и Дифференциальные уравнения",
     "tags": [
       "инты",
@@ -163,6 +173,7 @@
     "objectKey": "course-1:5aac5cf57bf39d67",
     "courseId": "course-1",
     "path": "1 course/2 Семестр/ЛАиФНП",
+    "diskPath": "/2 Семестр/ЛАиФНП",
     "name": "ЛАиФНП",
     "tags": [
       "линейная алгебра",
@@ -183,6 +194,7 @@
     "objectKey": "course-1:0b4227d4a638c886",
     "courseId": "course-1",
     "path": "1 course/2 Семестр/Программирование на основе классов и шаблонов",
+    "diskPath": "/2 Семестр/Программирование на основе классов и шаблонов",
     "name": "Программирование на основе классов и шаблонов",
     "tags": [
       "прога",
@@ -202,6 +214,7 @@
     "objectKey": "course-1:ed6a409b975e3830",
     "courseId": "course-1",
     "path": "1 course/2 Семестр/Физика",
+    "diskPath": "/2 Семестр/Физика",
     "name": "Физика",
     "tags": [
       "физика"
@@ -216,6 +229,7 @@
     "objectKey": "course-2:6c8020f7e7a2605f",
     "courseId": "course-2",
     "path": "2 course/3 sem/Архитектура АСОИУ",
+    "diskPath": "/3 sem/Архитектура АСОИУ",
     "name": "Архитектура АСОИУ",
     "tags": [
       "АСОИУ",
@@ -231,6 +245,7 @@
     "objectKey": "course-2:a5e3afbeeb522cb7",
     "courseId": "course-2",
     "path": "2 course/3 sem/Модели данных",
+    "diskPath": "/3 sem/Модели данных",
     "name": "Модели данных",
     "tags": [
       "МД",
@@ -246,6 +261,7 @@
     "objectKey": "course-2:f58dc2670377f312",
     "courseId": "course-2",
     "path": "2 course/3 sem/Парадигмы и конструкции языков программирования",
+    "diskPath": "/3 sem/Парадигмы и конструкции языков программирования",
     "name": "Парадигмы и конструкции языков программирования",
     "tags": [
       "ПИК",
@@ -261,6 +277,7 @@
     "objectKey": "course-2:ec115054b38f7253",
     "courseId": "course-2",
     "path": "2 course/3 sem/Правоведение",
+    "diskPath": "/3 sem/Правоведение",
     "name": "Правоведение",
     "tags": [
       "Право",
@@ -272,6 +289,7 @@
     "objectKey": "course-2:96b753c3da92cc14",
     "courseId": "course-2",
     "path": "2 course/3 sem/Теория вероятностей и математическая статистика",
+    "diskPath": "/3 sem/Теория вероятностей и математическая статистика",
     "name": "Теория вероятностей и математическая статистика",
     "tags": [
       "тервер",
@@ -289,6 +307,7 @@
     "objectKey": "course-2:b81be4463294004f",
     "courseId": "course-2",
     "path": "2 course/3 sem/Физика",
+    "diskPath": "/3 sem/Физика",
     "name": "Физика",
     "tags": [
       "физика"
@@ -303,6 +322,7 @@
     "objectKey": "course-2:cb4695b8a9217ee0",
     "courseId": "course-2",
     "path": "2 course/3 sem/Экология",
+    "diskPath": "/3 sem/Экология",
     "name": "Экология",
     "tags": [
       "экология"
@@ -313,6 +333,7 @@
     "objectKey": "course-2:ab4ae98a09602820",
     "courseId": "course-2",
     "path": "2 course/3 sem/Электротехника",
+    "diskPath": "/3 sem/Электротехника",
     "name": "Электротехника",
     "tags": [
       "Электротехника",
@@ -329,6 +350,7 @@
     "objectKey": "course-2:37c54e368562e021",
     "courseId": "course-2",
     "path": "2 course/4 sem/XML",
+    "diskPath": "/4 sem/XML",
     "name": "XML",
     "tags": [
       "XML"
@@ -339,6 +361,7 @@
     "objectKey": "course-2:cee6fefbc75d06aa",
     "courseId": "course-2",
     "path": "2 course/4 sem/Английский язык",
+    "diskPath": "/4 sem/Английский язык",
     "name": "Английский язык",
     "tags": [
       "Англ",
@@ -351,6 +374,7 @@
     "objectKey": "course-2:93fb2c43f952491b",
     "courseId": "course-2",
     "path": "2 course/4 sem/Базы данных",
+    "diskPath": "/4 sem/Базы данных",
     "name": "Базы данных",
     "tags": [
       "Базы данных",
@@ -362,6 +386,7 @@
     "objectKey": "course-2:7d226a9a83137b1b",
     "courseId": "course-2",
     "path": "2 course/4 sem/Дискретная математика",
+    "diskPath": "/4 sem/Дискретная математика",
     "name": "Дискретная математика",
     "tags": [
       "дискретка",
@@ -373,6 +398,7 @@
     "objectKey": "course-2:b5e1e0bb068948e9",
     "courseId": "course-2",
     "path": "2 course/4 sem/Политология",
+    "diskPath": "/4 sem/Политология",
     "name": "Политология",
     "tags": [
       "Политология"
@@ -383,6 +409,7 @@
     "objectKey": "course-2:edd4fe22ef4e1f42",
     "courseId": "course-2",
     "path": "2 course/4 sem/Системное программирование",
+    "diskPath": "/4 sem/Системное программирование",
     "name": "Системное программирование",
     "tags": [
       "Системное программирование"
@@ -393,6 +420,7 @@
     "objectKey": "course-2:e0003d059dd655d0",
     "courseId": "course-2",
     "path": "2 course/4 sem/Схемотехника",
+    "diskPath": "/4 sem/Схемотехника",
     "name": "Схемотехника",
     "tags": [
       "Схемотехника"
@@ -403,6 +431,7 @@
     "objectKey": "course-2:33a885e424cc89a3",
     "courseId": "course-2",
     "path": "2 course/4 sem/Электроника",
+    "diskPath": "/4 sem/Электроника",
     "name": "Электроника",
     "tags": [
       "Электроника"

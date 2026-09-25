@@ -13,6 +13,7 @@ describe('tagged-folder search', () => {
     const results = searchFolders('а')
     const geometry = results.find(({ name }) => name === 'Аналитическая геометрия')
     expect(geometry?.matchedTerms).toContain('Ангем')
+    expect(geometry?.diskPath).toBe('/1 Семестр/Аналитическая геометрия')
     expect(new Set(results.map(({ objectKey }) => objectKey)).size).toBe(results.length)
   })
 

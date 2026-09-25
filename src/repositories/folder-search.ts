@@ -1,6 +1,6 @@
 import folderIndex from '../generated/search-folder-index.json'
 
-export interface TaggedFolder { objectKey: string; courseId: string; path: string; name: string; tags: string[]; teachers: string[] }
+export interface TaggedFolder { objectKey: string; courseId: string; path: string; diskPath: string; name: string; tags: string[]; teachers: string[] }
 export interface FolderSearchResult extends TaggedFolder { matchedTerms: string[] }
 
 const folders = folderIndex as TaggedFolder[]

@@ -63,6 +63,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 
 2026-09-25: финальный Liquid Glass polish прошёл полный `npm run qa`: lint, typecheck, 18 Vitest, 41 Node tests, build и Playwright 69/69 в Chromium, mobile Chromium и WebKit. Ручной browser audit проверил 320/390/428/1280 px, Telegram light/dark, safe area, 44×44 навигационные touch targets, reduced motion/transparency и increased contrast; navigation flow 3/3 без изменений. Сопоставимые before/after screenshots для существующей верхней навигации сохранены в текущем Codex task. Реальный Telegram WebView и экранная клавиатура требуют проверки на устройстве.
 
+2026-09-25: tagged-search navigation regression reproduced and fixed. Direct read-only calls to the live public Yandex API returned 404 for the inventory display path including `1 course/`, and 200 with the expected folder for API-relative `/1 Семестр/Аналитическая геометрия`. Browser regression now asserts the decoded route path and that the folder contents (fixture file) render. After fix, run full release gate and Playwright across Chromium, mobile Chromium, and WebKit.
+
 ## Analytics adversarial checks
 
 Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` navigation as a student, invalid webhook secret, empty D1, one-user and high-cardinality results, repeated taps/reloads, unavailable D1/Worker, slow network and long repository labels. Verify a material or Disk link still opens when event delivery fails. Never place production tokens, real admin IDs or real initData into fixtures, snapshots or test output.

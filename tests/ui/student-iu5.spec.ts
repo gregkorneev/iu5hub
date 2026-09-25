@@ -120,8 +120,9 @@ test.describe('Студент ИУ5 critical UI', () => {
     const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Аналитическая геометрия/ })
     await expect(suggestion).toBeVisible()
     await suggestion.click()
-    await expect(page).toHaveURL(/#\/course\/course-1\?path=/)
+    await expect.poll(() => page.evaluate(() => new URLSearchParams(location.hash.split('?')[1] ?? '').get('path'))).toBe('/1 Семестр/Аналитическая геометрия')
     await expect(page.getByText(/^Папка:/)).toContainText('Аналитическая геометрия')
+    await expect(page.getByRole('button', { name: 'Конспект.pdf Скачать файл' })).toBeVisible()
   })
 
   test('full search uses only tagged folders with case-insensitive prefixes', async ({ page }) => {

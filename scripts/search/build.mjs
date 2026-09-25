@@ -14,7 +14,10 @@ export async function build({ check = false, tagsPath = source, synonymsPath = s
   const index = compileIndex(rows, synonymRows)
   const result = `${JSON.stringify(index, null, 2)}\n`
   const searchableFolders = index.objects.filter((row) => row.type === 'folder' && row.enabled && row.aliases.length + row.keywords.length + (row.teacher?.length ?? 0) > 0)
-  const folderSearchIndex = `${JSON.stringify(searchableFolders.map(({ objectKey, courseId, path, name, keywords, teacher = [] }) => ({ objectKey, courseId, path, name, tags: keywords, teachers: teacher })), null, 2)}\n`
+  const folderSearchIndex = `${JSON.stringify(searchableFolders.map(({ objectKey, courseId, path, name, keywords, teacher = [] }) => ({
+    objectKey, courseId, path, diskPath: path.includes('/') ? `/${path.split('/').slice(1).join('/')}` : '',
+    name, tags: keywords, teachers: teacher,
+  })), null, 2)}\n`
   if (check) {
     let current
     try { current = await readFile(outputPath, 'utf8') } catch { current = '' }

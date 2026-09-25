@@ -14,7 +14,7 @@ export function SearchBox({ initial = '', compact = false }: { initial?: string;
   const [focused, setFocused] = useState(false)
   const listId = useId()
   const currentSuggestions = query.trim() ? searchFolders(query).slice(0, 8) : []
-  const openFolder = (item: { courseId: string; path: string }) => navigate(`/course/${item.courseId}?path=${encodeURIComponent(item.path)}`)
+  const openFolder = (item: { courseId: string; diskPath: string }) => navigate(`/course/${item.courseId}?path=${encodeURIComponent(item.diskPath)}`)
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const value = query.trim()
