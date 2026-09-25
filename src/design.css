@@ -429,5 +429,5 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .semester-button-grid .favorite-card > .favorite-button { top: .5rem; transform: none; }
   .semester-button-grid .favorite-card > .disk-item--folder { grid-template-columns: minmax(0, 1fr); padding-right: var(--space-2); }
   .semester-button-grid .favorite-card > .disk-item--folder > span { grid-row: auto; }
-  .semester-button-grid .favorite-card > .disk-item--folder strong { font-size: .875rem; }
+  .semester-button-grid .favorite-card > .disk-item--folder strong { font-size: clamp(.625rem, 3.5vw, .875rem); }
 }

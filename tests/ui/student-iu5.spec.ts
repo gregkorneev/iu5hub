@@ -190,10 +190,12 @@ test.describe('Студент ИУ5 critical UI', () => {
     await page.goto('/#/course/course-1')
     await expect(page.getByRole('heading', { name: 'Курс 1' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()
-    expect(await page.locator('.semester-button-grid .favorite-card').evaluateAll((cards) => cards.every((card) => {
+    const cardMetrics = await page.locator('.semester-button-grid .favorite-card').evaluateAll((cards) => cards.map((card) => {
       const box = card.getBoundingClientRect()
-      return box.left >= 0 && box.right <= innerWidth && card.scrollWidth <= card.clientWidth
-    }))).toBeTruthy()
+      const title = card.querySelector('strong')
+      return { text: title?.textContent, left: box.left, right: box.right, clientWidth: card.clientWidth, scrollWidth: card.scrollWidth, titleClientWidth: title?.clientWidth ?? 0, titleScrollWidth: title?.scrollWidth ?? 0 }
+    }))
+    expect(cardMetrics.filter(({ left, right, clientWidth, scrollWidth, titleClientWidth, titleScrollWidth }) => left < 0 || right > 320 || scrollWidth > clientWidth + 1 || titleScrollWidth > titleClientWidth + 1), JSON.stringify(cardMetrics)).toEqual([])
     await page.screenshot({ path: testInfo.outputPath('course-mobile.png'), fullPage: true })
   })
 

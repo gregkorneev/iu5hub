@@ -26,4 +26,4 @@ The key is `courseId + path`, as returned by the current catalog. Opening a save
 
 ## Release
 
-Apply `worker/migrations/0002_favorites.sql` to the existing D1 database before serving the new frontend. Provision `USER_ID_HMAC_SECRET` with `wrangler secret put USER_ID_HMAC_SECRET` using a strong, unique value; keep it stable. Deploy the updated Worker, then publish the Pages frontend. No secret value belongs in Git, `wrangler.toml`, Vite variables or logs. Validate with two distinct Telegram accounts and a reload or second device; local browser fixtures cannot prove a real Telegram WebView launch.
+Production release (2026-09-25): migration `0002_favorites.sql` was applied to existing D1, a strong unique `USER_ID_HMAC_SECRET` was provisioned as a Worker secret, the Worker and Pages frontend were deployed, and production auth/CORS smoke checks passed. Keep the secret stable; its value is not stored in Git, `wrangler.toml`, Vite variables or logs. Complete a real Mini App check with two Telegram accounts and a reload or second device; local browser fixtures cannot prove that device-level synchronization.
