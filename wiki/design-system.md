@@ -13,7 +13,7 @@ Apple описывает Liquid Glass как отдельный функцион
 | Контентный | `--material-content` | Карточки и аналитика получают светлый край и тень, но не отдельный blur. Текст и действие должны читаться на любой подложке. |
 | Разделение | `--material-edge`, `--material-highlight`, `--material-shadow`, `--separator` | Граница, подсветка и тень обозначают уровень; не складывать их с тяжёлой рамкой на каждой карточке. |
 
-Текущая доля `--surface-elevated` в полупрозрачных токенах: `thin` 58%/66%, `regular` 70%/76%, `thick` 84%/88%, `content` 60%/62% (light/dark). Эти числа описывают текущую CSS-реализацию; менять их можно только вместе с проверкой читаемости и иерархии в обеих темах.
+Текущая доля `--surface-elevated` в полупрозрачных токенах: `thin` 30%/34%, `regular` 42%/46%, `thick` 66%/72%, `content` 18%/22%, `selected` 32%/36% (light/dark). Активные действия используют отдельную слабую корпоративную тонировку 14%/16%. Эти числа описывают CSS-реализацию, а не предписания Apple; они меняются только вместе с проверкой читаемости и иерархии в обеих темах.
 
 Значения `thin/regular/thick` — **внутренние CSS-токены**, не варианты системного API Apple `regular/clear`. Их проценты прозрачности не являются рекомендацией Apple и проверяются вместе с реальным фоном. У Apple `clear` уместен только над богатым медиа-контентом при обеспеченной читаемости; текущий каталог не требует такого режима. [Apple HIG: Materials](https://developer.apple.com/design/human-interface-guidelines/materials), [WWDC25: Meet Liquid Glass](https://developer.apple.com/videos/play/wwdc2025/219/).
 
@@ -41,3 +41,19 @@ Apple описывает Liquid Glass как отдельный функцион
 ## Проверка изменений
 
 Перед выпуском проверить light/dark Telegram theme при несовпадении с темой ОС, короткий viewport с фокусом поиска, 320 px и длинные русские названия, прямую hash-ссылку, BackButton и in-app back, контраст/семантику, три accessibility preferences и отсутствие горизонтального overflow. Результаты последнего browser QA — в `testing.md`; real-device Telegram WebView остаётся отдельной ручной проверкой. [Apple: Testing system accessibility features](https://developer.apple.com/documentation/accessibility/testing-system-accessibility-features-in-your-app).
+
+## Прозрачная material-система — 2026-09-25
+
+Общий визуальный проход снижает плотность на всей CSS design layer: тонкий functional glass стал 30%/34%, regular — 42%/46%, thick popover — 66%/72%, а контентные карточки — 18%/22% для light/dark. Активная навигационная линза использует 32%/36%, без отдельного blur-слоя. Заливки action controls уменьшены до 14%/16%; тонкие края и верхние блики ослаблены. Фоновый corporate-blue glow слегка усилен, чтобы прозрачность читалась над содержимым без ярких декоративных пятен.
+
+Blur разрешён только у верхней шапки, нижнего tab bar, поиска и его suggestions, контекстного Back control, отдельной тихой кнопки и цельного picker overlay. Карточки курсов, семестров, материалов, статистики, карточка профиля и расписания остаются прозрачным content layer без индивидуального blur; welcome/hero остаётся открытым контентом на ambient background. Поиск сохраняет regular fill в focus, selected controls получают мягкое тональное усиление, а grouped schedule days не размываются по одному. Это следует принципу Apple наносить Liquid Glass на функциональный слой и держать содержимое отдельно; WebView реализация использует CSS blur/saturation и не претендует на системную рефракцию. Источники: [Apple HIG — Materials](https://developer.apple.com/design/human-interface-guidelines/materials), [Apple — Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass), [WWDC25 — Meet Liquid Glass](https://developer.apple.com/videos/play/wwdc2025/219/), [WWDC25 — Get to know the new design system](https://developer.apple.com/videos/play/wwdc2025/356/), [Apple Design Resources](https://developer.apple.com/design/resources/).
+
+| Поверхность | Light / dark fill | Blur | Роль |
+| --- | ---: | ---: | --- |
+| Bottom bar | 30% / 34% | 20 px | Плавающая global navigation; active lens 32% / 36% |
+| Search | 30% / 34%, focus 42% / 46% | 20 px | Функциональный поиск над контентом |
+| Suggestions / group picker | 66% / 72% | 30 px | Крупный transient overlay |
+| Course / semester / material cards | 18% / 22% | нет | Лёгкое отделение контента от фона |
+| Active actions | action tint 14% / 16% | нет | Выбранное состояние через цвет и luminance |
+
+Кадры после прохода сохранены в Playwright QA artifacts: home, course cards, search, profile, admin, bottom bar в light/dark. Сравнительный home «до» создан повторным применением исходных production-токенов к тому же экрану, а не отдельным продуктовым билдом.

@@ -27,19 +27,24 @@
   --action: color-mix(in srgb, var(--telegram-button-color, #006cdc) 90%, #002c5b 10%);
   --action-text: var(--telegram-button-text-color, var(--platform-background));
   --action-quiet: color-mix(in srgb, var(--action) 70%, var(--platform-text) 30%);
-  --action-glass: color-mix(in srgb, var(--action) 24%, transparent);
+  --action-glass: color-mix(in srgb, var(--action) 14%, transparent);
   --action-glass-text: #002c5b;
-  --action-glass-edge: color-mix(in srgb, var(--action) 44%, transparent);
-  --action-glass-highlight: color-mix(in srgb, #fff 68%, transparent);
-  --action-glass-shadow: color-mix(in srgb, var(--action) 14%, transparent);
-  --material-thin: color-mix(in srgb, var(--surface-elevated) 58%, transparent);
-  --material-regular: color-mix(in srgb, var(--surface-elevated) 70%, transparent);
-  --material-thick: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
-  --material-content: color-mix(in srgb, var(--surface-elevated) 60%, transparent);
-  --material-edge: color-mix(in srgb, var(--platform-text) 12%, transparent);
-  --material-highlight: color-mix(in srgb, #fff 70%, transparent);
-  --material-shadow: color-mix(in srgb, var(--platform-text) 9%, transparent);
-  --ambient-glow: color-mix(in srgb, var(--action) 7%, transparent);
+  --action-glass-edge: color-mix(in srgb, var(--action) 28%, transparent);
+  --action-glass-highlight: color-mix(in srgb, #fff 18%, transparent);
+  --action-glass-shadow: color-mix(in srgb, var(--action) 7%, transparent);
+  --material-thin: color-mix(in srgb, var(--surface-elevated) 30%, transparent);
+  --material-regular: color-mix(in srgb, var(--surface-elevated) 42%, transparent);
+  --material-thick: color-mix(in srgb, var(--surface-elevated) 66%, transparent);
+  --material-content: color-mix(in srgb, var(--surface-elevated) 18%, transparent);
+  --material-selected: color-mix(in srgb, var(--surface-elevated) 32%, transparent);
+  --material-edge: color-mix(in srgb, var(--platform-text) 7%, transparent);
+  --material-highlight: color-mix(in srgb, #fff 22%, transparent);
+  --material-shadow: color-mix(in srgb, var(--platform-text) 7%, transparent);
+  --material-blur-thin: 14px;
+  --material-blur-regular: 20px;
+  --material-blur-thick: 30px;
+  --material-saturation: 150%;
+  --ambient-glow: color-mix(in srgb, var(--action) 10%, transparent);
   --duration-press: 90ms;
   --duration-transition: 220ms;
   --curve-exit: cubic-bezier(.22, 1, .36, 1);
@@ -66,19 +71,20 @@ button, a, [role="button"] { touch-action: manipulation; user-select: none; -web
   --separator: color-mix(in srgb, var(--brand-blue) 20%, transparent);
   --action: color-mix(in srgb, var(--telegram-button-color, var(--brand-blue)) 15%, var(--brand-blue) 85%);
   --action-text: #062448;
-  --action-glass: color-mix(in srgb, var(--brand-blue) 24%, transparent);
+  --action-glass: color-mix(in srgb, var(--brand-blue) 16%, transparent);
   --action-glass-text: var(--platform-text);
-  --action-glass-edge: color-mix(in srgb, var(--brand-blue) 44%, transparent);
-  --action-glass-highlight: color-mix(in srgb, #fff 16%, transparent);
-  --action-glass-shadow: color-mix(in srgb, var(--brand-blue) 18%, transparent);
-  --material-thin: color-mix(in srgb, var(--surface-elevated) 66%, transparent);
-  --material-regular: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
-  --material-thick: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
-  --material-content: color-mix(in srgb, var(--surface-elevated) 62%, transparent);
-  --material-edge: color-mix(in srgb, var(--brand-blue) 22%, transparent);
+  --action-glass-edge: color-mix(in srgb, var(--brand-blue) 28%, transparent);
+  --action-glass-highlight: color-mix(in srgb, #fff 12%, transparent);
+  --action-glass-shadow: color-mix(in srgb, var(--brand-blue) 9%, transparent);
+  --material-thin: color-mix(in srgb, var(--surface-elevated) 34%, transparent);
+  --material-regular: color-mix(in srgb, var(--surface-elevated) 46%, transparent);
+  --material-thick: color-mix(in srgb, var(--surface-elevated) 72%, transparent);
+  --material-content: color-mix(in srgb, var(--surface-elevated) 22%, transparent);
+  --material-selected: color-mix(in srgb, var(--surface-elevated) 36%, transparent);
+  --material-edge: color-mix(in srgb, var(--brand-blue) 12%, transparent);
+  --material-shadow: color-mix(in srgb, #000 20%, transparent);
   --material-highlight: color-mix(in srgb, #fff 12%, transparent);
-  --material-shadow: color-mix(in srgb, #000 24%, transparent);
-  --ambient-glow: color-mix(in srgb, var(--brand-blue) 12%, transparent);
+  --ambient-glow: color-mix(in srgb, var(--brand-blue) 14%, transparent);
 }
 :root[data-telegram-theme="dark"] .tag.tag--lecture { color: #bde0ff !important; }
 :root[data-telegram-theme="dark"] .tag.tag--lab { color: #baf3d4 !important; }
@@ -229,6 +235,7 @@ header::before {
   transition: color var(--duration-transition) ease-out;
 }
 .bottom-nav > a[aria-current="page"] { color: var(--text-primary); font-weight: var(--weight-strong); }
+:root[data-telegram-theme="dark"] .bottom-nav > a[aria-current="page"] { color: #f3f8ff; }
 main { flex: 1 1 auto; padding: var(--space-6) 0 3rem; animation: page-enter var(--duration-transition) var(--curve-exit) both; }
 main[data-navigation="back"] { animation-name: page-return; }
 @keyframes page-enter { from { opacity: .65; transform: translateX(.75rem); } to { opacity: 1; transform: translateX(0); } }
@@ -373,38 +380,47 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 
 @supports (backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {
-    .bottom-nav { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
-    .bottom-nav::before { background: var(--material-thick); }
-    .search, .in-app-back { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
-    .search:focus-within { background: var(--material-thin); }
-    .search-suggestions { background: var(--material-thick); backdrop-filter: blur(24px) saturate(150%); }
+    header { background: var(--material-regular); box-shadow: 0 1px 0 var(--material-edge), 0 .25rem .75rem var(--material-shadow); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
+    header::before { background: var(--material-regular); }
+    .admin-stats-link { backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); }
+    .bottom-nav { background: var(--material-thin); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
+    .bottom-nav::before { background: linear-gradient(180deg, color-mix(in srgb, var(--material-selected) 92%, #fff 8%), var(--material-selected)); }
+    .search, .in-app-back, .schedule-group-picker input { background: var(--material-thin); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
+    .search:focus-within { background: var(--material-regular); }
+    .search-suggestions { background: var(--material-thick); backdrop-filter: blur(var(--material-blur-thick)) saturate(var(--material-saturation)); }
+    .schedule-mode { backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); }
+    .schedule-mode button[aria-pressed="true"], .schedule-days button[aria-pressed="true"] { background: var(--material-selected); box-shadow: inset 0 1px 0 var(--material-highlight); }
+    .schedule-profile-block, .schedule-lesson, .home-links__empty, .favorite-error { background: var(--material-content); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .2rem .75rem var(--material-shadow); }
+    .schedule-group-options { background: var(--material-thick); border-color: var(--material-edge); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .75rem 2rem var(--material-shadow); backdrop-filter: blur(var(--material-blur-thick)) saturate(var(--material-saturation)); }
+    .schedule-group-options button { background: transparent; box-shadow: none; }
     :is(.search button, .button:not(.button--quiet), .filters .active, .stats-periods button.active) {
       border: 1px solid var(--action-glass-edge);
       background: var(--action-glass);
       color: var(--action-glass-text);
       box-shadow: inset 0 1px 0 var(--action-glass-highlight), 0 .25rem .75rem var(--action-glass-shadow);
-      backdrop-filter: blur(8px) saturate(145%);
+      backdrop-filter: none;
     }
     .button--quiet {
       border: 1px solid var(--material-edge);
       background: var(--material-thin);
       color: var(--text-primary);
-      box-shadow: inset 0 1px 0 var(--material-highlight), 0 .25rem .75rem var(--material-shadow);
-      backdrop-filter: blur(10px) saturate(130%);
+      box-shadow: inset 0 1px 0 var(--material-highlight), 0 .2rem .75rem var(--material-shadow);
+      backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation));
     }
     :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty) {
       border: 1px solid var(--material-edge);
       background: var(--material-content);
-      box-shadow: inset 0 1px 0 var(--material-highlight), 0 .25rem 1rem var(--material-shadow);
+      box-shadow: inset 0 1px 0 var(--material-highlight), 0 .2rem .75rem var(--material-shadow);
     }
     :is(.filters a:not(.active), .stats-periods button:not(.active), .download-button) {
       border: 1px solid var(--material-edge);
       background: var(--material-thin);
       box-shadow: inset 0 1px 0 var(--material-highlight);
     }
+    :is(.favorite-button, .profile-count) { border-color: var(--material-edge); background: var(--material-thin); box-shadow: inset 0 1px 0 var(--material-highlight); }
     .tag[class*="tag--"] {
-      border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
-      background: color-mix(in srgb, currentColor 15%, transparent);
+      border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+      background: color-mix(in srgb, currentColor 10%, transparent);
       box-shadow: inset 0 1px 0 var(--material-highlight);
     }
   }
@@ -412,24 +428,26 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 @media (prefers-reduced-transparency: reduce) {
   header, .search-suggestions { background: var(--surface-elevated); backdrop-filter: none; }
   .bottom-nav { background: var(--surface-secondary); backdrop-filter: none; }
-  .bottom-nav::before { background: var(--surface-elevated); }
-  .search, .in-app-back { background: var(--surface-secondary); backdrop-filter: none; }
+  .bottom-nav::before, .schedule-mode button[aria-pressed="true"], .schedule-days button[aria-pressed="true"] { background: var(--surface-elevated); backdrop-filter: none; }
+  .schedule-group-options { background: var(--surface-elevated); backdrop-filter: none; }
+  .schedule-group-options button { background: transparent; }
+  .search, .in-app-back, .schedule-group-picker input { background: var(--surface-secondary); backdrop-filter: none; }
   :is(.search button, .button, .filters .active, .stats-periods button.active) { border-color: transparent; background: var(--action); color: var(--action-text); box-shadow: none; backdrop-filter: none; }
   .button--quiet, .download-button { background: var(--surface-secondary); backdrop-filter: none; }
-  :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty) { background: var(--surface-elevated); }
+  :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty, .home-links__empty, .favorite-error, .schedule-profile-block, .schedule-lesson, .schedule-group-options button) { background: var(--surface-elevated); }
   :is(.filters a:not(.active), .stats-periods button:not(.active), .tag) { background: var(--surface-secondary); }
 }
 @media (prefers-contrast: more) {
   :root { --text-secondary: var(--text-primary); --separator: var(--text-primary); }
   :root[data-telegram-theme="light"] { --action: #005bb9; --action-text: #fff; }
   .bottom-nav { border-color: var(--separator); background: var(--surface-secondary); backdrop-filter: none; }
-  .bottom-nav::before { background: var(--surface-elevated); box-shadow: inset 0 0 0 1px var(--separator); }
+  .bottom-nav::before, .schedule-mode button[aria-pressed="true"], .schedule-days button[aria-pressed="true"] { background: var(--surface-elevated); box-shadow: inset 0 0 0 1px var(--separator); }
   .course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search, .search-suggestions { border: 1px solid var(--separator); }
   header, .search-suggestions { background: var(--surface-primary); backdrop-filter: none; }
-  .search, .in-app-back { background: var(--surface-secondary); backdrop-filter: none; }
+  .search, .in-app-back, .schedule-group-picker input { background: var(--surface-secondary); backdrop-filter: none; }
   :is(.search button, .button, .filters .active, .stats-periods button.active) { border-color: var(--action); background: var(--action); color: var(--action-text); box-shadow: none; backdrop-filter: none; }
   .button--quiet, .download-button { background: var(--surface-secondary); backdrop-filter: none; }
-  :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty) { background: var(--surface-elevated); }
+  :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty, .home-links__empty, .favorite-error, .schedule-profile-block, .schedule-lesson, .schedule-group-options button) { background: var(--surface-elevated); }
   :is(.filters a:not(.active), .stats-periods button:not(.active), .tag) { background: var(--surface-secondary); }
 }
 @media (prefers-reduced-motion: reduce) {
