@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
 import { CalendarDays, LibraryBig, Search, UserRound } from 'lucide-react'
@@ -34,6 +34,9 @@ function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const direction = useNavigationType() === 'POP' ? 'back' : 'forward'
   useTelegramBackButton(location.pathname !== '/' && location.pathname !== '/schedule')
+  useLayoutEffect(() => {
+    if (location.pathname === '/') window.scrollTo(0, 0)
+  }, [location.pathname])
   const user = getTelegramUser()
   const [admin, setAdmin] = useState(false)
   useEffect(() => { let current = true; void adminFetch('/api/admin/me').then((response) => response.ok ? response.json() : null).then((data: { isAdmin?: boolean } | null) => { if (current) setAdmin(data?.isAdmin === true) }).catch(() => undefined); return () => { current = false } }, [])

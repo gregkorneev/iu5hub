@@ -1,6 +1,55 @@
 import { test, expect } from './fixtures'
 
 test.describe('persistent bottom navigation', () => {
+  test('brand logo and text return home from every primary route and a search result', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 390, height: 720 })
+    await page.goto('/#/course/course-1')
+    await page.evaluate(() => window.scrollTo(0, 124))
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0)
+    await page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Каталог' }).click()
+    await expect(page).toHaveURL(/#\/$/)
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
+    const destinations = [
+      'scrolled-course',
+      '/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80',
+      '/#/schedule',
+      '/#/search?q=%D0%93%D0%A0%D0%98%D0%91',
+      '/#/profile',
+      'search-result',
+    ]
+    for (const part of ['logo', 'text'] as const) for (const destination of destinations) {
+      if (destination === 'scrolled-course') {
+        await page.goto('/#/course/course-1')
+        await page.evaluate(() => window.scrollTo(0, 124))
+        await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0)
+      } else if (destination === 'search-result') {
+        await page.goto('/#/search?q=%D0%93%D0%A0%D0%98%D0%91')
+        await page.getByRole('link', { name: 'Аналитическая геометрия' }).click()
+        await expect(page).toHaveURL(/#\/course\/course-1/)
+      } else await page.goto(destination)
+      const brand = page.getByRole('link', { name: 'Студент ИУ5 — главная' })
+      await expect(brand).toHaveAttribute('href', '#/')
+      const point = await brand.evaluate((link, target) => {
+        const logo = link.querySelector('img')!
+        const text = [...link.childNodes].find((node) => node.nodeType === Node.TEXT_NODE)!
+        const range = document.createRange()
+        range.selectNodeContents(text)
+        const box = (target === 'logo' ? logo : range).getBoundingClientRect()
+        const x = box.left + box.width / 2
+        const y = box.top + box.height / 2
+        return { x, y, hitBrand: link.contains(document.elementFromPoint(x, y)), scrollY }
+      }, part)
+      expect(point.hitBrand, `${part} on ${destination}: ${JSON.stringify(point)}`).toBe(true)
+      if (testInfo.project.name === 'chromium') await page.mouse.click(point.x, point.y)
+      else await page.touchscreen.tap(point.x, point.y)
+      await expect(page).toHaveURL(/#\/$/)
+      await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
+      await expect(page.getByRole('heading', { name: 'Студент ИУ5', level: 1 })).toBeVisible()
+      await expect(page.locator('.course-grid a')).toHaveCount(3)
+      await expect(page.getByRole('region', { name: 'Полезные ссылки' })).toBeVisible()
+    }
+  })
+
   test('stacks decorative icons over labels and keeps the selection bubble inside each tab at 320px', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width: 320, height: 844 })
