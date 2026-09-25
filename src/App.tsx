@@ -32,19 +32,18 @@ function Layout({ children }: { children: ReactNode }) {
   const home = location.pathname === '/'
   const catalogRoute = isCatalogRoute(location.pathname)
   const activeNav = location.pathname === '/admin/stats' ? 'stats' : location.pathname === '/profile' ? 'profile' : location.pathname === '/search' || (catalogRoute && location.pathname.startsWith('/course/') && location.state?.fromTab === 'search') ? 'search' : catalogRoute ? 'catalog' : null
-  const tabPaths = useRef({ catalog: '/', search: '/search' })
+  const searchPath = useRef('/search')
   useEffect(() => {
     const path = location.pathname + location.search
-    if (activeNav === 'catalog') tabPaths.current.catalog = path
-    if (location.pathname === '/search') tabPaths.current.search = path
-    if (typeof location.state?.searchPath === 'string') tabPaths.current.search = location.state.searchPath
+    if (location.pathname === '/search') searchPath.current = path
+    if (typeof location.state?.searchPath === 'string') searchPath.current = location.state.searchPath
   }, [activeNav, location.pathname, location.search, location.state])
-  const restoreTab = (tab: 'catalog' | 'search', event: MouseEvent<HTMLAnchorElement>) => {
+  const restoreSearch = (event: MouseEvent<HTMLAnchorElement>) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-    const target = tabPaths.current[tab]
-    if (target !== (tab === 'catalog' ? '/' : '/search')) { event.preventDefault(); navigate(target) }
+    const target = searchPath.current
+    if (target !== '/search') { event.preventDefault(); navigate(target) }
   }
-  return <div className={`app${home ? ' app--home' : ''}`}><header><Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link></header><nav className="bottom-nav" aria-label="Основная навигация"><Link to="/" onClick={(event) => restoreTab('catalog', event)} aria-current={activeNav === 'catalog' ? 'page' : undefined}>Каталог</Link><Link to="/search" onClick={(event) => restoreTab('search', event)} aria-current={activeNav === 'search' ? 'page' : undefined}>Поиск</Link><Link to="/profile" aria-current={activeNav === 'profile' ? 'page' : undefined}>Профиль</Link>{admin && <Link to="/admin/stats" aria-current={activeNav === 'stats' ? 'page' : undefined}>Статистика</Link>}</nav>{user && home && <p className="user-greeting">Привет, {user.firstName}</p>}<main key={`${location.pathname}${location.search}`} data-navigation={direction}>{!home && !location.pathname.startsWith('/course/') && !location.pathname.startsWith('/admin/') && location.pathname !== '/profile' && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}{children}</main><footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer></div>
+  return <div className={`app${home ? ' app--home' : ''}`}><header><Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link></header><nav className="bottom-nav" aria-label="Основная навигация"><Link to="/" aria-current={activeNav === 'catalog' ? 'page' : undefined}>Каталог</Link><Link to="/search" onClick={restoreSearch} aria-current={activeNav === 'search' ? 'page' : undefined}>Поиск</Link><Link to="/profile" aria-current={activeNav === 'profile' ? 'page' : undefined}>Профиль</Link>{admin && <Link to="/admin/stats" aria-current={activeNav === 'stats' ? 'page' : undefined}>Статистика</Link>}</nav>{user && home && <p className="user-greeting">Привет, {user.firstName}</p>}<main key={`${location.pathname}${location.search}`} data-navigation={direction}>{!home && !location.pathname.startsWith('/course/') && !location.pathname.startsWith('/admin/') && location.pathname !== '/profile' && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}{children}</main><footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer></div>
 }
 function FavoriteButton({ item }: { item: FavoriteInput }) {
   const { keys, loading, error, pending, toggle } = useFavorites()

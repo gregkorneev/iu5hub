@@ -12,8 +12,6 @@ test.describe('persistent bottom navigation', () => {
     await page.getByRole('link', { name: /Курс 1/ }).click()
     await expect(nav.getByRole('link', { name: 'Каталог' })).toHaveAttribute('aria-current', 'page')
     await page.getByRole('link', { name: /1 семестр/ }).click()
-    const catalogPath = new URL(page.url()).hash
-
     await nav.getByRole('link', { name: 'Поиск' }).click()
     await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).fill('ГРИБ')
     await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).press('Enter')
@@ -23,12 +21,16 @@ test.describe('persistent bottom navigation', () => {
     await page.getByRole('link', { name: 'К корню курса' }).click()
     await expect(nav.getByRole('link', { name: 'Поиск' })).toHaveAttribute('aria-current', 'page')
 
-    await nav.getByRole('link', { name: 'Каталог' }).click()
-    expect(new URL(page.url()).hash).toBe(catalogPath)
-    await nav.getByRole('link', { name: 'Поиск' }).click()
-    expect(new URL(page.url()).hash).toBe(searchPath)
     await page.evaluate(() => (window as Window & { Telegram: { WebApp: { BackButton: { trigger(): void } } } }).Telegram.WebApp.BackButton.trigger())
     await expect(page).toHaveURL(/#\/course\/course-1\?path=/)
+
+    await nav.getByRole('link', { name: 'Каталог' }).click()
+    await expect(page).toHaveURL(/#\/$/)
+    await expect(page.getByRole('heading', { name: 'Студент ИУ5' })).toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Каталог' })).toHaveAttribute('aria-current', 'page')
+
+    await nav.getByRole('link', { name: 'Поиск' }).click()
+    expect(new URL(page.url()).hash).toBe(searchPath)
   })
 
   test('shows Statistics only for confirmed admins and maps direct routes, unknown paths, and role denial', async ({ page }) => {
