@@ -1,5 +1,7 @@
 # Changelog
 
+- Mobile scroll pass: Home, Schedule and Profile stop document-level vertical scrolling in portrait Telegram viewports; Home/Profile fit the standard phone layout. Schedule Today keeps two complete lesson cards visible and scrolls additional lessons in a named, keyboard-focusable region, with safe-area spacing above bottom navigation. Week/group selection can use a scoped inner fallback on short screens. Added four-lesson fixture and Playwright viewport/scroll/accessibility regressions. `npm run qa` passed (108 Playwright tests).
+
 ## 2026-09-25
 
 - Added the built-in LKS BMSTU schedule route and fourth Liquid Glass destination, group onboarding/search, Today/Week views, Moscow-time current/next lesson states, and a compact profile group preference. Verified the public LKS API and actual ICS endpoint; generated static JSON for 70 IU5 groups (42 calendars, 28 not published). Added parser/validation/safe replacement pipeline, 14-day numerator-gated workflow, and D1 preference migration/API. Migration and Worker are deployed; Pages release is pending QA and push to main.

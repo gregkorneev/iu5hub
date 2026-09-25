@@ -499,3 +499,20 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .semester-subject-grid .favorite-card--folder > .disk-item--folder { padding-right: var(--space-2); }
   .semester-button-grid .favorite-card > .disk-item--folder strong { font-size: clamp(.625rem, 3.5vw, .875rem); }
 }
+
+@media (max-width: 620px) and (orientation: portrait) {
+  html:has(.app--home), body:has(.app--home),
+  html:has(.schedule-page), body:has(.schedule-page),
+  html:has(.profile-page), body:has(.profile-page) { height: var(--tg-viewport-height); overflow-y: hidden; }
+  .app:is(.app--home, :has(.schedule-page), :has(.profile-page)) { height: var(--tg-viewport-height); min-height: 0; overflow: hidden; }
+  .app:is(.app--home, :has(.schedule-page), :has(.profile-page)) main { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; animation: mobile-page-fade var(--duration-transition) ease-out both; }
+  .app--home main { padding-top: var(--space-2); }
+  .app--home .hero { margin-bottom: var(--space-2); }
+  .app--home section + section { margin-top: var(--space-4); }
+  .app--home .course-grid a { min-height: 5.5rem; }
+  .profile-section-title { margin-top: var(--space-5); }
+  .profile-page .empty { margin-block: var(--space-4); padding: var(--space-4); }
+  .app:has(.schedule-page) { --bottom-nav-clearance: calc(max(env(safe-area-inset-bottom, 0px), var(--tg-safe-area-bottom)) + 4rem); }
+  .app:has(.schedule-page) main { display: flex; overflow: hidden; padding-block: var(--space-2) var(--space-3); }
+  @keyframes mobile-page-fade { from { opacity: .65; } to { opacity: 1; } }
+}
