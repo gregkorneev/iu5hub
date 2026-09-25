@@ -15,6 +15,8 @@ import { AdminStats } from './AdminStats'
 import { FavoritesProvider, useFavorites } from './profile/FavoritesContext'
 import { favoriteKey, type FavoriteInput } from './profile/favorites'
 import SchedulePage, { ScheduleGroupPreference } from './schedule/SchedulePage'
+import Welcome from './Welcome'
+import { hasSeenWelcome } from './welcome-storage'
 import './catalog.css'
 
 function useCatalog() {
@@ -33,7 +35,8 @@ function Layout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
   const direction = useNavigationType() === 'POP' ? 'back' : 'forward'
-  useTelegramBackButton(location.pathname !== '/' && location.pathname !== '/schedule')
+  const [showWelcome, setShowWelcome] = useState(() => !hasSeenWelcome())
+  useTelegramBackButton(!showWelcome && location.pathname !== '/' && location.pathname !== '/schedule')
   useLayoutEffect(() => {
     if (location.pathname === '/') window.scrollTo(0, 0)
   }, [location.pathname])
@@ -81,6 +84,7 @@ function Layout({ children }: { children: ReactNode }) {
     {user && home && <p className="user-greeting">Привет, {user.firstName}</p>}
     <main key={`${location.pathname}${location.search}`} data-navigation={direction}>{children}</main>
     <footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer>
+    {showWelcome && <Welcome onFinish={() => setShowWelcome(false)} />}
   </div>
 }
 function FavoriteButton({ item }: { item: FavoriteInput }) {

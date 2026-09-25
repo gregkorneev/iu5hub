@@ -38,8 +38,9 @@ const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 
   'course-3:/IU5/3 course/5 sem/ОАД': [{ name: 'нирс', path: '/IU5/3 course/5 sem/ОАД/нирс', type: 'dir' }],
 }
 
-export const test = base.extend<{ telegram: TelegramState }>({
-  page: async ({ page }, use) => {
+export const test = base.extend<{ telegram: TelegramState; welcomeComplete: boolean }>({
+  welcomeComplete: [true, { option: true }],
+  page: async ({ page, welcomeComplete }, use) => {
     const favorites = new Map<string, { courseId: string; path: string; type: 'dir' | 'file'; name: string; createdAt: number }>()
     let scheduleGroupId: string | null = null
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
@@ -78,7 +79,8 @@ export const test = base.extend<{ telegram: TelegramState }>({
       await route.fulfill({ status: 204 })
     })
     await page.route('https://telegram.org/js/telegram-web-app.js', (route) => route.fulfill({ contentType: 'application/javascript', body: '' }))
-    await page.addInitScript(() => {
+    await page.addInitScript((complete) => {
+      if (complete) localStorage.setItem('iu5hub:welcome:v1', 'done')
       const listeners = new Set<() => void>()
       const eventListeners = new Map<string, Set<() => void>>()
       const state = { ready: 0, visible: false, opened: [] as string[] }
@@ -93,7 +95,7 @@ export const test = base.extend<{ telegram: TelegramState }>({
         offEvent: (event: string, listener: () => void) => { eventListeners.get(event)?.delete(listener) },
         BackButton: { show: () => { state.visible = true }, hide: () => { state.visible = false }, onClick: (listener: () => void) => listeners.add(listener), offClick: (listener: () => void) => listeners.delete(listener), trigger: () => listeners.forEach((listener) => listener()) },
       } }
-    })
+    }, welcomeComplete)
     await page.route('https://cloud-api.yandex.net/**', async (route) => {
       const url = new URL(route.request().url())
       const publicKey = url.searchParams.get('public_key') ?? ''

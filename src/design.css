@@ -245,6 +245,31 @@ header::before {
 .bottom-nav > a[aria-current="page"] { color: var(--text-primary); font-weight: var(--weight-strong); }
 .bottom-nav > a[aria-current="page"] svg { color: var(--action-quiet); }
 :root[data-telegram-theme="dark"] .bottom-nav > a[aria-current="page"] { color: #f3f8ff; }
+.welcome-dialog {
+  width: min(28rem, calc(100vw - 2rem - max(env(safe-area-inset-left, 0px), var(--tg-safe-area-left)) - max(env(safe-area-inset-right, 0px), var(--tg-safe-area-right))));
+  max-height: calc(var(--tg-viewport-height) - max(env(safe-area-inset-top, 0px), var(--tg-safe-area-top)) - max(env(safe-area-inset-bottom, 0px), var(--tg-safe-area-bottom)) - 1.5rem);
+  padding: 0;
+  border: 1px solid var(--material-edge);
+  border-radius: var(--radius-large);
+  background: var(--surface-elevated);
+  box-shadow: inset 0 1px 0 var(--material-highlight), 0 1rem 3rem var(--material-shadow);
+  color: var(--text-primary);
+}
+.welcome-dialog::backdrop { background: color-mix(in srgb, var(--surface-primary) 58%, transparent); backdrop-filter: blur(var(--material-blur-thin)); }
+.welcome-dialog__content { padding: var(--space-5) var(--space-5) var(--space-3); }
+.welcome-dialog__icon { display: grid; place-items: center; width: 3rem; height: 3rem; margin-bottom: var(--space-4); border-radius: var(--radius-medium); background: var(--action-glass); color: var(--action-quiet); }
+.welcome-dialog__step { margin: 0 0 var(--space-2); color: var(--text-secondary); font-size: var(--type-meta); font-weight: var(--weight-strong); }
+.welcome-dialog h2 { margin: 0; font-size: var(--type-section); line-height: 1.15; }
+.welcome-dialog__content > p:last-child { margin: var(--space-3) 0 0; color: var(--text-secondary); font-size: .9375rem; line-height: 1.45; }
+.welcome-dialog__actions { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-5) var(--space-5); }
+.welcome-dialog__actions button { flex: 1 1 0; min-height: 44px; border: 1px solid var(--material-edge); border-radius: var(--radius-small); font-weight: var(--weight-strong); }
+.welcome-dialog__skip { background: var(--surface-secondary); color: var(--text-primary); }
+.welcome-dialog__primary { background: var(--action); color: var(--action-text); }
+.welcome-dialog__actions button:active { transform: scale(.985); }
+.welcome-dialog__actions button:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+@media (max-width: 380px) { .welcome-dialog__content { padding: var(--space-4) var(--space-4) var(--space-2); } .welcome-dialog__actions { padding: var(--space-2) var(--space-4) var(--space-4); } }
+@media (prefers-reduced-transparency: reduce) { .welcome-dialog::backdrop { backdrop-filter: none; } }
+@supports not (backdrop-filter: blur(1px)) { .welcome-dialog::backdrop { backdrop-filter: none; } }
 main { flex: 1 1 auto; padding: var(--space-6) 0 3rem; animation: page-enter var(--duration-transition) var(--curve-exit) both; }
 main[data-navigation="back"] { animation-name: page-return; }
 @keyframes page-enter { from { opacity: .65; transform: translateX(.75rem); } to { opacity: 1; transform: translateX(0); } }

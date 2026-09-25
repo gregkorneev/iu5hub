@@ -46,6 +46,8 @@
 
 ## Unreleased
 
+- Added a three-step first-launch welcome flow for Catalog, Search, Schedule and Profile favorites. Skip, Start and Escape remember completion on the device; existing hash routes remain unchanged, and Telegram BackButton is paused only while the modal is open. Playwright covers persistence, deep links, themes, safe areas and accessibility.
+
 - Documented the private analytics boundary: Worker-validated Telegram identity, HMAC pseudonyms in D1, minimal event schema, defined DAU/WAU/MAU/launch metrics, 90-day raw-event retention, protected admin dashboard and `/stats` webhook.
 - Added security, deployment and QA guidance for Worker-only secrets, Telegram/webhook validation, non-admin denial, rate limiting, and isolation of analytics failure from the learning flow.
 
