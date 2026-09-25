@@ -89,6 +89,8 @@ After a meaningful UI change, run the critical suite and an adversarial smoke pa
 
 2026-09-25: favorite-heart layout audit fixed the mobile folder-card overlap by keeping controls in the icon row above folder titles. `npm run qa` passed lint, typecheck, 22 Vitest, 45 Node/Worker tests, build and Playwright 90/90 in Chromium, mobile Chromium and WebKit. Geometry checks compared each rendered title line to the heart button on 320/390/768 px screens for course root, nested folders/files and Profile; no horizontal overflow. Screenshots: `test-results/favorites-keeps-favorite-h-65cea-out-the-catalog-and-profile-chromium/`. Real Telegram WebView remains a device-only check.
 
+2026-09-25: removed the «К корню курса» action from nested Catalog/Search-result screens and deleted its component styles. `npm run qa` passed lint, typecheck, 22 Vitest, 45 Node/Worker tests, build and Playwright 90/90 in Chromium, mobile Chromium and WebKit. Browser regressions verify the shortcut is absent, the remaining Back control stays centered and usable, and Back / Telegram BackButton return through existing history.
+
 ## Analytics adversarial checks
 
 Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` navigation as a student, invalid webhook secret, empty D1, one-user and high-cardinality results, repeated taps/reloads, unavailable D1/Worker, slow network and long repository labels. Verify a material or Disk link still opens when event delivery fails. Never place production tokens, real admin IDs or real initData into fixtures, snapshots or test output.

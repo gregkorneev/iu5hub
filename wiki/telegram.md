@@ -15,7 +15,7 @@
 
 ## Navigation invariant
 
-`HashRouter`, список маршрутов и иерархия каталога (курс → семестр/папка → предмет → материал) остаются прежними. Единая плавающая нижняя панель служит верхнеуровневой навигацией Каталог / Поиск / Профиль для всех ролей. Подтверждённые администраторы дополнительно получают ссылку «Статистика» в правой части шапки; она не занимает tab bar. На маршрутах, где раньше показывались локальные кнопки «Назад» или «К корню курса», они входят в contextual row той же нижней glass-панели; обработчики `goBack` и ссылки курса не меняются. Панель остаётся видимой на корневых и вложенных страницах, включая Search results и footer; на неизвестном и недоступном admin route она не выбирает несуществующую вкладку.
+`HashRouter`, список маршрутов и иерархия каталога (курс → семестр/папка → предмет → материал) остаются прежними. Единая плавающая нижняя панель служит верхнеуровневой навигацией Каталог / Поиск / Профиль для всех ролей. Подтверждённые администраторы дополнительно получают ссылку «Статистика» в правой части шапки; она не занимает tab bar. В нижнем contextual row остаётся только кнопка «Назад», использующая `goBack`; shortcut «К корню курса» удалён. Панель остаётся видимой на корневых и вложенных страницах, включая Search results и footer; на неизвестном и недоступном admin route она не выбирает несуществующую вкладку.
 
 ### Route → tab mapping
 
@@ -24,7 +24,7 @@
 | Route | Navigation root / active tab | Bar and available tabs | Existing Back behavior |
 | --- | --- | --- | --- |
 | `/` | Catalog | Visible; Catalog + Search + Profile; Statistics link in header only for confirmed admins | Telegram BackButton hidden; no in-app Back |
-| `/course/:id` and `?path=…` | Catalog; Search while opened from Search results/suggestions (`location.state.fromTab`) | Visible; same role-based set; Back in contextual row; course root link when `path` is non-empty | Contextual Back and Telegram BackButton call `goBack`; fallback to `/` when no in-app history |
+| `/course/:id` and `?path=…` | Catalog; Search while opened from Search results/suggestions (`location.state.fromTab`) | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack`; fallback to `/` when no in-app history |
 | `/semester/:id` | Catalog | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack` |
 | `/subject/:id` | Catalog | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack` |
 | `/subject/:id/:category` | Catalog | Visible; same role-based set; Back in contextual row | Contextual Back and Telegram BackButton call `goBack` |

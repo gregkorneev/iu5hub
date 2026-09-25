@@ -109,8 +109,9 @@ test.describe('Студент ИУ5 critical UI', () => {
       await route.fulfill({ status: 500, json: { message: 'temporary failure' } })
     })
     await page.getByRole('button', { name: 'Скачать Лекция 1.pdf' }).click()
-    await page.getByRole('link', { name: 'К корню курса' }).click()
-    await expect(page.getByRole('heading', { name: 'Курс 1' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'К корню курса' })).toHaveCount(0)
+    await page.getByRole('button', { name: '← Назад' }).click()
+    await expect(page.getByRole('heading', { name: 'Студент ИУ5' })).toBeVisible()
     await expect(page.getByText('Каталог пока недоступен')).toBeHidden()
   })
 

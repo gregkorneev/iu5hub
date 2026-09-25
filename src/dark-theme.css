@@ -12,7 +12,7 @@
   .semester-button { background:linear-gradient(135deg,#082b50,#0d3b69); color:#d9edff; box-shadow:inset 0 1px #8cc5f426 }
   .semester-button small { color:var(--muted) }
   .in-app-back { background:#f3f8ff; color:#002c5b }
-  .course-root-link,.download-button { border-color:var(--line); color:#d9edff }
+  .download-button { border-color:var(--line); color:#d9edff }
   .tag { background:#164f82; color:#e1effb!important }
   .tag.tag--lecture { background:#123f70; color:#bde0ff!important }
   .tag.tag--lab { background:#0d513a; color:#baf3d4!important }

@@ -32,10 +32,7 @@ function Layout({ children }: { children: ReactNode }) {
   const home = location.pathname === '/'
   const catalogRoute = isCatalogRoute(location.pathname)
   const activeNav = location.pathname === '/admin/stats' ? 'stats' : location.pathname === '/profile' ? 'profile' : location.pathname === '/search' || (catalogRoute && location.pathname.startsWith('/course/') && location.state?.fromTab === 'search') ? 'search' : catalogRoute ? 'catalog' : null
-  const courseRoute = location.pathname.match(/^\/course\/([^/]+)$/)
   const showBack = !home && !location.pathname.startsWith('/admin/') && location.pathname !== '/profile'
-  const showCourseRoot = !!courseRoute && !!new URLSearchParams(location.search).get('path')
-  const searchResultState = location.state?.fromTab === 'search' ? location.state : undefined
   const searchPath = useRef('/search')
   useEffect(() => {
     const path = location.pathname + location.search
@@ -60,10 +57,9 @@ function Layout({ children }: { children: ReactNode }) {
         <span>Статистика</span>
       </Link>}
     </header>
-    <div className={`bottom-touch-bar${showBack || showCourseRoot ? ' bottom-touch-bar--context' : ''}`}>
-      {(showBack || showCourseRoot) && <div className="bottom-context-actions" role="group" aria-label="Действия текущего раздела">
-        {showBack && <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>}
-        {showCourseRoot && <Link className="course-root-link" to={`/course/${courseRoute?.[1]}`} state={searchResultState}>К корню курса</Link>}
+    <div className="bottom-touch-bar">
+      {showBack && <div className="bottom-context-actions" role="group" aria-label="Действия текущего раздела">
+        <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>
       </div>}
       <nav className="bottom-nav" aria-label="Основная навигация">
         <Link to="/" aria-current={activeNav === 'catalog' ? 'page' : undefined}>Каталог</Link>
