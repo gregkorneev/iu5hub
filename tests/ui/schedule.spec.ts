@@ -80,15 +80,31 @@ test('keeps mobile page scroll locked while schedule lessons scroll inside their
       await picker.fill('34б')
       await page.getByRole('button', { name: 'ИУ5-34Б' }).click()
     }
-    if (height === 844) {
-      await page.getByRole('button', { name: 'Неделя' }).click()
-      await expect(page.getByRole('group', { name: 'Дни недели' })).toBeVisible()
-      await expect(page.locator('.schedule-meta')).toBeVisible()
-      const weekMain = await page.locator('main').evaluate((element) => ({ content: element.scrollHeight, viewport: element.clientHeight }))
-      expect(weekMain.content).toBeLessThanOrEqual(weekMain.viewport + 1)
-      await page.screenshot({ path: testInfo.outputPath(`${width}-schedule-week.png`) })
-      await page.getByRole('button', { name: 'Сегодня' }).click()
-    }
+    await page.getByRole('button', { name: 'Неделя' }).click()
+    const dayPicker = page.getByRole('group', { name: 'Дни недели' })
+    await expect(dayPicker).toBeVisible()
+    await dayPicker.locator('button:not([aria-pressed="true"])').first().click()
+    await expect(page.getByRole('heading', { name: 'Физика' })).toBeVisible()
+    await expect(page.locator('.schedule-meta')).toContainText('2026/2027 · осень')
+    await page.locator('main').evaluate((element) => element.scrollTo(0, 9999))
+    await page.evaluate(() => window.scrollTo(0, 9999))
+    const weekMetrics = await page.locator('.schedule-lessons').evaluate((list) => {
+      const main = document.querySelector('main')!
+      const nav = document.querySelector('.bottom-nav')!
+      const box = list.getBoundingClientRect()
+      const cards = list.querySelectorAll('.schedule-lesson')
+      const first = cards[0].getBoundingClientRect()
+      const second = cards[1].getBoundingClientRect()
+      return { bodyScroll: scrollY, mainScroll: main.scrollTop, mainContent: main.scrollHeight, mainViewport: main.clientHeight, count: cards.length, firstTop: first.top, listTop: box.top, secondBottom: second.bottom, visibleBottom: Math.min(box.bottom, nav.getBoundingClientRect().top - 4) }
+    })
+    expect(weekMetrics.bodyScroll).toBe(0)
+    expect(weekMetrics.mainScroll).toBe(0)
+    expect(weekMetrics.mainContent).toBeLessThanOrEqual(weekMetrics.mainViewport + 1)
+    expect(weekMetrics.count).toBe(4)
+    expect(weekMetrics.firstTop).toBeGreaterThanOrEqual(weekMetrics.listTop - 1)
+    expect(weekMetrics.secondBottom, `Week second card clipped at ${width}×${height}`).toBeLessThanOrEqual(weekMetrics.visibleBottom + 1)
+    await page.screenshot({ path: testInfo.outputPath(`${width}-schedule-week-day-selected.png`) })
+    await page.getByRole('button', { name: 'Сегодня' }).click()
     const lessons = page.locator('.schedule-lessons')
     await expect(lessons.locator('.schedule-lesson')).toHaveCount(4)
     await page.screenshot({ path: testInfo.outputPath(`${width}-schedule-selected.png`) })
@@ -118,5 +134,71 @@ test('keeps mobile page scroll locked while schedule lessons scroll inside their
     expect(await lessons.evaluate((list) => list.scrollTop)).toBeGreaterThan(0)
     expect(await page.evaluate(() => scrollY)).toBe(0)
     await page.screenshot({ path: testInfo.outputPath(`${width}-schedule-lessons-scrolled.png`) })
+  }
+})
+
+test('keeps landscape Week navigation fixed while only lessons scroll vertically', async ({ page }, testInfo) => {
+  for (const width of [844, 850]) {
+    await page.setViewportSize({ width, height: 390 })
+    await page.goto('/#/schedule')
+    await page.evaluate(() => {
+      const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; contentSafeAreaInset: object; safeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.viewportHeight = 390
+      app.viewportStableHeight = 390
+      app.contentSafeAreaInset = { top: 0, right: 0, bottom: 24, left: 0 }
+      app.safeAreaInset = { top: 0, right: 0, bottom: 24, left: 0 }
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('viewportChanged')
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('contentSafeAreaChanged')
+    })
+    const picker = page.getByRole('combobox', { name: 'Найдите свою группу' })
+    if (await picker.count()) {
+      await picker.fill('34б')
+      await page.getByRole('button', { name: 'ИУ5-34Б' }).click()
+    }
+    await page.getByRole('button', { name: 'Неделя' }).click()
+    const days = page.getByRole('group', { name: 'Дни недели' })
+    await expect(days.locator('button')).toHaveCount(6)
+    const alternateIndex = await days.locator('button:not([aria-pressed="true"])').first().evaluate((element) => [...element.parentElement!.children].indexOf(element))
+    const lastDay = days.locator('button').last()
+    await days.locator('button').nth(alternateIndex).click()
+    await expect(page.getByRole('heading', { name: 'Физика' })).toBeVisible()
+    const lessons = page.locator('.schedule-lessons')
+    await expect(lessons.locator('.schedule-lesson')).toHaveCount(4)
+    await lessons.evaluate((element) => element.scrollTo(0, 0))
+    await page.evaluate(() => window.scrollTo(0, 9999))
+    await page.locator('main').evaluate((element) => element.scrollTo(0, 9999))
+    const metrics = await lessons.evaluate((list) => {
+      const main = document.querySelector('main')!
+      const nav = document.querySelector('.bottom-nav')!
+      const days = document.querySelector('.schedule-days')!
+      const box = list.getBoundingClientRect()
+      const first = list.querySelector('.schedule-lesson')!.getBoundingClientRect()
+      const dayBox = days.getBoundingClientRect()
+      const dayButton = days.querySelector('button')!.getBoundingClientRect()
+      return { bodyScroll: scrollY, mainScroll: main.scrollTop, mainContent: main.scrollHeight, mainViewport: main.clientHeight, listContent: list.scrollHeight, listViewport: list.clientHeight, listBottom: box.bottom, navTop: nav.getBoundingClientRect().top, navBottom: nav.getBoundingClientRect().bottom, firstBottom: first.bottom, dayOverflowX: getComputedStyle(days).overflowX, dayWidth: days.clientWidth, dayContent: days.scrollWidth, dayHeight: dayBox.height, dayBottom: dayBox.bottom, dayButtonHeight: dayButton.height, dayButtonBottom: dayButton.bottom, horizontalOverflow: document.documentElement.scrollWidth > innerWidth }
+    })
+    expect(metrics.bodyScroll).toBe(0)
+    expect(metrics.mainScroll).toBe(0)
+    expect(metrics.mainContent).toBeLessThanOrEqual(metrics.mainViewport + 1)
+    expect(metrics.listContent).toBeGreaterThan(metrics.listViewport)
+    expect(metrics.listViewport).toBeGreaterThanOrEqual(44)
+    expect(metrics.listBottom).toBeLessThanOrEqual(metrics.navTop - 4)
+    expect(390 - metrics.navBottom).toBeGreaterThanOrEqual(24)
+    expect(metrics.horizontalOverflow).toBe(false)
+    expect(metrics.dayHeight).toBeGreaterThanOrEqual(44)
+    expect(metrics.dayButtonHeight).toBeGreaterThanOrEqual(44)
+    expect(metrics.dayButtonBottom).toBeLessThanOrEqual(metrics.dayBottom + 1)
+    await expect(page.locator('nav.bottom-nav')).toBeVisible()
+    if (width === 844) {
+      const accessibility = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
+      expect(accessibility.violations).toEqual([])
+    }
+    await page.screenshot({ path: testInfo.outputPath(`${width}-week-landscape.png`) })
+    await lessons.evaluate((element) => element.scrollTo(0, element.scrollHeight))
+    expect(await lessons.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+    await page.screenshot({ path: testInfo.outputPath(`${width}-week-landscape-scrolled.png`) })
+    await lastDay.scrollIntoViewIfNeeded()
+    await lastDay.click()
+    await expect(lastDay).toHaveAttribute('aria-pressed', 'true')
   }
 })

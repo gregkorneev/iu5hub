@@ -43,11 +43,21 @@ export const test = base.extend<{ telegram: TelegramState }>({
     const favorites = new Map<string, { courseId: string; path: string; type: 'dir' | 'file'; name: string; createdAt: number }>()
     let scheduleGroupId: string | null = null
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+    const todayUtc = new Date(`${today}T00:00:00Z`)
+    const weekday = todayUtc.getUTCDay()
+    const alternateDay = new Date(todayUtc.getTime() + (weekday === 1 ? 1 : weekday === 0 ? -6 : 1 - weekday) * 86400000).toISOString().slice(0, 10)
     await page.route('**/data/schedule/groups.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), groups: [{ id: 'iu5-34b', name: 'ИУ5-34Б' }, { id: 'iu5-35b', name: 'ИУ5-35Б' }] } }))
     const clock = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()).split(':').map(Number)
     const formatTime = (minutes: number) => `${String(Math.floor(((minutes % 1440) + 1440) % 1440 / 60)).padStart(2, '0')}:${String(((minutes % 1440) + 1440) % 1440 % 60).padStart(2, '0')}`
     const nowMinutes = clock[0] * 60 + clock[1]
-    await page.route('**/data/schedule/groups/iu5-34b.json', (route) => route.fulfill({ json: { group: { id: 'iu5-34b', name: 'ИУ5-34Б' }, source: { provider: 'ЛКС МГТУ', syncedAt: new Date().toISOString(), sourceId: 'fixture' }, semester: { academicYear: '2026/2027', term: 'осень', weekOneStart: '2026-09-01' }, days: { [today]: [{ start: formatTime(nowMinutes - 1), end: formatTime(nowMinutes + 20), subject: 'Электротехника', type: 'Семинар', teacher: 'Иванов И. И.', location: '505ю · ГУК' }, { start: formatTime(nowMinutes + 30), end: formatTime(nowMinutes + 70), subject: 'Математика', type: 'Лекция', teacher: 'Петров П. П.', location: '401' }, { start: formatTime(nowMinutes + 80), end: formatTime(nowMinutes + 120), subject: 'Информационные системы и технологии', type: 'Лабораторная работа', teacher: 'Сидоров С. С.', location: '502' }, { start: formatTime(nowMinutes + 130), end: formatTime(nowMinutes + 170), subject: 'Программирование', type: 'Практика', teacher: 'Смирнов П. П.', location: '503' }] } } }))
+    const todayLessons = [
+      { start: formatTime(nowMinutes - 1), end: formatTime(nowMinutes + 20), subject: 'Электротехника', type: 'Семинар', teacher: 'Иванов И. И.', location: '505ю · ГУК' },
+      { start: formatTime(nowMinutes + 30), end: formatTime(nowMinutes + 70), subject: 'Математика', type: 'Лекция', teacher: 'Петров П. П.', location: '401' },
+      { start: formatTime(nowMinutes + 80), end: formatTime(nowMinutes + 120), subject: 'Информационные системы и технологии', type: 'Лабораторная работа', teacher: 'Сидоров С. С.', location: '502' },
+      { start: formatTime(nowMinutes + 130), end: formatTime(nowMinutes + 170), subject: 'Программирование', type: 'Практика', teacher: 'Смирнов П. П.', location: '503' },
+    ]
+    const alternateLessons = todayLessons.map((lesson, index) => ({ ...lesson, subject: ['Физика', 'Теория систем', 'Информационные технологии', 'Алгоритмы'][index] }))
+    await page.route('**/data/schedule/groups/iu5-34b.json', (route) => route.fulfill({ json: { group: { id: 'iu5-34b', name: 'ИУ5-34Б' }, source: { provider: 'ЛКС МГТУ', syncedAt: new Date().toISOString(), sourceId: 'fixture' }, semester: { academicYear: '2026/2027', term: 'осень', weekOneStart: '2026-09-01' }, days: { [today]: todayLessons, [alternateDay]: alternateLessons } } }))
     await page.route('**/data/schedule/groups/iu5-35b.json', (route) => route.fulfill({ json: { group: { id: 'iu5-35b', name: 'ИУ5-35Б' }, source: { provider: 'ЛКС МГТУ', syncedAt: new Date().toISOString(), sourceId: 'fixture' }, semester: { academicYear: '', term: 1, weekOneStart: '2026-09-01' }, availability: 'no-schedule', days: {} } }))
     await page.route('**/api/profile/schedule-group', async (route) => {
       if (route.request().method() === 'GET') return route.fulfill({ json: { groupId: scheduleGroupId, updatedAt: null } })

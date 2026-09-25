@@ -27,22 +27,44 @@
 @media (prefers-reduced-motion: reduce) { .schedule-page * { scroll-behavior:auto; } }
 @media (max-width: 620px) and (orientation: portrait) {
   .schedule-page { display:flex; flex:1; flex-direction:column; width:100%; min-width:0; min-height:0; }
+  .schedule-page > .eyebrow { margin-bottom:var(--space-1); }
+  .schedule-page > h1 { margin:var(--space-1) 0 var(--space-2); font-size:1.75rem; }
   .schedule-group-heading strong { min-width:0; overflow-wrap:anywhere; }
-  .schedule-group-heading, .schedule-mode { margin-block:var(--space-3); }
+  .schedule-group-heading, .schedule-mode { margin-block:var(--space-2); }
+  .schedule-days { padding-bottom:4px; }
   .schedule-lessons { flex:1 1 auto; min-height:0; max-height:calc(18rem + var(--space-3) + var(--space-1)); align-content:start; grid-auto-rows:max-content; overflow-y:auto; overscroll-behavior-y:contain; }
   .schedule-lesson { min-height:9rem; padding:var(--space-3); }
   .schedule-lesson h2 { font-size:clamp(1.05rem, 4vw, 1.25rem); }
   .schedule-page:has(.schedule-group-picker) { overflow-y:auto; }
+  .app:has(.schedule-days) footer,
+  .schedule-page:has(.schedule-days) .schedule-meta,
+  .schedule-page:has(.schedule-days) .schedule-updated { display:none; }
 }
 @media (max-width: 620px) and (max-height: 700px) and (orientation: portrait) {
   .app:has(.schedule-page) footer, .schedule-meta, .schedule-updated { display:none; }
   .app:has(.schedule-page) main { padding-bottom:calc(var(--bottom-nav-clearance) - var(--space-3)); }
   .schedule-page > :is(.eyebrow, h1) { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-  .schedule-group-heading, .schedule-mode { margin-block:var(--space-2); }
+  .schedule-group-heading, .schedule-mode { margin-block:2px; }
+  .schedule-group-heading .button--quiet { min-height:44px; margin:0; }
   .schedule-page { flex:none; }
-  .schedule-lessons { flex:none; height:calc(16rem + var(--space-2)); gap:var(--space-2); }
+  .schedule-lessons { flex:none; height:calc(16rem + var(--space-1)); gap:var(--space-1); }
   .schedule-lesson { min-height:8rem; padding:var(--space-2); }
   .schedule-lesson h2 { margin-block:var(--space-1); }
   .schedule-lesson p { margin-bottom:var(--space-1); }
-  .app:has(.schedule-page .schedule-days) main, .app:has(.schedule-page .schedule-group-picker) main { overflow-y:auto; }
+  .app:has(.schedule-page .schedule-group-picker) main { overflow-y:auto; }
+}
+
+@media (orientation: landscape) and (max-height: 620px) and (max-width: 1024px) {
+  html:has(.schedule-page), body:has(.schedule-page) { height:var(--tg-viewport-height); overflow:hidden; }
+  .app:has(.schedule-page) { height:var(--tg-viewport-height); min-height:0; overflow:hidden; }
+  .app:has(.schedule-page) header { min-height:3rem; }
+  .app:has(.schedule-page) main { display:flex; min-height:0; overflow:hidden; padding:var(--space-1) 0 calc(var(--bottom-nav-clearance) - var(--space-3)); }
+  .app:has(.schedule-page) footer, .schedule-meta, .schedule-updated { display:none; }
+  .schedule-page > :is(.eyebrow, h1) { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  .schedule-page { display:flex; flex:1; flex-direction:column; width:100%; min-width:0; min-height:0; }
+  .schedule-group-heading, .schedule-mode, .schedule-days { flex:0 0 auto; }
+  .schedule-group-heading, .schedule-mode { margin-block:2px; }
+  .schedule-group-heading .button--quiet { min-height:44px; margin:0; }
+  .schedule-days { padding-bottom:2px; }
+  .schedule-lessons { flex:1 1 auto; min-height:0; max-height:none; overflow-y:auto; overscroll-behavior-y:contain; }
 }

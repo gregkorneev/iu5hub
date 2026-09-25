@@ -95,3 +95,4 @@
 - На главной странице убраны избыточные ссылки шапки «Каталог» и «Поиск»; внутренняя и администраторская навигация сохранена.
 - Поиск по публичным каталогам Яндекс.Диска получил общий 10-секундный дедлайн: при зависшем внешнем API UI завершает поиск сообщением об ошибке, а не остаётся в состоянии загрузки.
 - Added an empty «Полезные ссылки» section below courses on the home screen so links can be added later without changing catalog navigation.
+- 2026-09-25: Schedule/Home/Profile viewport regression pass — Home and Profile fit in standard mobile portrait without page scrolling; Schedule Today and Week/day selection keep two lessons visible on portrait screens, while additional lessons scroll inside the schedule list. Landscape keeps day controls on screen and confines vertical scrolling to lessons. Browser suite passed; actual Telegram WebView remains to be checked on device.
