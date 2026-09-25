@@ -143,18 +143,18 @@ header::before {
   flex-direction: column;
   width: max-content;
   max-width: calc(100vw - 2rem - max(env(safe-area-inset-left, 0px), var(--tg-safe-area-left)) - max(env(safe-area-inset-right, 0px), var(--tg-safe-area-right)));
-  padding: 3px;
-  border: 1px solid var(--material-edge);
-  border-radius: var(--radius-large);
-  background: var(--surface-secondary);
-  box-shadow: inset 0 1px 0 var(--material-highlight), 0 .25rem .75rem var(--material-shadow);
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   transform: translateX(-50%);
 }
 .bottom-context-actions {
   display: flex;
-  gap: 3px;
+  gap: var(--space-2);
   width: 100%;
-  padding-bottom: 3px;
 }
 .bottom-context-actions :is(.in-app-back, .course-root-link) {
   display: inline-flex;
@@ -166,7 +166,7 @@ header::before {
   margin: 0;
   padding-inline: var(--space-3);
   border: 0;
-  border-radius: var(--radius-medium);
+  border-radius: var(--radius-pill);
   background: var(--surface-elevated);
   box-shadow: inset 0 1px 0 var(--material-highlight);
   backdrop-filter: none;
@@ -184,11 +184,12 @@ header::before {
   grid-template-columns: repeat(var(--nav-count), minmax(0, 1fr));
   width: 100%;
   gap: 0;
-  padding: 3px;
-  border: 0;
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--material-edge) 65%, transparent);
   border-radius: var(--radius-pill);
-  background: transparent;
-  box-shadow: none;
+  background: var(--surface-secondary);
+  box-shadow: inset 0 1px 0 var(--material-highlight), 0 .25rem .75rem var(--material-shadow);
+  backdrop-filter: none;
   color: var(--text-secondary);
   font-size: .875rem;
 }
@@ -201,9 +202,9 @@ header::before {
 .bottom-nav::before {
   content: "";
   position: absolute;
-  inset-block: 3px;
-  inset-inline-start: 3px;
-  width: calc((100% - 6px) / var(--nav-count));
+  inset-block: 4px;
+  inset-inline-start: 6px;
+  width: calc((100% - 12px) / var(--nav-count));
   border-radius: var(--radius-pill);
   background: var(--surface-elevated);
   box-shadow: inset 0 1px 0 var(--material-highlight), 0 1px 4px var(--material-shadow);
@@ -368,8 +369,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 
 @supports (backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {
-    .bottom-touch-bar { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
-    .bottom-nav { background: transparent; backdrop-filter: none; }
+    .bottom-nav { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
     .bottom-nav::before { background: var(--material-thick); }
     .search, .in-app-back, .course-root-link { background: var(--material-thin); backdrop-filter: blur(10px) saturate(130%); }
     .search:focus-within { background: var(--material-thin); }
@@ -407,8 +407,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 }
 @media (prefers-reduced-transparency: reduce) {
   header, .search-suggestions { background: var(--surface-elevated); backdrop-filter: none; }
-  .bottom-touch-bar { background: var(--surface-secondary); backdrop-filter: none; }
-  .bottom-nav { background: transparent; backdrop-filter: none; }
+  .bottom-nav { background: var(--surface-secondary); backdrop-filter: none; }
   .bottom-nav::before { background: var(--surface-elevated); }
   .search, .in-app-back, .course-root-link { background: var(--surface-secondary); backdrop-filter: none; }
   :is(.search button, .button, .filters .active, .stats-periods button.active) { border-color: transparent; background: var(--action); color: var(--action-text); box-shadow: none; backdrop-filter: none; }
@@ -419,8 +418,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 @media (prefers-contrast: more) {
   :root { --text-secondary: var(--text-primary); --separator: var(--text-primary); }
   :root[data-telegram-theme="light"] { --action: #005bb9; --action-text: #fff; }
-  .bottom-touch-bar { border-color: var(--separator); background: var(--surface-secondary); backdrop-filter: none; }
-  .bottom-nav { background: transparent; backdrop-filter: none; }
+  .bottom-nav { border-color: var(--separator); background: var(--surface-secondary); backdrop-filter: none; }
   .bottom-nav::before { background: var(--surface-elevated); box-shadow: inset 0 0 0 1px var(--separator); }
   .course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search, .search-suggestions { border: 1px solid var(--separator); }
   header, .search-suggestions { background: var(--surface-primary); backdrop-filter: none; }

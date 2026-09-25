@@ -8,6 +8,7 @@
 - Search suggestions and result cards keep tags, teacher values, and API paths hidden while showing the parent course/semester path below each folder name, so duplicates such as «Физика» can be distinguished.
 - Fixed favorite-heart overlap in narrow folder cards: the heart shares the top icon row and long folder titles start below it. Added rendered-line intersection checks across catalog, nested folders, files and Profile.
 - Moved the server-confirmed admin-only Statistics link from the bottom tab bar to a compact header action at the right of the brand; Catalog, Search and Profile remain the three shared bottom destinations.
+- Refined the persistent bottom navigation into a compact floating capsule with semicircular ends and a smaller concentric moving selection bubble. Contextual Back/course-root actions now remain visually separate above it; routes, roles, and handlers are unchanged.
 
 ## 2026-09-24
 

@@ -98,6 +98,29 @@ test.describe('persistent bottom navigation', () => {
     expect(geometry.right).toBeLessThanOrEqual(geometry.viewport)
     expect(geometry.widths.every((width) => width >= 44)).toBe(true)
     expect(geometry.heights.every((height) => height >= 44)).toBe(true)
+    const shape = await page.evaluate(() => {
+      const nav = document.querySelector<HTMLElement>('.bottom-nav')!
+      const indicator = getComputedStyle(nav, '::before')
+      const navBox = nav.getBoundingClientRect()
+      return {
+        barRadius: getComputedStyle(nav).borderRadius,
+        barHeight: navBox.height,
+        barWidth: navBox.width,
+        horizontalPadding: getComputedStyle(nav).paddingInlineStart,
+        indicatorRadius: indicator.borderRadius,
+        indicatorTop: Number.parseFloat(indicator.top),
+        indicatorBottom: Number.parseFloat(indicator.bottom),
+        indicatorHeight: navBox.height - Number.parseFloat(indicator.top) - Number.parseFloat(indicator.bottom),
+        targetHeight: nav.querySelector('a')!.getBoundingClientRect().height,
+      }
+    })
+    expect(shape.barRadius).toBe('999px')
+    expect(shape.barHeight / shape.barWidth).toBeLessThan(0.25)
+    expect(shape.horizontalPadding).toBe('6px')
+    expect(shape.indicatorRadius).toBe('999px')
+    expect(shape.indicatorTop).toBe(shape.indicatorBottom)
+    expect(shape.indicatorHeight).toBeLessThan(shape.targetHeight)
+    expect(shape.indicatorHeight).toBeGreaterThanOrEqual(34)
 
     await page.setViewportSize({ width: 390, height: 500 })
     await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).focus()
@@ -110,6 +133,7 @@ test.describe('persistent bottom navigation', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/#/')
     await page.screenshot({ path: testInfo.outputPath('catalog-root.png'), fullPage: true })
+    await page.locator('.bottom-touch-bar').screenshot({ path: testInfo.outputPath('bottom-bar-capsule.png') })
     await page.getByRole('link', { name: /Курс 1/ }).click()
     await page.getByRole('link', { name: /1 семестр/ }).click()
     await page.screenshot({ path: testInfo.outputPath('catalog-nested.png'), fullPage: true })
