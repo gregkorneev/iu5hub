@@ -67,6 +67,29 @@ test('shows and changes the selected group in Profile without delaying Favorites
   await expect(page.getByRole('heading', { name: 'В избранном пока ничего нет' })).toBeVisible()
 })
 
+test('gives profile text blocks breathing room across mobile and desktop widths', async ({ page }, testInfo) => {
+  for (const width of [320, 390, 768]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('/#/profile')
+    const username = page.locator('.profile-username')
+    await expect(username).toBeVisible()
+    const gaps = await page.evaluate(() => {
+      const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+      return {
+        eyebrowTitle: box('.profile-page > h1').top - box('.profile-page > .eyebrow').bottom,
+        titleUsername: box('.profile-username').top - box('.profile-page > h1').bottom,
+        usernameGroup: box('.profile-page > .schedule-profile-block').top - box('.profile-username').bottom,
+        groupMaterials: box('.profile-section-title').top - box('.profile-page > .schedule-profile-block').bottom,
+      }
+    })
+    expect(gaps.eyebrowTitle).toBeGreaterThanOrEqual(12)
+    expect(gaps.titleUsername).toBeGreaterThanOrEqual(12)
+    expect(gaps.usernameGroup).toBeGreaterThanOrEqual(24)
+    expect(gaps.groupMaterials).toBeGreaterThanOrEqual(32)
+    await page.screenshot({ path: testInfo.outputPath(`profile-spacing-${width}.png`) })
+  }
+})
+
 test('keeps the first Profile and Schedule content clear of the header with Telegram top safe area', async ({ page }, testInfo) => {
   for (const { width, height } of [{ width: 320, height: 568 }, { width: 390, height: 844 }]) {
     await page.setViewportSize({ width, height })

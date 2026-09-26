@@ -517,8 +517,11 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 .favorite-error { padding: .75rem 1rem; border: 1px solid var(--material-edge); border-radius: var(--radius-medium); background: var(--surface-secondary); color: var(--text-primary); }
 .favorite-error button { min-height: 2.75rem; margin-left: .5rem; border: 0; background: transparent; color: var(--action); text-decoration: underline; }
 .profile-page { max-width: 48rem; }
-.profile-username { margin: .4rem 0 0; color: var(--text-secondary); }
-.profile-section-title { margin-top: 2.5rem; }
+.profile-page > .eyebrow { margin: 0 0 var(--space-4); }
+.profile-page > h1 { margin: 0; }
+.profile-username { margin: var(--space-3) 0 0; color: var(--text-secondary); }
+.profile-page > .schedule-profile-block { margin-top: var(--space-5); }
+.profile-section-title { margin-top: var(--space-6); }
 .profile-count { min-width: 2.25rem; padding: .3rem .6rem; border-radius: var(--radius-pill); background: var(--surface-secondary); color: var(--text-secondary); text-align: center; font-weight: 700; }
 .profile-group { margin-top: 1.5rem; }
 .profile-group h3 { margin: 0; font-size: 1rem; color: var(--text-secondary); }
@@ -567,10 +570,11 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home .home-favorites__count { min-width: 1.5rem; padding: .125rem .375rem; font-size: .75rem; }
   .app--home .course-grid a { min-height: 5.5rem; }
   .app:has(.profile-page) main { padding-top: var(--space-3); }
-  .profile-page > h1 { margin-block: var(--space-1); font-size: clamp(1.375rem, 5.8vw, 1.625rem); line-height: 1.08; }
-  .profile-page > .eyebrow { margin-bottom: var(--space-1); }
+  .profile-page > h1 { font-size: clamp(1.375rem, 5.8vw, 1.625rem); line-height: 1.08; }
+  .profile-page > .eyebrow { margin-bottom: var(--space-3); }
+  .profile-page > .schedule-profile-block { margin-top: var(--space-5); }
   .profile-page .schedule-profile-block { padding: var(--space-3); }
-  .profile-section-title { margin-top: var(--space-4); }
+  .profile-section-title { margin-top: var(--space-6); }
   .profile-page .empty { margin-block: var(--space-2); padding: var(--space-3); }
   .app:has(.schedule-page) { --bottom-nav-clearance: calc(max(env(safe-area-inset-bottom, 0px), var(--tg-safe-area-bottom)) + 4rem); }
   .app:has(.schedule-page) main { display: flex; overflow: hidden; padding-block: var(--space-1) var(--space-3); }

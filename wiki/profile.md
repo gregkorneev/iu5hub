@@ -32,4 +32,8 @@ Production release (2026-09-25): migration `0002_favorites.sql` was applied to e
 
 The profile's compact «Учебная группа» section shares the selected IU5 group with the Schedule route. Static lesson data remains on Pages. The browser keeps a local slug fallback and calls `GET/PUT /api/profile/schedule-group`; the Worker validates fresh Telegram `initData` and stores only `{user_hash, schedule_group_id, updated_at}` in migration `0003_profile_preferences.sql`. Favorites loading is independent. Schedule group choices are not analytics events. See `schedule.md` for data generation and release state.
 
+## Profile vertical rhythm
+
+The identity block separates the eyebrow, display name, Telegram username, and group preference card with the shared spacing tokens. The materials/favorites section uses a larger section gap after the group card; mobile spacing remains compact but does not collapse these text groups together. Browser QA measures these gaps at 320, 390 and 768 CSS pixels.
+
 Production migration `0003_profile_preferences.sql` is applied and the Worker deployment is complete. Production unauthenticated and CORS checks passed; reading/writing a real user's preference still needs a valid Telegram Mini App session.
