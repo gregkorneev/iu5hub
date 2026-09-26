@@ -126,3 +126,46 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     await page.screenshot({ path: testInfo.outputPath(`home-${width}x${height}.png`) })
   }
 })
+
+test('keeps home sections separated in the compact Telegram tablet window', async ({ page }, testInfo) => {
+  await page.route('**/api/profile/favorites', (route) => route.fulfill({ json: { items: [
+    { courseId: 'course-1', path: '/1 sem/Математика', type: 'dir', name: 'Математика', createdAt: 1 },
+  ] } }))
+
+  for (const [width, height] of [[480, 700], [480, 730], [520, 700], [520, 730], [600, 700], [600, 730], [620, 730]]) {
+    await page.setViewportSize({ width, height })
+    await page.goto('/#/')
+    await page.evaluate((viewportHeight) => {
+      const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.viewportHeight = viewportHeight
+      app.viewportStableHeight = viewportHeight
+      app.contentSafeAreaInset = { top: 0, right: 0, bottom: 0, left: 0 }
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('viewportChanged')
+    }, height)
+
+    const geometry = await page.evaluate(() => {
+      const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+      const courses = box('.home-courses')
+      const favorites = box('.home-favorites')
+      const links = box('.home-links')
+      const main = document.querySelector('main')!
+      const footer = box('footer')
+      const nav = box('.bottom-nav')
+      return {
+        coursesToFavorites: favorites.top - courses.bottom,
+        favoritesToLinks: links.top - favorites.bottom,
+        mainScrollHeight: main.scrollHeight,
+        mainClientHeight: main.clientHeight,
+        footerToNav: nav.top - footer.bottom,
+        documentWidth: document.documentElement.scrollWidth,
+      }
+    })
+
+    expect(geometry.coursesToFavorites, `${width}×${height}: courses to Favorites`).toBeGreaterThanOrEqual(8)
+    expect(geometry.favoritesToLinks, `${width}×${height}: Favorites to Useful Links`).toBeGreaterThanOrEqual(8)
+    expect(geometry.mainScrollHeight, `${width}×${height}: main should fit`).toBeLessThanOrEqual(geometry.mainClientHeight + 1)
+    expect(geometry.footerToNav, `${width}×${height}: footer should clear bottom bar`).toBeGreaterThanOrEqual(4)
+    expect(geometry.documentWidth, `${width}×${height}: no horizontal overflow`).toBeLessThanOrEqual(width)
+    if (width === 520 && height === 730) await page.screenshot({ path: testInfo.outputPath('home-ipad-telegram-520x730.png') })
+  }
+})
