@@ -4,6 +4,16 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/')
 
+  const brandGeometry = await page.evaluate(() => {
+    const header = document.querySelector('header')!.getBoundingClientRect()
+    const brand = document.querySelector('.brand')!.getBoundingClientRect()
+    const greeting = document.querySelector('.user-greeting')!.getBoundingClientRect()
+    return { headerCenter: header.left + header.width / 2, brandCenter: brand.left + brand.width / 2, greetingLeft: greeting.left }
+  })
+  expect(Math.abs(brandGeometry.brandCenter - brandGeometry.headerCenter)).toBeLessThanOrEqual(1)
+  expect(brandGeometry.greetingLeft).toBeLessThan(brandGeometry.headerCenter)
+  await expect(page.locator('.hero h1')).toHaveClass(/sr-only/)
+
   const courses = page.locator('.home-courses')
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
   await expect(courses).toBeVisible()
@@ -100,8 +110,8 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.main, `${width}×${height} main`).toBeLessThanOrEqual(metrics.mainClient + 1)
     expect(metrics.greeting.top).toBeGreaterThanOrEqual(metrics.header.bottom)
     expect(metrics.hero.top).toBeGreaterThanOrEqual(metrics.greeting.bottom)
-    expect(metrics.heroTitle.top - metrics.greeting.bottom, `${width}×${height} greeting → title`).toBeGreaterThanOrEqual(4)
-    expect(metrics.heroDescription.top - metrics.heroTitle.bottom, `${width}×${height} title → description`).toBeGreaterThanOrEqual(4)
+    expect(metrics.heroTitle.width).toBeLessThanOrEqual(1)
+    expect(metrics.heroDescription.top - metrics.greeting.bottom, `${width}×${height} greeting → description`).toBeGreaterThanOrEqual(4)
     expect(metrics.coursesTitle.top - metrics.heroDescription.bottom, `${width}×${height} description → course label`).toBeGreaterThanOrEqual(4)
     expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} course label → cards`).toBeGreaterThanOrEqual(width <= 340 && height <= 600 ? 4 : 8)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
@@ -135,6 +145,8 @@ test('keeps home sections separated in the compact Telegram tablet window', asyn
   for (const [width, height] of [[480, 700], [480, 730], [520, 700], [520, 730], [600, 700], [600, 730], [620, 730]]) {
     await page.setViewportSize({ width, height })
     await page.goto('/#/')
+    await expect(page.locator('.home-favorites')).toBeVisible()
+    await expect(page.locator('.bottom-nav')).toBeVisible()
     await page.evaluate((viewportHeight) => {
       const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
       app.viewportHeight = viewportHeight

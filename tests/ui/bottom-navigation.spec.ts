@@ -161,7 +161,10 @@ test.describe('persistent bottom navigation', () => {
     await expect(statistics).toHaveAttribute('aria-current', 'page')
     await expect(statistics).toHaveCSS('min-height', '44px')
     const adminControls = await page.locator('header .brand, header .admin-stats-link').evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()))
-    expect(adminControls[0].right).toBeLessThanOrEqual(adminControls[1].left)
+    const header = await page.locator('header').boundingBox()
+    expect(header).toBeTruthy()
+    expect(Math.abs((adminControls[0].left + adminControls[0].right) / 2 - (header!.x + header!.width / 2))).toBeLessThanOrEqual(1)
+    expect(adminControls[0].right <= adminControls[1].left || adminControls[1].right <= adminControls[0].left).toBe(true)
     await page.setViewportSize({ width: 320, height: 700 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 

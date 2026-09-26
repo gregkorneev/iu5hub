@@ -103,7 +103,10 @@ test('keeps four primary tabs and the administrator header action within a 320px
   const brandBounds = await page.locator('.brand').boundingBox()
   const statsBounds = await statistics.boundingBox()
   expect(brandBounds && statsBounds).toBeTruthy()
-  expect(brandBounds!.x + brandBounds!.width).toBeLessThanOrEqual(statsBounds!.x)
+  const headerBounds = await page.locator('header').boundingBox()
+  expect(headerBounds).toBeTruthy()
+  expect(Math.abs(brandBounds!.x + brandBounds!.width / 2 - (headerBounds!.x + headerBounds!.width / 2))).toBeLessThanOrEqual(1)
+  expect(brandBounds!.x + brandBounds!.width <= statsBounds!.x || statsBounds!.x + statsBounds!.width <= brandBounds!.x).toBe(true)
   expect(statsBounds!.height).toBeGreaterThanOrEqual(44)
   for (const link of await nav.getByRole('link').all()) {
     const box = await link.boundingBox()

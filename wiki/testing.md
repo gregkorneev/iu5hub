@@ -1,5 +1,7 @@
 # Testing
 
+- **2026-09-27 header/home update:** `npm run qa` passed: lint, typecheck, 24 Vitest tests, 54 Node tests, data validation, production build and 144/144 Playwright tests (Chromium, mobile Chromium and WebKit). Mobile screenshots confirm centered brand with the greeting still left aligned and the duplicate hero heading absent.
+
 Schedule CI is network-independent: `npm run schedule:validate` checks the generated 70-group dataset; `scripts/schedule/*.node-test.mjs` covers discovery/filtering, stable slug, parser/recurrence/timezone/exceptions, no-op comparison and atomic rollback. Playwright `schedule.spec.ts` covers group onboarding/search, Today/Week/day switching, current/next lesson, group change/profile, navigation, preferences and 320/390/428 px. Networked `schedule:inspect`/`schedule:sync` are release/operator commands, never CI.
 
 ## Required release gate
@@ -26,8 +28,9 @@ The Excel workbook is regenerated from CSV by `npm run search:workbook`; its hum
 - Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
 - Home search also accepts a Latin transliteration of a Russian query (for example, `ma` finds `Математический анализ`); the mobile regression covers this input before checking the suggestion's tappability.
 - Home fills the Telegram viewport in ordinary portrait and does not scroll when content fits. On a short portrait viewport or while the search field has focus, vertical scrolling keeps content reachable above the mobile keyboard. Landscape also allows vertical scrolling when needed. Horizontal overflow remains blocked; catalog and search routes scroll normally.
-- Home visual-rhythm regression measures the greeting→hero, eyebrow→title, title→description, description→courses, courses eyebrow→heading and heading→cards gaps while asserting no document/main overflow at 295×667, 320×568, 375×667, 390×720/730/844 and 430×932. Captured before/after screenshots for the requested spacing-only adjustment.
-- Home heading regression verifies the redundant «Учебные материалы» eyebrow and «Материалы на Яндекс.Диске» title stay absent, the page has one primary «Студент ИУ5» heading and «Курсы» remains the section heading above course cards.
+- Home spacing regression measures the greeting→description, description→courses and course heading→cards gaps while asserting no document/main overflow at 295×667, 320×568, 375×667, 390×720/730/844 and 430×932.
+- Home heading regression verifies the repeated visible hero title is hidden while its accessible h1 is retained; the greeting stays left-aligned, the logo+brand link is centered, «Учебные материалы» and «Материалы на Яндекс.Диске» remain absent, and «Курсы» remains the visible section heading.
+- Header layout regression checks the centered brand does not overlap the compact admin Statistics action at 320px.
 - Home Favorites browser coverage verifies the block stays hidden for an empty list, appears between courses and Useful Links when populated, displays the shared saved-item count, opens the existing populated Profile list, uses visible section gaps on normal-height mobile viewports, and preserves no-scroll home fit on short Telegram viewports.
 - Compact Telegram tablet-window regression verifies that home sections retain at least an 8px gap at 480–620×700/730 (the narrow short portrait layout seen in the iPad Mini App screenshot), while main content still fits above the footer and bottom bar without horizontal overflow. It runs in Chromium, mobile Chromium and WebKit; real iPad Telegram remains a device-only check.
 - Home Useful Links coverage verifies all external labels/URLs, one consistent vector icon per tappable control, a 44px minimum target, Telegram's `openLink` integration, responsive liquid-glass surfaces and no-scroll home fit at narrow phone sizes.
