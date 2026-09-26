@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
-import { CalendarDays, ChevronRight, Heart, LibraryBig, Search, UserRound } from 'lucide-react'
+import { CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, Search, UserRound } from 'lucide-react'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
@@ -112,9 +112,9 @@ function Home() {
     <section className="home-links" aria-labelledby="home-links-title">
       <div className="section-title"><h2 id="home-links-title">Полезные ссылки</h2></div>
       <ul className="home-links__list">
-        <li><a href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}>Диск ИУ5 от @kirschnya</a></li>
-        <li><a href="https://github.com/tal3nt3d/iu5manual" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}>GitHub @tal3nt3d</a></li>
-        <li><a href="https://ugapanyuk.github.io" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}>GitHub Ю.Е Гапанюк</a></li>
+        <li><a href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><HardDrive aria-hidden="true" focusable="false" /><span>Диск ИУ5 от @kirschnya</span></a></li>
+        <li><a href="https://github.com/tal3nt3d/iu5manual" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span>GitHub @tal3nt3d</span></a></li>
+        <li><a href="https://ugapanyuk.github.io" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span>GitHub Ю.Е Гапанюк</span></a></li>
       </ul>
     </section>
   </>

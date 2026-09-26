@@ -17,6 +17,11 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await expect(ugapanyukLink).toHaveAttribute('href', 'https://ugapanyuk.github.io')
   await expect(yandexLink).toHaveAttribute('target', '_blank')
   await expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
+  for (const link of [yandexLink, githubLink, ugapanyukLink]) {
+    await expect(link.locator('svg')).toHaveCount(1)
+    const box = await link.boundingBox()
+    expect(box?.height).toBeGreaterThanOrEqual(44)
+  }
 
   const coursesBounds = await courses.boundingBox()
   const linksBounds = await usefulLinks.boundingBox()
@@ -24,6 +29,14 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   expect(linksBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   await page.screenshot({ path: testInfo.outputPath('home-useful-links.png') })
+  await page.evaluate(() => {
+    const webApp = (window as Window & { Telegram: { WebApp: { colorScheme: string; themeParams: Record<string, string> } }; __telegramEmit: (event: string) => void })
+    webApp.Telegram.WebApp.colorScheme = 'dark'
+    webApp.Telegram.WebApp.themeParams = { bg_color: '#071d3c', text_color: '#f6faff', secondary_bg_color: '#102d52', button_color: '#1688ff', button_text_color: '#ffffff' }
+    webApp.__telegramEmit('themeChanged')
+  })
+  await expect(page.locator('html')).toHaveAttribute('data-telegram-theme', 'dark')
+  await page.screenshot({ path: testInfo.outputPath('home-useful-links-dark.png') })
 
   await yandexLink.click()
   await githubLink.click()

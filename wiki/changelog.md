@@ -53,6 +53,8 @@
 
 ## Unreleased
 
+- «Полезные ссылки» на главной переработаны в крупные translucent glass controls с единым семейством векторных иконок, активным feedback и accessibility fallback; исходные гиперссылки сохранены.
+
 - Заполнен блок «Полезные ссылки»: добавлены кликабельные ссылки на общий Яндекс.Диск ИУ5, GitHub-репозиторий `iu5manual` и GitHub Pages Ю.Е. Гапанюк; Mini App открывает их через Telegram-aware external-link helper.
 
 - Added a three-step first-launch welcome flow for Catalog, Search, Schedule and Profile favorites. Skip, Start and Escape remember completion on the device; existing hash routes remain unchanged, and Telegram BackButton is paused only while the modal is open. Playwright covers persistence, deep links, themes, safe areas and accessibility.
