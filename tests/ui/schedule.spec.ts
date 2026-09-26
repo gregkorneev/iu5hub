@@ -23,6 +23,11 @@ test('selects a group, shows a centered seven-day picker, and keeps four-tab nav
   const days = page.getByRole('group', { name: 'Выбор даты' })
   await expect(days).toBeVisible()
   await expect(days.getByRole('button')).toHaveCount(7)
+  const dayScroll = await days.evaluate((element) => ({ overflowX: getComputedStyle(element).overflowX, overflowY: getComputedStyle(element).overflowY, scrollbarWidth: getComputedStyle(element).scrollbarWidth, width: element.clientWidth, contentWidth: element.scrollWidth }))
+  expect(dayScroll.overflowX).toBe('auto')
+  expect(dayScroll.overflowY).toBe('hidden')
+  expect(dayScroll.scrollbarWidth).toBe('none')
+  expect(dayScroll.contentWidth).toBeGreaterThan(dayScroll.width)
   await expect(days.getByRole('button').nth(3)).toHaveAttribute('aria-pressed', 'true')
   expect(await days.evaluate((element) => {
     const selected = element.querySelector('button[aria-pressed="true"]')!.getBoundingClientRect()
@@ -267,7 +272,7 @@ test('keeps the landscape date picker fixed while only lessons scroll vertically
       const first = list.querySelector('.schedule-lesson')!.getBoundingClientRect()
       const dayBox = days.getBoundingClientRect()
       const dayButton = days.querySelector('button')!.getBoundingClientRect()
-      return { bodyScroll: scrollY, mainScroll: main.scrollTop, mainContent: main.scrollHeight, mainViewport: main.clientHeight, listContent: list.scrollHeight, listViewport: list.clientHeight, listBottom: box.bottom, navTop: nav.getBoundingClientRect().top, navBottom: nav.getBoundingClientRect().bottom, firstBottom: first.bottom, dayOverflowX: getComputedStyle(days).overflowX, dayWidth: days.clientWidth, dayContent: days.scrollWidth, dayHeight: dayBox.height, dayBottom: dayBox.bottom, dayButtonHeight: dayButton.height, dayButtonBottom: dayButton.bottom, horizontalOverflow: document.documentElement.scrollWidth > innerWidth }
+      return { bodyScroll: scrollY, mainScroll: main.scrollTop, mainContent: main.scrollHeight, mainViewport: main.clientHeight, listContent: list.scrollHeight, listViewport: list.clientHeight, listBottom: box.bottom, navTop: nav.getBoundingClientRect().top, navBottom: nav.getBoundingClientRect().bottom, firstBottom: first.bottom, dayOverflowX: getComputedStyle(days).overflowX, dayOverflowY: getComputedStyle(days).overflowY, dayScrollbarWidth: getComputedStyle(days).scrollbarWidth, dayWidth: days.clientWidth, dayContent: days.scrollWidth, dayHeight: dayBox.height, dayBottom: dayBox.bottom, dayButtonHeight: dayButton.height, dayButtonBottom: dayButton.bottom, horizontalOverflow: document.documentElement.scrollWidth > innerWidth }
     })
     expect(metrics.bodyScroll).toBe(0)
     expect(metrics.mainScroll).toBe(0)
@@ -278,6 +283,8 @@ test('keeps the landscape date picker fixed while only lessons scroll vertically
     expect(390 - metrics.navBottom).toBeGreaterThanOrEqual(24)
     expect(metrics.horizontalOverflow).toBe(false)
     expect(metrics.dayHeight).toBeGreaterThanOrEqual(44)
+    expect(metrics.dayOverflowY).toBe('hidden')
+    expect(metrics.dayScrollbarWidth).toBe('none')
     expect(metrics.dayButtonHeight).toBeGreaterThanOrEqual(44)
     expect(metrics.dayButtonBottom).toBeLessThanOrEqual(metrics.dayBottom + 1)
     await expect(page.locator('nav.bottom-nav')).toBeVisible()
