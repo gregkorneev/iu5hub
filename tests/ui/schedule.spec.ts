@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures'
 import AxeBuilder from '@axe-core/playwright'
 
-test('selects a group, shows today and week schedule, and keeps four-tab navigation at 320px', async ({ page }, testInfo) => {
+test('selects a group, shows a centered seven-day picker, and keeps four-tab navigation at 320px', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 700 })
   await page.goto('/#/schedule')
   const nav = page.getByRole('navigation', { name: 'Основная навигация' })
@@ -18,9 +18,10 @@ test('selects a group, shows today and week schedule, and keeps four-tab navigat
   await page.getByRole('button', { name: 'ИУ5-34Б' }).click()
   await expect(page.getByRole('heading', { name: 'Электротехника' })).toBeVisible()
   await expect(page.getByText('Сейчас')).toBeVisible()
-  await page.getByRole('button', { name: 'Неделя' }).click()
-  await expect(page.getByRole('group', { name: 'Дни недели' })).toBeVisible()
-  const days = page.getByRole('group', { name: 'Дни недели' })
+  await expect(page.getByRole('button', { name: 'Сегодня', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Неделя', exact: true })).toHaveCount(0)
+  const days = page.getByRole('group', { name: 'Выбор даты' })
+  await expect(days).toBeVisible()
   await expect(days.getByRole('button')).toHaveCount(7)
   await expect(days.getByRole('button').nth(3)).toHaveAttribute('aria-pressed', 'true')
   expect(await days.evaluate((element) => {
@@ -42,8 +43,7 @@ test('selects a group, shows today and week schedule, and keeps four-tab navigat
   await days.getByRole('button').nth(2).click()
   await expect(days.getByRole('button').nth(2)).toHaveAttribute('aria-pressed', 'true')
   expect(await days.locator('button strong').allTextContents()).toEqual(expectedWindow)
-  await page.getByRole('button', { name: 'Сегодня' }).click()
-  await page.getByRole('button', { name: 'Неделя' }).click()
+  await days.getByRole('button').nth(3).click()
   await expect(days.getByRole('button').nth(3)).toHaveAttribute('aria-pressed', 'true')
   expect(await days.evaluate((element) => {
     const selected = element.querySelector('button[aria-pressed="true"]')!.getBoundingClientRect()
@@ -148,8 +148,7 @@ test('keeps mobile page scroll locked while schedule lessons scroll inside their
       await picker.fill('34б')
       await page.getByRole('button', { name: 'ИУ5-34Б' }).click()
     }
-    await page.getByRole('button', { name: 'Неделя' }).click()
-    const dayPicker = page.getByRole('group', { name: 'Дни недели' })
+    const dayPicker = page.getByRole('group', { name: 'Выбор даты' })
     await expect(dayPicker).toBeVisible()
     await dayPicker.locator('button').nth(2).click()
     await expect(page.getByRole('heading', { name: 'Физика' })).toBeVisible()
@@ -170,9 +169,9 @@ test('keeps mobile page scroll locked while schedule lessons scroll inside their
     expect(weekMetrics.mainContent).toBeLessThanOrEqual(weekMetrics.mainViewport + 1)
     expect(weekMetrics.count).toBe(4)
     expect(weekMetrics.firstTop).toBeGreaterThanOrEqual(weekMetrics.listTop - 1)
-    expect(weekMetrics.secondBottom, `Week second card clipped at ${width}×${height}`).toBeLessThanOrEqual(weekMetrics.visibleBottom + 1)
-    await page.screenshot({ path: testInfo.outputPath(`${width}-schedule-week-day-selected.png`) })
-    await page.getByRole('button', { name: 'Сегодня' }).click()
+    expect(weekMetrics.secondBottom, `Second lesson clipped at ${width}×${height}`).toBeLessThanOrEqual(weekMetrics.visibleBottom + 1)
+    await page.screenshot({ path: testInfo.outputPath(`${width}-schedule-date-selected.png`) })
+    await dayPicker.locator('button').nth(3).click()
     const lessons = page.locator('.schedule-lessons')
     await expect(lessons.locator('.schedule-lesson')).toHaveCount(4)
     await page.screenshot({ path: testInfo.outputPath(`${width}-schedule-selected.png`) })
@@ -205,7 +204,7 @@ test('keeps mobile page scroll locked while schedule lessons scroll inside their
   }
 })
 
-test('keeps landscape Week navigation fixed while only lessons scroll vertically', async ({ page }, testInfo) => {
+test('keeps the landscape date picker fixed while only lessons scroll vertically', async ({ page }, testInfo) => {
   for (const width of [844, 850]) {
     await page.setViewportSize({ width, height: 390 })
     await page.goto('/#/schedule')
@@ -223,8 +222,7 @@ test('keeps landscape Week navigation fixed while only lessons scroll vertically
       await picker.fill('34б')
       await page.getByRole('button', { name: 'ИУ5-34Б' }).click()
     }
-    await page.getByRole('button', { name: 'Неделя' }).click()
-    const days = page.getByRole('group', { name: 'Дни недели' })
+    const days = page.getByRole('group', { name: 'Выбор даты' })
     await expect(days.locator('button')).toHaveCount(7)
     const alternateIndex = 2
     const lastDay = days.locator('button').last()

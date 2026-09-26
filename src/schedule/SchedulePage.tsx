@@ -51,7 +51,6 @@ function GroupPicker({ groups, loadingGroups, onSelect }: { groups: Group[]; loa
 
 function SchedulePage() {
   const { groups, groupId, selectGroup, syncNotice, loadingGroups } = useScheduleGroup()
-  const [mode, setMode] = useState<'today' | 'week'>('today')
   const [selectedDate, setSelectedDate] = useState(dateInMoscow)
   const daysViewport = useRef<HTMLDivElement>(null)
   const selectedDay = useRef<HTMLButtonElement>(null)
@@ -68,13 +67,13 @@ function SchedulePage() {
   const error = result?.groupId === groupId ? result.error ?? '' : ''
   const today = dateInMoscow()
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(today, index - 3)), [today])
-  const currentDay = mode === 'today' ? today : selectedDate
+  const currentDay = weekDays.includes(selectedDate) ? selectedDate : today
   useLayoutEffect(() => {
-    if (mode !== 'week' || !daysViewport.current || !selectedDay.current) return
+    if (!daysViewport.current || !selectedDay.current) return
     const viewport = daysViewport.current.getBoundingClientRect()
     const selected = selectedDay.current.getBoundingClientRect()
     daysViewport.current.scrollLeft += selected.left + selected.width / 2 - (viewport.left + viewport.width / 2)
-  }, [mode, selectedDate])
+  }, [currentDay, groupId])
   const lessons = schedule?.days[currentDay] ?? []
   const now = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date())
   const ongoing = lessons.find((lesson) => lesson.start <= now && now < lesson.end)
@@ -87,10 +86,9 @@ function SchedulePage() {
       <div className="schedule-group-heading"><strong>{schedule?.group.name || groups.find((item) => item.id === groupId)?.name || groupId}</strong><button type="button" className="button button--quiet" onClick={() => setChoosing(!choosing)}>{choosing ? 'Отмена' : 'Изменить'}</button></div>
       {choosing && <GroupPicker groups={groups} loadingGroups={loadingGroups} onSelect={(id) => { selectGroup(id); setChoosing(false) }} />}
       {syncNotice && <p className="schedule-notice" role="status">{syncNotice}</p>}
-      <div className="schedule-mode" role="group" aria-label="Период расписания"><button aria-pressed={mode === 'today'} onClick={() => { setSelectedDate(today); setMode('today') }}>Сегодня</button><button aria-pressed={mode === 'week'} onClick={() => setMode('week')}>Неделя</button></div>
-      {mode === 'week' && <div className="schedule-days" ref={daysViewport} role="group" aria-label="Дни недели">{weekDays.map((date) => <button key={date} ref={date === selectedDate ? selectedDay : null} aria-pressed={date === selectedDate} onClick={() => setSelectedDate(date)}><strong>{shortDate(date)}</strong></button>)}</div>}
+      <div className="schedule-days" ref={daysViewport} role="group" aria-label="Выбор даты">{weekDays.map((date) => <button type="button" key={date} ref={date === currentDay ? selectedDay : null} aria-label={`${new Intl.DateTimeFormat('ru-RU', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${date}T12:00:00Z`))}${date === today ? ', сегодня' : ''}`} aria-pressed={date === currentDay} onClick={() => setSelectedDate(date)}><strong>{shortDate(date)}</strong></button>)}</div>
       {schedule && <p className="schedule-meta">{[schedule.semester.academicYear, termLabel, `${weekNumber}-я неделя`, weekNumber % 2 ? 'числитель' : 'знаменатель'].filter(Boolean).join(' · ')}</p>}
-      {loading ? <p role="status">Загружаем расписание…</p> : error ? <div className="empty"><h2>Расписание недоступно</h2><p>{error}</p></div> : !schedule ? null : schedule.availability === 'no-schedule' ? <div className="empty"><h2>Расписание пока не опубликовано</h2><p>ЛКС МГТУ пока не предоставил расписание для этой группы.</p></div> : lessons.length ? <div className="schedule-lessons" role="region" aria-label="Занятия" tabIndex={0}>{lessons.map((lesson, index) => <article className="schedule-lesson" key={`${lesson.start}-${lesson.subject}-${index}`}><div className="schedule-time">{lesson.start} — {lesson.end}<strong>{currentDay === today ? ongoing === lesson ? 'Сейчас' : next === lesson ? 'Следующая' : '' : ''}</strong></div><h2>{lesson.subject}</h2>{lesson.type && <p>{lesson.type}</p>}{(lesson.location || lesson.teacher) && <small>{[lesson.location, lesson.teacher].filter(Boolean).join(' · ')}</small>}</article>)}</div> : <div className="empty"><h2>{mode === 'today' ? 'Сегодня занятий нет' : 'В этот день занятий нет'}</h2></div>}
+      {loading ? <p role="status">Загружаем расписание…</p> : error ? <div className="empty"><h2>Расписание недоступно</h2><p>{error}</p></div> : !schedule ? null : schedule.availability === 'no-schedule' ? <div className="empty"><h2>Расписание пока не опубликовано</h2><p>ЛКС МГТУ пока не предоставил расписание для этой группы.</p></div> : lessons.length ? <div className="schedule-lessons" role="region" aria-label="Занятия" tabIndex={0}>{lessons.map((lesson, index) => <article className="schedule-lesson" key={`${lesson.start}-${lesson.subject}-${index}`}><div className="schedule-time">{lesson.start} — {lesson.end}<strong>{currentDay === today ? ongoing === lesson ? 'Сейчас' : next === lesson ? 'Следующая' : '' : ''}</strong></div><h2>{lesson.subject}</h2>{lesson.type && <p>{lesson.type}</p>}{(lesson.location || lesson.teacher) && <small>{[lesson.location, lesson.teacher].filter(Boolean).join(' · ')}</small>}</article>)}</div> : <div className="empty"><h2>{currentDay === today ? 'Сегодня занятий нет' : 'В этот день занятий нет'}</h2></div>}
       {schedule && <p className="schedule-updated">Обновлено {new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Moscow', day: 'numeric', month: 'long' }).format(new Date(schedule.source.syncedAt))} · Источник: {schedule.source.provider}</p>}
     </>}
   </section>
