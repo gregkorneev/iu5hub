@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures'
 
-test('shows the empty Useful Links section below courses on the home screen', async ({ page }) => {
+test('shows clickable Yandex Disk and GitHub links below courses on the home screen', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/')
 
@@ -9,13 +9,23 @@ test('shows the empty Useful Links section below courses on the home screen', as
   await expect(courses).toBeVisible()
   await expect(usefulLinks).toBeVisible()
   await expect(page.locator('.home-favorites')).toHaveCount(0)
-  await expect(usefulLinks).toContainText('Пока здесь нет ссылок.')
+  const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
+  const githubLink = usefulLinks.getByRole('link', { name: 'GitHub @tal3nt3d' })
+  await expect(yandexLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
+  await expect(githubLink).toHaveAttribute('href', 'https://github.com/tal3nt3d/iu5manual')
+  await expect(yandexLink).toHaveAttribute('target', '_blank')
+  await expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
 
   const coursesBounds = await courses.boundingBox()
   const linksBounds = await usefulLinks.boundingBox()
   expect(coursesBounds && linksBounds).toBeTruthy()
   expect(linksBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
+  await page.screenshot({ path: testInfo.outputPath('home-useful-links.png') })
+
+  await yandexLink.click()
+  await githubLink.click()
+  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://github.com/tal3nt3d/iu5manual'])
 })
 
 test('shows a Favorites block between courses and Useful Links and opens the existing profile', async ({ page }) => {

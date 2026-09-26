@@ -111,7 +111,10 @@ function Home() {
     </section>}
     <section className="home-links" aria-labelledby="home-links-title">
       <div className="section-title"><h2 id="home-links-title">Полезные ссылки</h2></div>
-      <p className="home-links__empty">Пока здесь нет ссылок.</p>
+      <ul className="home-links__list">
+        <li><a href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}>Диск ИУ5 от @kirschnya</a></li>
+        <li><a href="https://github.com/tal3nt3d/iu5manual" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}>GitHub @tal3nt3d</a></li>
+      </ul>
     </section>
   </>
 }

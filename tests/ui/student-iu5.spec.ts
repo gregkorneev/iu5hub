@@ -180,7 +180,8 @@ test.describe('Студент ИУ5 critical UI', () => {
     await page.goto('/#/')
     const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
     await usefulLinks.scrollIntoViewIfNeeded()
-    await expect(usefulLinks).toContainText('Пока здесь нет ссылок.')
+    await expect(usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
+    await expect(usefulLinks.getByRole('link', { name: 'GitHub @tal3nt3d' })).toHaveAttribute('href', 'https://github.com/tal3nt3d/iu5manual')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   })
 

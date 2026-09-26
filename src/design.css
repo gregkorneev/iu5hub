@@ -321,7 +321,8 @@ h1, .section-title h2 { color: var(--text-primary); font-size: var(--type-screen
 section + section { margin-top: 2.5rem; }
 .section-title { margin-bottom: var(--space-4); }
 .section-title h2 { font-size: var(--type-section); }
-.home-links__empty { margin: 0; padding: var(--space-4); border-radius: var(--radius-medium); background: var(--surface-secondary); color: var(--text-secondary); font-size: .9rem; }
+.home-links__list { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin: 0; padding: 0; list-style: none; }
+.home-links__list a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--action); font-size: .875rem; text-decoration-thickness: .08em; text-underline-offset: .2em; overflow-wrap: anywhere; }
 .home-favorites__link { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto 1.25rem; align-items: center; gap: var(--space-3); min-height: 4.25rem; padding: var(--space-3) var(--space-4); border-radius: var(--radius-large); background: var(--surface-elevated); box-shadow: inset 0 1px 0 var(--material-highlight), 0 1px 0 var(--separator); color: var(--text-primary); text-decoration: none; }
 .home-favorites__link > svg:first-child { width: 1.25rem; height: 1.25rem; color: var(--action); }
 .home-favorites__link > svg:last-child { width: 1rem; height: 1rem; color: var(--text-tertiary); }
@@ -430,7 +431,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
     .search:focus-within { background: var(--material-regular); }
     .search-suggestions { background: var(--material-thick); backdrop-filter: blur(var(--material-blur-thick)) saturate(var(--material-saturation)); }
     .schedule-days button[aria-pressed="true"] { background: var(--material-selected); box-shadow: inset 0 1px 0 var(--material-highlight); }
-    .schedule-profile-block, .schedule-lesson, .home-links__empty, .favorite-error { background: var(--material-content); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .2rem .75rem var(--material-shadow); }
+    .schedule-profile-block, .schedule-lesson, .favorite-error { background: var(--material-content); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .2rem .75rem var(--material-shadow); }
     .schedule-group-options { background: var(--material-thick); border-color: var(--material-edge); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .75rem 2rem var(--material-shadow); backdrop-filter: blur(var(--material-blur-thick)) saturate(var(--material-saturation)); }
     .schedule-group-options button { background: transparent; box-shadow: none; }
     :is(.search button, .button:not(.button--quiet), .filters .active, .stats-periods button.active) {
@@ -474,7 +475,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .search, .in-app-back, .schedule-group-picker input { background: var(--surface-secondary); backdrop-filter: none; }
   :is(.search button, .button, .filters .active, .stats-periods button.active) { border-color: transparent; background: var(--action); color: var(--action-text); box-shadow: none; backdrop-filter: none; }
   .button--quiet, .download-button { background: var(--surface-secondary); backdrop-filter: none; }
-  :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty, .home-links__empty, .favorite-error, .schedule-profile-block, .schedule-lesson, .schedule-group-options button) { background: var(--surface-elevated); }
+  :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty, .favorite-error, .schedule-profile-block, .schedule-lesson, .schedule-group-options button) { background: var(--surface-elevated); }
   :is(.filters a:not(.active), .stats-periods button:not(.active), .tag) { background: var(--surface-secondary); }
 }
 @media (prefers-contrast: more) {
@@ -487,7 +488,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .search, .in-app-back, .schedule-group-picker input { background: var(--surface-secondary); backdrop-filter: none; }
   :is(.search button, .button, .filters .active, .stats-periods button.active) { border-color: var(--action); background: var(--action); color: var(--action-text); box-shadow: none; backdrop-filter: none; }
   .button--quiet, .download-button { background: var(--surface-secondary); backdrop-filter: none; }
-  :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty, .home-links__empty, .favorite-error, .schedule-profile-block, .schedule-lesson, .schedule-group-options button) { background: var(--surface-elevated); }
+  :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty, .favorite-error, .schedule-profile-block, .schedule-lesson, .schedule-group-options button) { background: var(--surface-elevated); }
   :is(.filters a:not(.active), .stats-periods button:not(.active), .tag) { background: var(--surface-secondary); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -562,7 +563,8 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home .course-grid b { margin-top: var(--space-1); }
   .app--home .home-favorites__link { min-height: 2.75rem; padding-block: var(--space-1); }
   .app--home footer { padding: var(--space-1) 0 var(--space-2); font-size: .6875rem; line-height: 1.2; }
-  .app--home .home-links__empty { padding: var(--space-1) var(--space-2); font-size: .75rem; }
+  .app--home .home-links__list { column-gap: var(--space-3); row-gap: 0; }
+  .app--home .home-links__list a { font-size: .75rem; }
   .app--home .home-favorites__link { min-height: 3.5rem; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
   .app--home .home-favorites__copy { gap: 2px; }
   .app--home .home-favorites__copy h2 { font-size: 1rem; }
@@ -613,6 +615,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home .home-favorites__copy small { display: none; }
   .app--home .home-favorites__link > svg:first-child { width: 1rem; height: 1rem; }
   .app--home .home-links .section-title { margin-bottom: var(--space-1); }
-  .app--home .home-links__empty { padding-block: 2px; font-size: .625rem; }
+  .app--home .home-links__list { column-gap: var(--space-2); }
+  .app--home .home-links__list a { min-height: 2.75rem; font-size: .625rem; }
   .app--home footer { padding-bottom: var(--space-1); font-size: .625rem; }
 }
