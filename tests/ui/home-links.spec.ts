@@ -6,12 +6,24 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
 
   const brandGeometry = await page.evaluate(() => {
     const header = document.querySelector('header')!.getBoundingClientRect()
+    const group = document.querySelector('.header-brand-group')!.getBoundingClientRect()
     const brand = document.querySelector('.brand')!.getBoundingClientRect()
     const greeting = document.querySelector('.user-greeting')!.getBoundingClientRect()
-    return { headerCenter: header.left + header.width / 2, brandCenter: brand.left + brand.width / 2, greetingLeft: greeting.left }
+    return {
+      headerCenter: header.left + header.width / 2,
+      groupCenter: group.left + group.width / 2,
+      brandCenter: brand.left + brand.width / 2,
+      greetingLeft: greeting.left,
+      greetingColor: getComputedStyle(document.querySelector('.user-greeting')!).color,
+      brandColor: getComputedStyle(document.querySelector('.brand')!).color,
+      greetingFontSize: parseFloat(getComputedStyle(document.querySelector('.user-greeting')!).fontSize),
+    }
   })
+  expect(Math.abs(brandGeometry.groupCenter - brandGeometry.headerCenter)).toBeLessThanOrEqual(1)
   expect(Math.abs(brandGeometry.brandCenter - brandGeometry.headerCenter)).toBeLessThanOrEqual(1)
   expect(brandGeometry.greetingLeft).toBeLessThan(brandGeometry.headerCenter)
+  expect(brandGeometry.greetingColor).toBe(brandGeometry.brandColor)
+  expect(brandGeometry.greetingFontSize).toBeGreaterThanOrEqual(14)
   await expect(page.locator('.hero h1')).toHaveClass(/sr-only/)
 
   const courses = page.locator('.home-courses')
@@ -112,7 +124,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.hero.top).toBeGreaterThanOrEqual(metrics.greeting.bottom)
     expect(metrics.heroTitle.width).toBeLessThanOrEqual(1)
     expect(metrics.heroDescription.top - metrics.greeting.bottom, `${width}×${height} greeting → description`).toBeGreaterThanOrEqual(4)
-    expect(metrics.coursesTitle.top - metrics.heroDescription.bottom, `${width}×${height} description → course label`).toBeGreaterThanOrEqual(4)
+    expect(metrics.coursesTitle.top - metrics.heroDescription.bottom, `${width}×${height} description → course label`).toBeGreaterThanOrEqual(height > 740 ? 16 : 4)
     expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} course label → cards`).toBeGreaterThanOrEqual(width <= 340 && height <= 600 ? 4 : 8)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)
