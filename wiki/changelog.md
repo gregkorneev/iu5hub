@@ -1,6 +1,7 @@
 # Changelog
 
-- 2026-09-26: На главной уточнён вертикальный ритм токенами отступов: приветствие отделено от hero, заголовок — от описания, курсы — от hero; сохранены компактный режим 320×568 и отсутствие прокрутки. Добавлены проверки интервалов и viewport fit до 430 px.
+- 2026-09-26: На главной уточнён вертикальный ритм токенами отступов: приветствие отделено от hero, заголовок — от описания, курсы — от hero; сохранены компактный режим 320×568 и отсутствие прокрутки. Добавлены проверки интервалов и viewport fit до 430 px; `npm run qa` прошёл (132/132 Playwright).
+- 2026-09-26: Playwright fixture расписания использует фиксированное время 12:30 по Москве, чтобы synthetic current lesson не пересекала полночь в поздних CI-запусках.
 - Mobile scroll pass: Home, Schedule and Profile stop document-level vertical scrolling in portrait Telegram viewports; Home/Profile fit the standard phone layout. Schedule Today keeps two complete lesson cards visible and scrolls additional lessons in a named, keyboard-focusable region, with safe-area spacing above bottom navigation. Week/group selection can use a scoped inner fallback on short screens. Added four-lesson fixture and Playwright viewport/scroll/accessibility regressions. `npm run qa` passed (108 Playwright tests).
 
 ## 2026-09-25
