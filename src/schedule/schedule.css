@@ -32,7 +32,7 @@
   .schedule-group-heading { margin-block:var(--space-2); }
   .schedule-days { margin-block:var(--space-2); }
   .schedule-days { padding-bottom:4px; }
-  .schedule-lessons { flex:1 1 auto; min-height:0; max-height:calc(18rem + var(--space-3) + var(--space-1)); align-content:start; grid-auto-rows:max-content; overflow-y:auto; overscroll-behavior-y:contain; }
+  .schedule-lessons { flex:1 1 auto; min-height:0; align-content:start; grid-auto-rows:max-content; overflow-y:auto; overscroll-behavior-y:contain; }
   .schedule-lesson { min-height:9rem; padding:var(--space-3); }
   .schedule-lesson h2 { font-size:clamp(1.05rem, 4vw, 1.25rem); }
   .schedule-page:has(.schedule-group-picker) { overflow-y:auto; }

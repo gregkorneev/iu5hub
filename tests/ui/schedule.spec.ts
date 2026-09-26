@@ -213,7 +213,10 @@ test('keeps mobile page scroll locked while schedule lessons scroll inside their
     expect(metrics.listBottom).toBeLessThanOrEqual(metrics.navTop - 4)
     expect(metrics.fitsViewport).toBe(true)
     expect(metrics.labelsFit).toBe(true)
-    if (height === 844) expect(metrics.mainScrollHeight).toBeLessThanOrEqual(metrics.mainClientHeight + 1)
+    if (height === 844) {
+      expect(metrics.mainScrollHeight).toBeLessThanOrEqual(metrics.mainClientHeight + 1)
+      expect(metrics.clientHeight).toBeGreaterThan(304)
+    }
     else if (metrics.mainScrollHeight > metrics.mainClientHeight + 1) {
       await page.locator('main').evaluate((element) => element.scrollTo(0, element.scrollHeight))
       expect(await page.locator('main').evaluate((element) => element.scrollTop)).toBeGreaterThan(0)

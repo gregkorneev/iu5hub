@@ -1,5 +1,6 @@
 # Testing
 
+- **2026-09-27 schedule viewport fill:** targeted Chromium/WebKit regression and full `npm run qa` passed (144/144 UI tests). At 390×844, the lesson region grows beyond the former 304px cap to the bottom-navigation clearance, keeps the page fixed, exposes two complete lesson cards and scrolls additional lessons inside the region. The 320×568 compact layout and landscape lesson-only scrolling remain covered.
 - **2026-09-27 header/home update:** `npm run qa` passed: lint, typecheck, 24 Vitest tests, 54 Node tests, data validation, production build and 144/144 Playwright tests (Chromium, mobile Chromium and WebKit). Mobile screenshots confirm centered brand with the greeting still left aligned and the duplicate hero heading absent.
 
 Schedule CI is network-independent: `npm run schedule:validate` checks the generated 70-group dataset; `scripts/schedule/*.node-test.mjs` covers discovery/filtering, stable slug, parser/recurrence/timezone/exceptions, no-op comparison and atomic rollback. Playwright `schedule.spec.ts` covers group onboarding/search, Today/Week/day switching, current/next lesson, group change/profile, navigation, preferences and 320/390/428 px. Networked `schedule:inspect`/`schedule:sync` are release/operator commands, never CI.
