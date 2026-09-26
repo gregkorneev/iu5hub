@@ -563,8 +563,8 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home .course-grid b { margin-top: var(--space-1); }
   .app--home .home-favorites__link { min-height: 2.75rem; padding-block: var(--space-1); }
   .app--home footer { padding: var(--space-1) 0 var(--space-2); font-size: .6875rem; line-height: 1.2; }
-  .app--home .home-links__list { column-gap: var(--space-3); row-gap: 0; }
-  .app--home .home-links__list a { font-size: .75rem; }
+  .app--home .home-links__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 var(--space-1); }
+  .app--home .home-links__list a { width: 100%; justify-content: center; padding-inline: 2px; font-size: .75rem; line-height: 1.2; text-align: center; }
   .app--home .home-favorites__link { min-height: 3.5rem; gap: var(--space-2); padding: var(--space-2) var(--space-3); }
   .app--home .home-favorites__copy { gap: 2px; }
   .app--home .home-favorites__copy h2 { font-size: 1rem; }
@@ -615,7 +615,6 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home .home-favorites__copy small { display: none; }
   .app--home .home-favorites__link > svg:first-child { width: 1rem; height: 1rem; }
   .app--home .home-links .section-title { margin-bottom: var(--space-1); }
-  .app--home .home-links__list { column-gap: var(--space-2); }
   .app--home .home-links__list a { min-height: 2.75rem; font-size: .625rem; }
   .app--home footer { padding-bottom: var(--space-1); font-size: .625rem; }
 }

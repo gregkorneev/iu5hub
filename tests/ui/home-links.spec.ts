@@ -11,8 +11,10 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
   const githubLink = usefulLinks.getByRole('link', { name: 'GitHub @tal3nt3d' })
+  const ugapanyukLink = usefulLinks.getByRole('link', { name: 'GitHub Ю.Е Гапанюк' })
   await expect(yandexLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
   await expect(githubLink).toHaveAttribute('href', 'https://github.com/tal3nt3d/iu5manual')
+  await expect(ugapanyukLink).toHaveAttribute('href', 'https://ugapanyuk.github.io')
   await expect(yandexLink).toHaveAttribute('target', '_blank')
   await expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
 
@@ -25,7 +27,8 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
 
   await yandexLink.click()
   await githubLink.click()
-  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://github.com/tal3nt3d/iu5manual'])
+  await ugapanyukLink.click()
+  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
 })
 
 test('shows a Favorites block between courses and Useful Links and opens the existing profile', async ({ page }) => {
