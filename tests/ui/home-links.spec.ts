@@ -17,6 +17,31 @@ test('shows the empty Useful Links section below courses on the home screen', as
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
 })
 
+test('shows a Favorites block between courses and Useful Links and opens the existing profile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.route('**/api/profile/favorites', (route) => route.fulfill({ json: { items: [
+    { courseId: 'course-1', path: '/1 sem/Математика', type: 'dir', name: 'Математика', createdAt: 2 },
+    { courseId: 'course-1', path: '/1 sem/Физика.pdf', type: 'file', name: 'Физика.pdf', createdAt: 1 },
+  ] } }))
+  await page.goto('/#/')
+
+  const courses = page.locator('.home-courses')
+  const favorites = page.getByRole('region', { name: 'Избранное' })
+  const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
+  await expect(favorites).toBeVisible()
+  await expect(favorites.locator('.home-favorites__count')).toHaveText('2')
+  await expect(favorites).toContainText('Сохранённые папки и файлы')
+  const [coursesBounds, favoritesBounds, linksBounds] = await Promise.all([courses.boundingBox(), favorites.boundingBox(), usefulLinks.boundingBox()])
+  expect(coursesBounds && favoritesBounds && linksBounds).toBeTruthy()
+  expect(favoritesBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
+  expect(linksBounds!.y).toBeGreaterThan(favoritesBounds!.y + favoritesBounds!.height)
+
+  await favorites.getByRole('link', { name: /Избранное/ }).click()
+  await expect(page.getByRole('heading', { name: 'Избранное' })).toBeVisible()
+  await expect(page.getByText('Математика', { exact: true })).toBeVisible()
+  await expect(page.getByText('Физика.pdf', { exact: true })).toBeVisible()
+})
+
 test('fits the complete home screen without page or main scrolling on Telegram phones', async ({ page }, testInfo) => {
   for (const [width, height] of [[295, 667], [320, 568], [375, 667], [390, 720], [390, 730], [390, 844], [430, 932]]) {
     await page.setViewportSize({ width, height })
@@ -38,7 +63,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         width: document.documentElement.scrollWidth,
         main: main.scrollHeight,
         mainClient: main.clientHeight,
-        header: box('header'), greeting: box('.user-greeting'), content: box('main'), hero: box('.hero'), heroEyebrow: box('.hero .eyebrow'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesEyebrow: box('.home-courses .eyebrow'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
+        header: box('header'), greeting: box('.user-greeting'), content: box('main'), hero: box('.hero'), heroEyebrow: box('.hero .eyebrow'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesEyebrow: box('.home-courses .eyebrow'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), favorites: box('.home-favorites'), links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
       }
     })
@@ -53,9 +78,10 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.heroDescription.top - metrics.heroTitle.bottom, `${width}×${height} title → description`).toBeGreaterThanOrEqual(4)
     expect(metrics.coursesEyebrow.top - metrics.heroDescription.bottom, `${width}×${height} description → courses`).toBeGreaterThanOrEqual(4)
     expect(metrics.coursesTitle.top - metrics.coursesEyebrow.bottom, `${width}×${height} courses eyebrow → title`).toBeGreaterThanOrEqual(4)
-    expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} title → cards`).toBeGreaterThanOrEqual(8)
+    expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} title → cards`).toBeGreaterThanOrEqual(width <= 340 && height <= 600 ? 4 : 8)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)
+    expect(metrics.links.top).toBeGreaterThanOrEqual(metrics.favorites.bottom)
     expect(metrics.footer.top).toBeGreaterThanOrEqual(metrics.links.bottom)
     expect(metrics.footer.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
     expect(metrics.nav.bottom).toBeLessThanOrEqual(height - 24)

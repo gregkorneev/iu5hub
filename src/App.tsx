@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
-import { CalendarDays, LibraryBig, Search, UserRound } from 'lucide-react'
+import { CalendarDays, ChevronRight, Heart, LibraryBig, Search, UserRound } from 'lucide-react'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
@@ -94,11 +94,20 @@ function FavoriteButton({ item }: { item: FavoriteInput }) {
 }
 function Home() {
   const { courses } = useCatalog()
+  const favorites = useFavorites()
   return <>
     <section className="hero"><p className="eyebrow">Учебные материалы</p><h1>Студент ИУ5</h1><p>Выберите курс, чтобы открыть каталог учебных материалов.</p></section>
     <section className="home-courses">
       <div className="section-title"><div><p className="eyebrow">Курсы</p><h2>Материалы на Яндекс.Диске</h2></div></div>
       <div className="course-grid">{courses.map((course, index) => <Link key={course.id} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span>{index + 1}</span><strong>{course.title}</strong><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div>
+    </section>
+    <section className="home-favorites" aria-labelledby="home-favorites-title">
+      <Link className="home-favorites__link" to="/profile">
+        <Heart aria-hidden="true" focusable="false" />
+        <span className="home-favorites__copy"><h2 id="home-favorites-title">Избранное</h2><small>{favorites.loading ? 'Загружаем…' : favorites.error ? 'Список сейчас недоступен' : favorites.items.length ? 'Сохранённые папки и файлы' : 'Сохраняйте сердечком'}</small></span>
+        <span className="home-favorites__count" aria-label={favorites.loading ? 'Загрузка' : `${favorites.items.length} в избранном`}>{favorites.loading ? '…' : favorites.error ? '—' : favorites.items.length}</span>
+        <ChevronRight aria-hidden="true" focusable="false" />
+      </Link>
     </section>
     <section className="home-links" aria-labelledby="home-links-title">
       <div className="section-title"><h2 id="home-links-title">Полезные ссылки</h2></div>
