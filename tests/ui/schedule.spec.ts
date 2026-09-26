@@ -37,6 +37,44 @@ test('shows and changes the selected group in Profile without delaying Favorites
   await expect(page.getByRole('heading', { name: 'В избранном пока ничего нет' })).toBeVisible()
 })
 
+test('keeps the first Profile and Schedule content clear of the header with Telegram top safe area', async ({ page }, testInfo) => {
+  for (const { width, height } of [{ width: 320, height: 568 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize({ width, height })
+    const syncSafeArea = async () => page.evaluate((viewportHeight) => {
+      const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; contentSafeAreaInset: object; safeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.viewportHeight = viewportHeight
+      app.viewportStableHeight = viewportHeight
+      app.contentSafeAreaInset = { top: 24, right: 0, bottom: 24, left: 0 }
+      app.safeAreaInset = { top: 24, right: 0, bottom: 24, left: 0 }
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('viewportChanged')
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('contentSafeAreaChanged')
+    }, height)
+
+    await page.goto('/#/profile')
+    await syncSafeArea()
+    const profileHeaderBottom = (await page.locator('header').boundingBox())!.y + (await page.locator('header').boundingBox())!.height
+    const profileContentTop = (await page.locator('.profile-page > .eyebrow').boundingBox())!.y
+    expect(profileContentTop, `Profile content overlaps header at ${width}×${height}`).toBeGreaterThanOrEqual(profileHeaderBottom)
+    await page.screenshot({ path: testInfo.outputPath(`${width}-profile-safe-area.png`) })
+
+    await page.goto('/#/schedule')
+    await syncSafeArea()
+    const schedulePage = page.locator('.schedule-page')
+    if (!(await schedulePage.getByRole('combobox', { name: 'Найдите свою группу' }).count())) {
+      await schedulePage.getByRole('button', { name: 'Изменить' }).click()
+    }
+    const groupSearch = schedulePage.getByRole('combobox', { name: 'Найдите свою группу' })
+    if (await groupSearch.count()) {
+      await groupSearch.fill('34б')
+      await schedulePage.getByRole('button', { name: 'ИУ5-34Б' }).click()
+    }
+    const scheduleHeaderBottom = (await page.locator('header').boundingBox())!.y + (await page.locator('header').boundingBox())!.height
+    const scheduleContentTop = (await page.locator('.schedule-group-heading').boundingBox())!.y
+    expect(scheduleContentTop, `Schedule controls overlap header at ${width}×${height}`).toBeGreaterThanOrEqual(scheduleHeaderBottom)
+    await page.screenshot({ path: testInfo.outputPath(`${width}-schedule-safe-area.png`) })
+  }
+})
+
 test('allows a keyboard user to choose a group and reports an unpublished schedule', async ({ page }) => {
   await page.goto('/#/schedule')
   const search = page.getByRole('combobox', { name: 'Найдите свою группу' })

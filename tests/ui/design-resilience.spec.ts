@@ -81,7 +81,8 @@ test.describe('Студент ИУ5 mobile resilience', () => {
     expect(await page.locator('header').evaluate((header) => {
       const bar = header.getBoundingClientRect()
       const cover = getComputedStyle(header, '::before')
-      return Math.abs(bar.top - 24) <= 1
+      return bar.top <= 1
+        && bar.bottom >= 24
         && parseFloat(cover.height) >= 24
         && cover.backgroundColor !== 'transparent'
         && cover.backgroundColor !== 'rgba(0, 0, 0, 0)'

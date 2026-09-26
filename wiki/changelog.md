@@ -1,5 +1,6 @@
 # Changelog
 
+- 2026-09-27: Final layout QA fixed the Telegram top safe-area overlap between the sticky header and Profile/Schedule content. Chromium/WebKit regressions cover 320×568 and 390×844; the two-lesson portrait viewport and landscape lesson-only scroll remain passing.
 - 2026-09-27: Увеличены вертикальные отступы вокруг блока «Избранное» на обычных мобильных экранах; компактные экраны сохраняют раскладку без прокрутки. Если список избранного пуст, блок на главной скрыт. Проверки охватывают интервалы, empty/populated states и высоту главной.
 
 - 2026-09-27: На главной добавлена компактная ссылка-блок «Избранное» со счётчиком из общего FavoritesContext, между курсами и «Полезными ссылками». Переход ведёт в существующий Профиль; для коротких мобильных экранов сохранена компоновка без скролла.

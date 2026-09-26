@@ -116,7 +116,7 @@ body::before, body::after, .hero::after { display: none; }
 .app footer { margin-block-end: var(--bottom-nav-clearance); }
 header {
   position: sticky;
-  top: max(env(safe-area-inset-top, 0px), var(--tg-safe-area-top));
+  top: 0;
   z-index: 5;
   min-height: 4.5rem;
   padding-inline: var(--space-4);

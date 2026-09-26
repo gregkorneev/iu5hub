@@ -12,7 +12,7 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(page.getByRole('heading', { name: 'Материалы на Яндекс.Диске' })).toBeVisible()
     await expect(page.getByRole('link', { name: /Курс 1/ })).toBeVisible()
     await expect(page.getByAltText('Логотип Студент ИУ5')).toHaveAttribute('src', '/logo-iu5.jpeg')
-    expect(await page.getByAltText('Логотип Студент ИУ5').evaluate((image: HTMLImageElement) => image.naturalWidth > 0)).toBeTruthy()
+    await expect.poll(() => page.getByAltText('Логотип Студент ИУ5').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
     expect(await page.evaluate(async () => {
       await document.fonts.load('16px "ALS Sector"')
       await document.fonts.load('700 16px "ALS Sector"')
