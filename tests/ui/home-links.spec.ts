@@ -90,7 +90,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         width: document.documentElement.scrollWidth,
         main: main.scrollHeight,
         mainClient: main.clientHeight,
-        header: box('header'), greeting: box('.user-greeting'), content: box('main'), hero: box('.hero'), heroEyebrow: box('.hero .eyebrow'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesEyebrow: box('.home-courses .eyebrow'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
+        header: box('header'), greeting: box('.user-greeting'), content: box('main'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
       }
     })
@@ -100,12 +100,10 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.main, `${width}×${height} main`).toBeLessThanOrEqual(metrics.mainClient + 1)
     expect(metrics.greeting.top).toBeGreaterThanOrEqual(metrics.header.bottom)
     expect(metrics.hero.top).toBeGreaterThanOrEqual(metrics.greeting.bottom)
-    expect(metrics.heroEyebrow.top - metrics.greeting.bottom, `${width}×${height} greeting → hero`).toBeGreaterThanOrEqual(4)
-    expect(metrics.heroTitle.top - metrics.heroEyebrow.bottom, `${width}×${height} eyebrow → title`).toBeGreaterThanOrEqual(4)
+    expect(metrics.heroTitle.top - metrics.greeting.bottom, `${width}×${height} greeting → title`).toBeGreaterThanOrEqual(4)
     expect(metrics.heroDescription.top - metrics.heroTitle.bottom, `${width}×${height} title → description`).toBeGreaterThanOrEqual(4)
-    expect(metrics.coursesEyebrow.top - metrics.heroDescription.bottom, `${width}×${height} description → courses`).toBeGreaterThanOrEqual(4)
-    expect(metrics.coursesTitle.top - metrics.coursesEyebrow.bottom, `${width}×${height} courses eyebrow → title`).toBeGreaterThanOrEqual(4)
-    expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} title → cards`).toBeGreaterThanOrEqual(width <= 340 && height <= 600 ? 4 : 8)
+    expect(metrics.coursesTitle.top - metrics.heroDescription.bottom, `${width}×${height} description → course label`).toBeGreaterThanOrEqual(4)
+    expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} course label → cards`).toBeGreaterThanOrEqual(width <= 340 && height <= 600 ? 4 : 8)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)
     const homeSectionGap = height > 740 ? 16 : 0
@@ -119,6 +117,8 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.footer.top).toBeGreaterThanOrEqual(metrics.links.bottom)
     expect(metrics.footer.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
     expect(metrics.nav.bottom).toBeLessThanOrEqual(height - 24)
+    await expect(page.getByText('Учебные материалы', { exact: true })).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Материалы на Яндекс.Диске' })).toHaveCount(0)
     expect(metrics.cards.every((card) => card.box.top >= metrics.content.top && card.box.bottom <= metrics.content.bottom + 1 && card.scroll <= card.client + 1)).toBe(true)
     await page.locator('main').evaluate((element) => element.scrollTo(0, 100))
     await page.evaluate(() => window.scrollTo(0, 100))
