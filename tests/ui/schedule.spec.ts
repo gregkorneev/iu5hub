@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures'
 import AxeBuilder from '@axe-core/playwright'
 
-test('selects a group, shows today and week schedule, and keeps four-tab navigation at 320px', async ({ page }) => {
+test('selects a group, shows today and week schedule, and keeps four-tab navigation at 320px', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 700 })
   await page.goto('/#/schedule')
   const nav = page.getByRole('navigation', { name: 'Основная навигация' })
@@ -20,6 +20,36 @@ test('selects a group, shows today and week schedule, and keeps four-tab navigat
   await expect(page.getByText('Сейчас')).toBeVisible()
   await page.getByRole('button', { name: 'Неделя' }).click()
   await expect(page.getByRole('group', { name: 'Дни недели' })).toBeVisible()
+  const days = page.getByRole('group', { name: 'Дни недели' })
+  await expect(days.getByRole('button')).toHaveCount(7)
+  await expect(days.getByRole('button').nth(3)).toHaveAttribute('aria-pressed', 'true')
+  expect(await days.evaluate((element) => {
+    const selected = element.querySelector('button[aria-pressed="true"]')!.getBoundingClientRect()
+    const viewport = element.getBoundingClientRect()
+    return Math.abs(selected.left + selected.width / 2 - (viewport.left + viewport.width / 2))
+  })).toBeLessThanOrEqual(1)
+  const expectedWindow = await page.evaluate(() => {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+    const base = new Date(`${today}T12:00:00Z`)
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(base)
+      date.setUTCDate(date.getUTCDate() + index - 3)
+      return new Intl.DateTimeFormat('ru-RU', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' }).format(date)
+    })
+  })
+  expect(await days.locator('button strong').allTextContents()).toEqual(expectedWindow)
+  await page.screenshot({ path: testInfo.outputPath('week-window-320.png') })
+  await days.getByRole('button').nth(2).click()
+  await expect(days.getByRole('button').nth(2)).toHaveAttribute('aria-pressed', 'true')
+  expect(await days.locator('button strong').allTextContents()).toEqual(expectedWindow)
+  await page.getByRole('button', { name: 'Сегодня' }).click()
+  await page.getByRole('button', { name: 'Неделя' }).click()
+  await expect(days.getByRole('button').nth(3)).toHaveAttribute('aria-pressed', 'true')
+  expect(await days.evaluate((element) => {
+    const selected = element.querySelector('button[aria-pressed="true"]')!.getBoundingClientRect()
+    const viewport = element.getBoundingClientRect()
+    return Math.abs(selected.left + selected.width / 2 - (viewport.left + viewport.width / 2))
+  })).toBeLessThanOrEqual(1)
   await expect(page.locator('.schedule-meta')).toContainText('2026/2027 · осень')
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Электротехника' })).toBeVisible()
@@ -121,7 +151,7 @@ test('keeps mobile page scroll locked while schedule lessons scroll inside their
     await page.getByRole('button', { name: 'Неделя' }).click()
     const dayPicker = page.getByRole('group', { name: 'Дни недели' })
     await expect(dayPicker).toBeVisible()
-    await dayPicker.locator('button:not([aria-pressed="true"])').first().click()
+    await dayPicker.locator('button').nth(2).click()
     await expect(page.getByRole('heading', { name: 'Физика' })).toBeVisible()
     await expect(page.locator('.schedule-meta')).toContainText('2026/2027 · осень')
     await page.locator('main').evaluate((element) => element.scrollTo(0, 9999))
@@ -195,8 +225,8 @@ test('keeps landscape Week navigation fixed while only lessons scroll vertically
     }
     await page.getByRole('button', { name: 'Неделя' }).click()
     const days = page.getByRole('group', { name: 'Дни недели' })
-    await expect(days.locator('button')).toHaveCount(6)
-    const alternateIndex = await days.locator('button:not([aria-pressed="true"])').first().evaluate((element) => [...element.parentElement!.children].indexOf(element))
+    await expect(days.locator('button')).toHaveCount(7)
+    const alternateIndex = 2
     const lastDay = days.locator('button').last()
     await days.locator('button').nth(alternateIndex).click()
     await expect(page.getByRole('heading', { name: 'Физика' })).toBeVisible()

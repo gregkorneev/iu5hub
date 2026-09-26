@@ -46,8 +46,7 @@ export const test = base.extend<{ telegram: TelegramState; welcomeComplete: bool
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
     await page.clock.setFixedTime(new Date(`${today}T09:30:00.000Z`))
     const todayUtc = new Date(`${today}T00:00:00Z`)
-    const weekday = todayUtc.getUTCDay()
-    const alternateDay = new Date(todayUtc.getTime() + (weekday === 1 ? 1 : weekday === 0 ? -6 : 1 - weekday) * 86400000).toISOString().slice(0, 10)
+    const alternateDay = new Date(todayUtc.getTime() - 86400000).toISOString().slice(0, 10)
     await page.route('**/data/schedule/groups.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), groups: [{ id: 'iu5-34b', name: 'ИУ5-34Б' }, { id: 'iu5-35b', name: 'ИУ5-35Б' }] } }))
     const formatTime = (minutes: number) => `${String(Math.floor(((minutes % 1440) + 1440) % 1440 / 60)).padStart(2, '0')}:${String(((minutes % 1440) + 1440) % 1440 % 60).padStart(2, '0')}`
     const nowMinutes = 12 * 60 + 30
