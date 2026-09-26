@@ -101,14 +101,14 @@ function Home() {
       <div className="section-title"><div><p className="eyebrow">Курсы</p><h2>Материалы на Яндекс.Диске</h2></div></div>
       <div className="course-grid">{courses.map((course, index) => <Link key={course.id} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span>{index + 1}</span><strong>{course.title}</strong><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div>
     </section>
-    <section className="home-favorites" aria-labelledby="home-favorites-title">
+    {!favorites.loading && !favorites.error && favorites.items.length > 0 && <section className="home-favorites" aria-labelledby="home-favorites-title">
       <Link className="home-favorites__link" to="/profile">
         <Heart aria-hidden="true" focusable="false" />
-        <span className="home-favorites__copy"><h2 id="home-favorites-title">Избранное</h2><small>{favorites.loading ? 'Загружаем…' : favorites.error ? 'Список сейчас недоступен' : favorites.items.length ? 'Сохранённые папки и файлы' : 'Сохраняйте сердечком'}</small></span>
-        <span className="home-favorites__count" aria-label={favorites.loading ? 'Загрузка' : `${favorites.items.length} в избранном`}>{favorites.loading ? '…' : favorites.error ? '—' : favorites.items.length}</span>
+        <span className="home-favorites__copy"><h2 id="home-favorites-title">Избранное</h2><small>Сохранённые папки и файлы</small></span>
+        <span className="home-favorites__count" aria-label={`${favorites.items.length} в избранном`}>{favorites.items.length}</span>
         <ChevronRight aria-hidden="true" focusable="false" />
       </Link>
-    </section>
+    </section>}
     <section className="home-links" aria-labelledby="home-links-title">
       <div className="section-title"><h2 id="home-links-title">Полезные ссылки</h2></div>
       <p className="home-links__empty">Пока здесь нет ссылок.</p>

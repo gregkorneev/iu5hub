@@ -8,6 +8,7 @@ test('shows the empty Useful Links section below courses on the home screen', as
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
   await expect(courses).toBeVisible()
   await expect(usefulLinks).toBeVisible()
+  await expect(page.locator('.home-favorites')).toHaveCount(0)
   await expect(usefulLinks).toContainText('Пока здесь нет ссылок.')
 
   const coursesBounds = await courses.boundingBox()
@@ -63,7 +64,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         width: document.documentElement.scrollWidth,
         main: main.scrollHeight,
         mainClient: main.clientHeight,
-        header: box('header'), greeting: box('.user-greeting'), content: box('main'), hero: box('.hero'), heroEyebrow: box('.hero .eyebrow'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesEyebrow: box('.home-courses .eyebrow'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), favorites: box('.home-favorites'), links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
+        header: box('header'), greeting: box('.user-greeting'), content: box('main'), hero: box('.hero'), heroEyebrow: box('.hero .eyebrow'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesEyebrow: box('.home-courses .eyebrow'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
       }
     })
@@ -81,10 +82,14 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} title → cards`).toBeGreaterThanOrEqual(width <= 340 && height <= 600 ? 4 : 8)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)
-    expect(metrics.links.top).toBeGreaterThanOrEqual(metrics.favorites.bottom)
     const homeSectionGap = height > 740 ? 16 : 0
-    expect(metrics.favorites.top - metrics.courses.bottom, `${width}×${height} courses → favorites`).toBeGreaterThanOrEqual(homeSectionGap)
-    expect(metrics.links.top - metrics.favorites.bottom, `${width}×${height} favorites → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
+    if (metrics.favorites) {
+      expect(metrics.links.top).toBeGreaterThanOrEqual(metrics.favorites.bottom)
+      expect(metrics.favorites.top - metrics.courses.bottom, `${width}×${height} courses → favorites`).toBeGreaterThanOrEqual(homeSectionGap)
+      expect(metrics.links.top - metrics.favorites.bottom, `${width}×${height} favorites → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
+    } else {
+      expect(metrics.links.top - metrics.courses.bottom, `${width}×${height} courses → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
+    }
     expect(metrics.footer.top).toBeGreaterThanOrEqual(metrics.links.bottom)
     expect(metrics.footer.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
     expect(metrics.nav.bottom).toBeLessThanOrEqual(height - 24)
