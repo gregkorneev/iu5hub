@@ -82,6 +82,9 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)
     expect(metrics.links.top).toBeGreaterThanOrEqual(metrics.favorites.bottom)
+    const homeSectionGap = height > 740 ? 16 : 0
+    expect(metrics.favorites.top - metrics.courses.bottom, `${width}×${height} courses → favorites`).toBeGreaterThanOrEqual(homeSectionGap)
+    expect(metrics.links.top - metrics.favorites.bottom, `${width}×${height} favorites → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
     expect(metrics.footer.top).toBeGreaterThanOrEqual(metrics.links.bottom)
     expect(metrics.footer.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
     expect(metrics.nav.bottom).toBeLessThanOrEqual(height - 24)
