@@ -84,7 +84,11 @@ function Layout({ children }: { children: ReactNode }) {
       </nav>
     </div>
     <main key={`${location.pathname}${location.search}`} data-navigation={direction}>
-      {home ? <div className="home-content-stack">{user && <p className="user-greeting">Привет, {user.firstName}</p>}{children}</div> : children}
+      {home ? <div className="home-content-stack">{user && <Link className="user-greeting" to="/profile" aria-label={`Открыть профиль: ${user.firstName || user.username || 'Студент'}`}>
+        <span className="user-greeting__avatar" aria-hidden="true">{(user.firstName || user.username || 'С').trim().charAt(0).toLocaleUpperCase()}</span>
+        <span className="user-greeting__identity"><strong>{user.firstName || user.username || 'Студент'}</strong>{user.username && <small>@{user.username}</small>}</span>
+        <ChevronRight aria-hidden="true" focusable="false" />
+      </Link>}{children}</div> : children}
     </main>
     <footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer>
     {showWelcome && <Welcome onFinish={() => setShowWelcome(false)} />}

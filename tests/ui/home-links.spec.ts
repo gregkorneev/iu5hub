@@ -1,5 +1,27 @@
 import { test, expect } from './fixtures'
 
+test('shows the Telegram identity as a compact link to Profile only for signed-in users', async ({ page }) => {
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 })
+    await page.goto('/#/')
+    const identity = page.getByRole('link', { name: /Открыть профиль:/ })
+    await expect(identity).toHaveAttribute('href', '#/profile')
+    await expect(identity.locator('.user-greeting__avatar')).toHaveText('С')
+    await expect(identity.locator('strong')).toContainText('Студент с очень длинным именем')
+    await expect(identity.locator('small')).toHaveText('@student')
+    const bounds = await identity.boundingBox()
+    expect(bounds).not.toBeNull()
+    expect(bounds!.height).toBeGreaterThanOrEqual(44)
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width)
+    await identity.click()
+    await expect(page).toHaveURL(/#\/profile$/)
+    await expect(page.getByRole('heading', { name: 'Избранное' })).toBeVisible()
+  }
+  await page.evaluate(() => { (window as Window & { Telegram: { WebApp: { initDataUnsafe: { user?: unknown } } } }).Telegram.WebApp.initDataUnsafe.user = undefined })
+  await page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Каталог' }).click()
+  await expect(page.locator('.user-greeting')).toHaveCount(0)
+})
+
 test('shows clickable Yandex Disk and GitHub links below courses on the home screen', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/')
