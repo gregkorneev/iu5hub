@@ -43,6 +43,10 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await expect(ugapanyukLink).toHaveAttribute('href', 'https://ugapanyuk.github.io')
   await expect(yandexLink).toHaveAttribute('target', '_blank')
   await expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
+  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub Ю.Е', 'Гапанюк']]] as const) {
+    await expect(link.locator('.home-links__label > span')).toHaveText(lines)
+    await expect(link).toHaveAttribute('aria-label', lines.join(' '))
+  }
   for (const link of [yandexLink, githubLink, ugapanyukLink]) {
     await expect(link.locator('svg')).toHaveCount(1)
     const box = await link.boundingBox()
