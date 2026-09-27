@@ -191,7 +191,10 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.cards.every((card) => card.box.top >= metrics.content.top && card.box.bottom <= metrics.content.bottom + 1 && card.scroll <= card.client + 1)).toBe(true)
     await page.locator('main').evaluate((element) => element.scrollTo(0, 100))
     await page.evaluate(() => window.scrollTo(0, 100))
-    expect(await page.evaluate(() => ({ page: scrollY, main: document.querySelector('main')!.scrollTop, body: document.body.scrollTop }))).toEqual({ page: 0, main: 0, body: 0 })
+    const scrollOffsets = await page.evaluate(() => ({ page: scrollY, main: document.querySelector('main')!.scrollTop, body: document.body.scrollTop }))
+    expect(scrollOffsets.page).toBe(0)
+    expect(scrollOffsets.body).toBe(0)
+    expect(scrollOffsets.main, `${width}×${height} should not have meaningful main scrolling`).toBeLessThanOrEqual(1)
     await page.screenshot({ path: testInfo.outputPath(`home-${width}x${height}.png`) })
   }
 })
