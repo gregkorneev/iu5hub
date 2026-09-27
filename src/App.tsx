@@ -83,8 +83,9 @@ function Layout({ children }: { children: ReactNode }) {
         </Link>)}
       </nav>
     </div>
-    {user && home && <p className="user-greeting">Привет, {user.firstName}</p>}
-    <main key={`${location.pathname}${location.search}`} data-navigation={direction}>{children}</main>
+    <main key={`${location.pathname}${location.search}`} data-navigation={direction}>
+      {home ? <div className="home-content-stack">{user && <p className="user-greeting">Привет, {user.firstName}</p>}{children}</div> : children}
+    </main>
     <footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer>
     {showWelcome && <Welcome onFinish={() => setShowWelcome(false)} />}
   </div>

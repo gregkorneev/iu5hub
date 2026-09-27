@@ -99,8 +99,38 @@ test('shows a Favorites block between courses and Useful Links and opens the exi
   await expect(page.getByText('Физика.pdf', { exact: true })).toBeVisible()
 })
 
+test('centers the full home stack including Favorites on a tall phone', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.route('**/api/profile/favorites', (route) => route.fulfill({ json: { items: [
+    { courseId: 'course-1', path: '/1 sem/Математика', type: 'dir', name: 'Математика', createdAt: 1 },
+  ] } }))
+  await page.goto('/#/')
+  await expect(page.locator('.home-favorites')).toBeVisible()
+
+  const geometry = await page.evaluate(() => {
+    const main = document.querySelector('main')!
+    const mainBox = main.getBoundingClientRect()
+    const stackBox = document.querySelector('.home-content-stack')!.getBoundingClientRect()
+    const styles = getComputedStyle(main)
+    const innerTop = mainBox.top + parseFloat(styles.paddingTop)
+    const innerBottom = mainBox.bottom - parseFloat(styles.paddingBottom)
+    return {
+      stackCenter: stackBox.top + stackBox.height / 2,
+      availableCenter: (innerTop + innerBottom) / 2,
+      mainScrollHeight: main.scrollHeight,
+      mainClientHeight: main.clientHeight,
+      width: document.documentElement.scrollWidth,
+      viewportWidth: innerWidth,
+    }
+  })
+  expect(Math.abs(geometry.stackCenter - geometry.availableCenter)).toBeLessThanOrEqual(8)
+  expect(geometry.mainScrollHeight).toBeLessThanOrEqual(geometry.mainClientHeight + 1)
+  expect(geometry.width).toBeLessThanOrEqual(geometry.viewportWidth)
+  await page.screenshot({ path: testInfo.outputPath('home-balanced-390x844-with-favorites.png') })
+})
+
 test('fits the complete home screen without page or main scrolling on Telegram phones', async ({ page }, testInfo) => {
-  for (const [width, height] of [[295, 667], [320, 568], [375, 667], [390, 720], [390, 730], [390, 844], [430, 932]]) {
+  for (const [width, height] of [[295, 667], [320, 568], [375, 667], [390, 720], [390, 730], [390, 844], [393, 852], [430, 932]]) {
     await page.setViewportSize({ width, height })
     await page.goto('/#/')
     await page.evaluate((viewportHeight) => {
@@ -120,7 +150,9 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         width: document.documentElement.scrollWidth,
         main: main.scrollHeight,
         mainClient: main.clientHeight,
-        header: box('header'), greeting: box('.user-greeting'), content: box('main'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
+        header: box('header'), greeting: box('.user-greeting'), content: box('main'), stack: box('.home-content-stack'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
+        innerTop: box('main').top + parseFloat(getComputedStyle(document.querySelector('main')!).paddingTop),
+        innerBottom: box('main').bottom - parseFloat(getComputedStyle(document.querySelector('main')!).paddingBottom),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
       }
     })
@@ -128,6 +160,11 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.body, `${width}×${height} body`).toBeLessThanOrEqual(height + 1)
     expect(metrics.width, `${width}×${height} horizontal`).toBeLessThanOrEqual(width)
     expect(metrics.main, `${width}×${height} main`).toBeLessThanOrEqual(metrics.mainClient + 1)
+    if ([390, 393, 430].includes(width) && height >= 844) {
+      const stackCenter = metrics.stack.top + metrics.stack.height / 2
+      const availableCenter = (metrics.innerTop + metrics.innerBottom) / 2
+      expect(Math.abs(stackCenter - availableCenter), `${width}×${height} content stack should be centered in free space`).toBeLessThanOrEqual(8)
+    }
     expect(metrics.greeting.top).toBeGreaterThanOrEqual(metrics.header.bottom)
     expect(Math.abs(metrics.greeting.left - metrics.heroDescription.left), `${width}×${height} greeting left alignment`).toBeLessThanOrEqual(1)
     expect(Math.abs(metrics.greeting.left - metrics.coursesTitle.left), `${width}×${height} courses left alignment`).toBeLessThanOrEqual(1)
