@@ -2,6 +2,7 @@
 
 | Status | Issue | Impact / resolution |
 | --- | --- | --- |
+| Open | Telegram native fullscreen and physical launch paths remain unverified | Browser/API mocks cannot verify profile OPEN, message/menu buttons, native controls, Dynamic Island/notch, Home Indicator, system keyboard, Android back or Desktop client behavior. Run the matrix in `telegram.md` on Telegram iOS, Android and Desktop. |
 | Resolved | В горизонтальном окне iPad профиль оставлял свободную область справа | Ограничение ширины Profile снято на landscape планшетах 768–1366px; содержимое занимает доступную ширину приложения. Проверено на 1024×768 и 1180×820 в Chromium и WebKit. |
 | Resolved | Подписи «Полезных ссылок» переносились в непредсказуемом месте | Заданы явные смысловые переносы для трёх ссылок, включая «GitHub» / «Ю. Е. Гапанюк»; доступное название ссылки сохранено целиком. Playwright проверяет текст каждой строки. |
 | Resolved | Приветствие на главной начиналось с отдельным отступом и выглядело мельче остального текста | Убрали дополнительный горизонтальный margin, поэтому приветствие, описание и «Курсы» используют одну линию; размер приветствия на телефоне — 16px. Playwright проверяет выравнивание на 295–430px и коротком экране без прокрутки. |

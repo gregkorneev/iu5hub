@@ -133,10 +133,12 @@ Before release, exercise forged `initData`/Telegram ID, direct `/#/admin/stats` 
 | Search, empty and long query; подсказки при вводе | useful | required |
 | Internal route / reopen | useful | required where supported |
 | External Yandex Disk link | useful | required |
-| Theme, Compact/Fullsize/Fullscreen viewport, safe areas, BackButton | n/a | required |
+| Theme, startup fullscreen request and unsupported fallback, viewport/safe areas, BackButton | API mock and layout only | required on Telegram clients |
 | Keyboard/focus and touch targets | useful | required |
 
 For curated folder search, verify one-character suggestions, case-insensitive tag and teacher prefixes, no result for blank/unmatched input, and direct navigation when selecting a suggestion. Text search should not make Yandex API requests; Yandex is used after navigation to load the folder contents.
+
+2026-09-27 Telegram fullscreen change: lint, typecheck, 30 Vitest tests, 54 Node/Worker tests, static catalog/schedule checks and production build passed. Focused Telegram initialization tests passed (6/6), including API/version gating, missing/throwing API fallback, fullscreen failure fallback, and live device/content inset updates. Safe-area browser checks passed in WebKit (2/2). The full browser suite ran 150 checks: 141 passed and 9 failed in pre-existing uncommitted favorites/search UI changes (three scenarios across Chromium, mobile Chromium and WebKit); native Telegram device behavior was not tested. Do not treat the Playwright mock as proof of Telegram fullscreen.
 
 Записывайте невыполнимые проверки и причину в `known-issues.md`.
 
@@ -151,7 +153,7 @@ For curated folder search, verify one-character suggestions, case-insensitive ta
 - GitHub Actions: `verify` и выбранный static deploy job completed successfully; в log подтверждён target без раскрытия secrets.
 - Cloud.ru: HTTPS endpoint возвращает актуальные `index.html`, `error.html`, hashed JS/CSS assets и `logo-iu5.jpeg`; `index.html` имеет `no-cache, no-store, must-revalidate`, assets — `public, max-age=31536000, immutable`, root files — `no-cache`.
 - Routing: открыть base endpoint, deep HashRouter URL вида `/#/material/<id>` и каталог курса вида `/#/course/<course-id>?path=<folder-path>`; Static Website Hosting должен отдавать `index.html` для base endpoint. Из вложенной папки проверить Telegram BackButton и browser back: они возвращают на предыдущую внутреннюю страницу, а при отсутствии истории — на главную.
-- Telegram: технический HTTPS endpoint задан как Mini App URL и проверен в iOS, Android, Desktop и Web; в каждом клиенте проверены Compact, Fullsize и, если клиент предоставляет его, Fullscreen. После `viewportChanged`/safe-area change контент остаётся видимым, без горизонтального скролла и без сброса маршрута или введённого поиска; приложение не должно автоматически расширяться.
+- Telegram: технический HTTPS endpoint задан как Mini App URL. For fullscreen work, verify profile OPEN, message button, menu button, Main Mini App direct link, admin link and close/reopen as listed in `telegram.md`; read `isFullscreen` after startup on supported clients and record `fullscreenFailed`/fallback on others. Exercise iOS native top controls/notch/Dynamic Island and Home Indicator, Android system navigation/back, Desktop fallback, portrait/landscape, and Search keyboard. Local fixture can model API values/events and responsive geometry but cannot verify client-provided fullscreen chrome or physical-device keyboard behavior.
 - Rollback: перед release известен last-known-good commit/artifact; bucket versioning включён или прошлый artifact хранится отдельно от deploy target.
 
 2026-09-25: first-launch onboarding passed `npm run qa`: lint, typecheck, 24 Vitest, 54 Node/Worker tests, validations, production build and Playwright 132/132 across Chromium, mobile Chromium and WebKit. The 12 onboarding scenarios assert focus/keyboard access, Skip/Start/Escape persistence, deep-link preservation, BackButton pause/resume, dark Telegram theme, safe-area fit and axe accessibility/color contrast. Visual screenshot at 390×844 reviewed locally; real Telegram WebView and device storage lifecycle remain unverified.

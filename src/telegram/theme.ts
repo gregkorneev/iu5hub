@@ -8,7 +8,9 @@ export const applyTelegramTheme = () => {
   const app = getTelegramWebApp()
   const params = app?.themeParams
   document.documentElement.style.colorScheme = app?.colorScheme ?? ''
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', app?.colorScheme === 'dark' ? '#0d203a' : '#f6faff')
+  const headerColor = params?.bg_color ?? (app?.colorScheme === 'dark' ? '#0d203a' : '#f6faff')
+  app?.setHeaderColor?.(headerColor)
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', headerColor)
   if (app?.colorScheme) document.documentElement.dataset.telegramTheme = app.colorScheme
   else delete document.documentElement.dataset.telegramTheme
   set('--platform-background', params?.bg_color)
