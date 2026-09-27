@@ -652,3 +652,6 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home .home-links__list a > svg:first-child { width: 1rem; height: 1rem; }
   .app--home footer { padding-bottom: var(--space-1); font-size: .625rem; }
 }
+@media (max-height: 600px) {
+  .app--home main { padding-block: var(--space-1) 0; }
+}
