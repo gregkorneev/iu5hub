@@ -539,6 +539,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 .favorite-error { padding: .75rem 1rem; border: 1px solid var(--material-edge); border-radius: var(--radius-medium); background: var(--surface-secondary); color: var(--text-primary); }
 .favorite-error button { min-height: 2.75rem; margin-left: .5rem; border: 0; background: transparent; color: var(--action); text-decoration: underline; }
 .profile-page { max-width: 48rem; }
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) { .profile-page { max-width: none; } }
 .profile-page > .eyebrow { margin: 0 0 var(--space-4); }
 .profile-page > h1 { margin: 0; }
 .profile-username { margin: var(--space-3) 0 0; color: var(--text-secondary); }

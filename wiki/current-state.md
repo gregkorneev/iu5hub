@@ -1,5 +1,6 @@
 # Current state
 
+- **Profile on iPad landscape (2026-09-27):** Profile no longer has its extra 48rem width cap at landscape tablet widths (768–1366px); it uses the full app content width. Playwright measures the layout at 1024×768 and 1180×820 and confirms no horizontal overflow. Other routes and portrait/mobile Profile widths are unchanged.
 - **Useful Links labels (2026-09-27):** the three home links now use explicit two-line labels matching the requested breaks: «Диск ИУ5 от / @kirschnya», «GitHub / @tal3nt3d», «GitHub Ю.Е / Гапанюк». The accessible link name remains a single phrase.
 - **Home greeting alignment (2026-09-27):** greeting now shares the same left edge as the home description and «Курсы», with no extra horizontal margin; its mobile font is 16px. Playwright measures alignment and greeting size at 295–430px, including short-height no-scroll layouts.
 - **Schedule date strip (2026-09-27):** date selection scrolls horizontally only. The strip clips vertical overflow, cannot shrink vertically in its flex column, and hides browser scrollbar chrome while retaining native horizontal swiping and centered-date adjustment. Browser regression verifies horizontal content remains scrollable, vertical overflow is hidden and dates remain usable on portrait/landscape.

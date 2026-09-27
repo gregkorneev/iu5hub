@@ -95,6 +95,21 @@ test('gives profile text blocks breathing room across mobile and desktop widths'
   }
 })
 
+test('uses the available width for Profile on iPad landscape', async ({ page }, testInfo) => {
+  for (const { width, height } of [{ width: 1024, height: 768 }, { width: 1180, height: 820 }]) {
+    await page.setViewportSize({ width, height })
+    await page.goto('/#/profile')
+    const sizes = await page.evaluate(() => {
+      const main = document.querySelector('main')!.getBoundingClientRect()
+      const profile = document.querySelector('.profile-page')!.getBoundingClientRect()
+      return { main: main.width, profile: profile.width, overflow: document.documentElement.scrollWidth - innerWidth }
+    })
+    expect(sizes.profile).toBeGreaterThanOrEqual(sizes.main - 1)
+    expect(sizes.overflow).toBeLessThanOrEqual(0)
+    await page.screenshot({ path: testInfo.outputPath(`profile-ipad-landscape-${width}.png`) })
+  }
+})
+
 test('keeps the first Profile and Schedule content clear of the header with Telegram top safe area', async ({ page }, testInfo) => {
   for (const { width, height } of [{ width: 320, height: 568 }, { width: 390, height: 844 }]) {
     await page.setViewportSize({ width, height })
