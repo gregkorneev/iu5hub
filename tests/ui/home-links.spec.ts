@@ -36,22 +36,27 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await expect(usefulLinks).toBeVisible()
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
+  const freshmenLink = usefulLinks.getByRole('link', { name: 'Будущим первокурсникам' })
   const githubLink = usefulLinks.getByRole('link', { name: 'GitHub @tal3nt3d' })
   const ugapanyukLink = usefulLinks.getByRole('link', { name: 'GitHub Ю. Е. Гапанюк' })
   await expect(yandexLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
+  await expect(freshmenLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
   await expect(githubLink).toHaveAttribute('href', 'https://github.com/tal3nt3d/iu5manual')
   await expect(ugapanyukLink).toHaveAttribute('href', 'https://ugapanyuk.github.io')
   await expect(yandexLink).toHaveAttribute('target', '_blank')
   await expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
-  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub', 'Ю. Е. Гапанюк']]] as const) {
+  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [freshmenLink, ['Будущим', 'первокурсникам']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub', 'Ю. Е. Гапанюк']]] as const) {
     await expect(link.locator('.home-links__label > span')).toHaveText(lines)
     await expect(link).toHaveAttribute('aria-label', lines.join(' '))
   }
-  for (const link of [yandexLink, githubLink, ugapanyukLink]) {
+  for (const link of [yandexLink, freshmenLink, githubLink, ugapanyukLink]) {
     await expect(link.locator('svg')).toHaveCount(1)
     const box = await link.boundingBox()
     expect(box?.height).toBeGreaterThanOrEqual(44)
   }
+  const linkRows = await usefulLinks.locator('.home-links__list > li').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)))
+  expect(new Set(linkRows.slice(0, 3)).size).toBe(1)
+  expect(linkRows[3]).toBeGreaterThan(linkRows[0])
 
   const coursesBounds = await courses.boundingBox()
   const linksBounds = await usefulLinks.boundingBox()
@@ -69,9 +74,10 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await page.screenshot({ path: testInfo.outputPath('home-useful-links-dark.png') })
 
   await yandexLink.click()
+  await freshmenLink.click()
   await githubLink.click()
   await ugapanyukLink.click()
-  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
+  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
 })
 
 test('shows a Favorites block between courses and Useful Links and opens the existing profile', async ({ page }) => {
