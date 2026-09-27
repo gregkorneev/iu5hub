@@ -133,7 +133,10 @@ test.describe('Студент ИУ5 critical UI', () => {
 
   test('suggests from one character and opens a case-insensitive teacher match directly', async ({ page }) => {
     await page.goto('/#/search')
-    const input = page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' })
+    const input = page.getByRole('searchbox', { name: 'Поиск по предметам и преподавателям' })
+    await expect(input).toHaveAttribute('placeholder', 'Предмет или преподаватель')
+    await expect(page.getByText('Введите название предмета или имя преподавателя.')).toBeVisible()
+    expect(await page.locator('body').innerText()).not.toMatch(/тег/i)
     await input.fill('г')
     const hints = page.getByLabel('Подсказки поиска')
     await expect(hints).toContainText('Аналитическая геометрия')
@@ -176,9 +179,9 @@ test.describe('Студент ИУ5 critical UI', () => {
   test('keeps search suggestions tappable after opening Search from the bottom navigation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/#/')
-    await expect(page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' })).toHaveCount(0)
+    await expect(page.getByRole('searchbox', { name: 'Поиск по предметам и преподавателям' })).toHaveCount(0)
     await page.getByRole('link', { name: 'Поиск' }).click()
-    await page.getByRole('searchbox', { name: 'Поиск по тегам и преподавателям' }).fill('м')
+    await page.getByRole('searchbox', { name: 'Поиск по предметам и преподавателям' }).fill('м')
     const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Математичес/ })
     await expect(suggestion).toBeVisible()
     expect(await suggestion.evaluate((element) => {

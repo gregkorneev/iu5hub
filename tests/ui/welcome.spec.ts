@@ -20,6 +20,8 @@ test('introduces Catalog, Search and Schedule once, then opens the app on reload
   }
   await dialog.getByRole('button', { name: 'Далее' }).click()
   await expect(dialog.getByRole('heading', { name: 'Быстрый поиск' })).toBeVisible()
+  await expect(dialog.getByText('Ищите предмет или преподавателя с первых букв запроса.')).toBeVisible()
+  await expect(dialog).not.toContainText(/тег/i)
   await expect(dialog.getByText('Первый запуск · 2 из 3')).toBeVisible()
   await page.evaluate(() => { location.hash = '#/search' })
   await expect(page).toHaveURL(/#\/search$/)
