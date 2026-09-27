@@ -185,7 +185,7 @@ test.describe('Студент ИУ5 critical UI', () => {
     await usefulLinks.scrollIntoViewIfNeeded()
     await expect(usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
     await expect(usefulLinks.getByRole('link', { name: 'GitHub @tal3nt3d' })).toHaveAttribute('href', 'https://github.com/tal3nt3d/iu5manual')
-    await expect(usefulLinks.getByRole('link', { name: 'GitHub Ю.Е Гапанюк' })).toHaveAttribute('href', 'https://ugapanyuk.github.io')
+    await expect(usefulLinks.getByRole('link', { name: 'GitHub Ю. Е. Гапанюк' })).toHaveAttribute('href', 'https://ugapanyuk.github.io')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   })
 

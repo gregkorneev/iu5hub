@@ -37,13 +37,13 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
   const githubLink = usefulLinks.getByRole('link', { name: 'GitHub @tal3nt3d' })
-  const ugapanyukLink = usefulLinks.getByRole('link', { name: 'GitHub Ю.Е Гапанюк' })
+  const ugapanyukLink = usefulLinks.getByRole('link', { name: 'GitHub Ю. Е. Гапанюк' })
   await expect(yandexLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
   await expect(githubLink).toHaveAttribute('href', 'https://github.com/tal3nt3d/iu5manual')
   await expect(ugapanyukLink).toHaveAttribute('href', 'https://ugapanyuk.github.io')
   await expect(yandexLink).toHaveAttribute('target', '_blank')
   await expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
-  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub Ю.Е', 'Гапанюк']]] as const) {
+  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub', 'Ю. Е. Гапанюк']]] as const) {
     await expect(link.locator('.home-links__label > span')).toHaveText(lines)
     await expect(link).toHaveAttribute('aria-label', lines.join(' '))
   }

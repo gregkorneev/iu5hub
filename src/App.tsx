@@ -116,7 +116,7 @@ function Home() {
       <ul className="home-links__list">
         <li><a aria-label="Диск ИУ5 от @kirschnya" href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><HardDrive aria-hidden="true" focusable="false" /><span className="home-links__label"><span>Диск ИУ5 от</span><span>@kirschnya</span></span></a></li>
         <li><a aria-label="GitHub @tal3nt3d" href="https://github.com/tal3nt3d/iu5manual" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span className="home-links__label"><span>GitHub</span><span>@tal3nt3d</span></span></a></li>
-        <li><a aria-label="GitHub Ю.Е Гапанюк" href="https://ugapanyuk.github.io" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span className="home-links__label"><span>GitHub Ю.Е</span><span>Гапанюк</span></span></a></li>
+        <li><a aria-label="GitHub Ю. Е. Гапанюк" href="https://ugapanyuk.github.io" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span className="home-links__label"><span>GitHub</span><span>Ю. Е. Гапанюк</span></span></a></li>
       </ul>
     </section>
   </>
