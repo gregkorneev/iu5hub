@@ -651,6 +651,11 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home .course-grid a { min-height: 3.5rem; padding: .375rem var(--space-2); gap: 1px; }
   .app--home .course-grid b { margin-top: 0; font-size: .625rem; }
 }
+@media (min-width: 341px) and (max-width: 380px) and (max-height: 680px) and (orientation: portrait) {
+  .app--home main { padding-top: var(--space-1); }
+  .app--home .hero > p:not(.eyebrow), .app--home .hero + .home-courses { margin-top: var(--space-1); }
+  .app--home .course-grid { gap: 2px; }
+}
 @media (min-width: 480px) and (max-width: 620px) and (max-height: 740px) and (orientation: portrait) {
   .app--home .home-favorites, .app--home .home-links { margin-top: var(--space-2); }
 }
