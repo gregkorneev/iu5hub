@@ -17,6 +17,7 @@ test('selects a group, shows a centered seven-day picker, and keeps four-tab nav
   await search.fill('34б')
   await page.getByRole('button', { name: 'ИУ5-34Б' }).click()
   await expect(page.getByRole('heading', { name: 'Электротехника' })).toBeVisible()
+  await expect(page.locator('.schedule-week')).toHaveText(/^\d+-я неделя · (числитель|знаменатель)$/)
   await expect(page.getByText('Сейчас')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Сегодня', exact: true })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Неделя', exact: true })).toHaveCount(0)
@@ -29,6 +30,9 @@ test('selects a group, shows a centered seven-day picker, and keeps four-tab nav
   expect(dayScroll.scrollbarWidth).toBe('none')
   expect(dayScroll.contentWidth).toBeGreaterThan(dayScroll.width)
   await expect(days.getByRole('button').nth(3)).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('.schedule-week')).toBeVisible()
+  expect(await page.locator('.schedule-week').evaluate((element) => element.clientHeight <= Number.parseFloat(getComputedStyle(element).lineHeight) + 1)).toBe(true)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   expect(await days.evaluate((element) => {
     const selected = element.querySelector('button[aria-pressed="true"]')!.getBoundingClientRect()
     const viewport = element.getBoundingClientRect()

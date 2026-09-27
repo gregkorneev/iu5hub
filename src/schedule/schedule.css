@@ -1,6 +1,7 @@
 .schedule-page { min-width: 0; }
 .schedule-group-heading, .schedule-profile-block { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); }
 .schedule-group-heading { margin-block:var(--space-4); }
+.schedule-week { flex:1 1 8rem; min-width:0; color:var(--text-secondary); font-size:var(--type-meta); line-height:1.25; text-align:center; white-space:nowrap; }
 .schedule-profile-block { flex-wrap:wrap; padding:var(--space-4); border:1px solid var(--material-edge); border-radius:var(--radius-medium); background:var(--material-content); }
 .schedule-profile-block > div { display:grid; gap:var(--space-1); }
 .schedule-profile-block .eyebrow, .schedule-profile-block small { margin:0; }
@@ -30,7 +31,10 @@
   .schedule-page > .eyebrow { margin-bottom:var(--space-1); }
   .schedule-page > h1 { margin:var(--space-1) 0 var(--space-2); font-size:1.75rem; }
   .schedule-group-heading strong { min-width:0; overflow-wrap:anywhere; }
-  .schedule-group-heading { margin-block:var(--space-2); }
+  .schedule-group-heading { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--space-1) var(--space-3); margin-block:var(--space-2); }
+  .schedule-group-heading > strong { grid-column:1; grid-row:1; }
+  .schedule-group-heading .schedule-week { grid-column:1 / -1; grid-row:2; text-align:start; }
+  .schedule-group-heading > .button { grid-column:2; grid-row:1; }
   .schedule-days { margin-block:var(--space-2); }
   .schedule-days { padding-bottom:4px; }
   .schedule-lessons { flex:1 1 auto; min-height:0; align-content:start; grid-auto-rows:max-content; overflow-y:auto; overscroll-behavior-y:contain; }
