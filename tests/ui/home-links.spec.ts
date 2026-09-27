@@ -14,6 +14,8 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
       groupCenter: group.left + group.width / 2,
       brandCenter: brand.left + brand.width / 2,
       greetingLeft: greeting.left,
+      descriptionLeft: document.querySelector('.hero > p:not(.eyebrow)')!.getBoundingClientRect().left,
+      coursesLeft: document.querySelector('.home-courses h2')!.getBoundingClientRect().left,
       greetingColor: getComputedStyle(document.querySelector('.user-greeting')!).color,
       brandColor: getComputedStyle(document.querySelector('.brand')!).color,
       greetingFontSize: parseFloat(getComputedStyle(document.querySelector('.user-greeting')!).fontSize),
@@ -22,8 +24,10 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   expect(Math.abs(brandGeometry.groupCenter - brandGeometry.headerCenter)).toBeLessThanOrEqual(1)
   expect(Math.abs(brandGeometry.brandCenter - brandGeometry.headerCenter)).toBeLessThanOrEqual(1)
   expect(brandGeometry.greetingLeft).toBeLessThan(brandGeometry.headerCenter)
+  expect(brandGeometry.greetingLeft).toBeCloseTo(brandGeometry.descriptionLeft, 0)
+  expect(brandGeometry.greetingLeft).toBeCloseTo(brandGeometry.coursesLeft, 0)
   expect(brandGeometry.greetingColor).toBe(brandGeometry.brandColor)
-  expect(brandGeometry.greetingFontSize).toBeGreaterThanOrEqual(14)
+  expect(brandGeometry.greetingFontSize).toBeGreaterThanOrEqual(16)
   await expect(page.locator('.hero h1')).toHaveClass(/sr-only/)
 
   const courses = page.locator('.home-courses')
@@ -121,6 +125,8 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.width, `${width}×${height} horizontal`).toBeLessThanOrEqual(width)
     expect(metrics.main, `${width}×${height} main`).toBeLessThanOrEqual(metrics.mainClient + 1)
     expect(metrics.greeting.top).toBeGreaterThanOrEqual(metrics.header.bottom)
+    expect(Math.abs(metrics.greeting.left - metrics.heroDescription.left), `${width}×${height} greeting left alignment`).toBeLessThanOrEqual(1)
+    expect(Math.abs(metrics.greeting.left - metrics.coursesTitle.left), `${width}×${height} courses left alignment`).toBeLessThanOrEqual(1)
     expect(metrics.hero.top).toBeGreaterThanOrEqual(metrics.greeting.bottom)
     expect(metrics.heroTitle.width).toBeLessThanOrEqual(1)
     expect(metrics.heroDescription.top - metrics.greeting.bottom, `${width}×${height} greeting → description`).toBeGreaterThanOrEqual(4)
