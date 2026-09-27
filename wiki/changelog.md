@@ -1,5 +1,6 @@
 # Changelog
 
+- 2026-09-27: Главная адаптирует вертикальные отступы и высоту карточек под эффективную safe-area Telegram, когда на ней показано избранное. На высоких iPhone-подобных viewport контент помещается без внутреннего скролла; на коротких экранах естественная прокрутка сохраняется.
 - 2026-09-27: Telegram startup now requests true Bot API fullscreen centrally after `ready()` and `expand()`, falls back to expanded height on unsupported/failure clients and does not re-request after user exit. Device/content safe-area insets and live viewport events feed responsive layout; theme color is sent to Telegram for status/control contrast. API tests/build pass; native clients remain unverified. Current official Web Apps docs document `mode=compact`, not `mode=fullscreen`.
 - 2026-09-27: Приветствие на главной выровнено по левому краю основного текста и секции «Курсы» без собственного бокового отступа; мобильный кегль увеличен до 16px.
 - 2026-09-27: В полосе выбора даты расписания отключён вертикальный overflow и скрыты системные полосы прокрутки; даты остаются доступны горизонтальным свайпом, вертикально прокручивается только список занятий.

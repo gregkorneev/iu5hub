@@ -698,6 +698,10 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 @media (max-height: 600px) {
   .app--home main { padding-block: var(--space-1) 0; }
 }
-@media (min-height: 741px) {
-  .app--home main { padding-bottom: calc(var(--space-6) + var(--space-6)); }
+@media (min-width: 341px) and (max-width: 620px) and (min-height: 741px) and (orientation: portrait) {
+  .app--home main { padding-bottom: clamp(0px, calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 756px), 4rem); }
+  .app--home .course-grid a { min-height: clamp(4rem, calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 780px + 4rem), 5.5rem); }
+  .app--home:has(.home-favorites) .course-grid a { min-height: clamp(4rem, calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 820px + 4rem), 5.5rem); }
+  .app--home:has(.home-favorites) .hero + .home-courses { margin-top: clamp(var(--space-2), calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-4)); }
+  .app--home:has(.home-favorites) .home-favorites, .app--home:has(.home-favorites) .home-links { margin-top: clamp(var(--space-2), calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-5)); }
 }

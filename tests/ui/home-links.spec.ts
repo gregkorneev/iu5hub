@@ -156,6 +156,47 @@ test('centers the full home stack including Favorites on a tall phone', async ({
   await page.screenshot({ path: testInfo.outputPath('home-balanced-390x844-with-favorites.png') })
 })
 
+test('fits Home with a saved item and Telegram fullscreen insets without hiding real overflow', async ({ page }, testInfo) => {
+  await page.route('**/api/profile/favorites', route => route.fulfill({ json: { items: [
+    { courseId: 'course-1', path: '1 семестр', type: 'dir', name: '1 семестр', createdAt: 1 },
+  ] } }))
+  for (const [height, top] of [[844, 24], [844, 92], [853, 92], [720, 92]]) {
+    await page.setViewportSize({ width: 393, height })
+    await page.goto('/#/')
+    await page.evaluate(({ height, top }) => {
+      const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; safeAreaInset: object; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.viewportHeight = height
+      app.viewportStableHeight = height
+      app.safeAreaInset = { top: top === 92 ? 59 : 0, right: 0, bottom: 34, left: 0 }
+      app.contentSafeAreaInset = { top, right: 0, bottom: 34, left: 0 }
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('viewportChanged')
+    }, { height, top })
+    await expect(page.locator('.home-favorites')).toBeVisible()
+    const geometry = await page.evaluate(() => {
+      const main = document.querySelector('main')!
+      const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+      return { doc: document.documentElement.scrollHeight, body: document.body.scrollHeight, main: main.scrollHeight, client: main.clientHeight,
+        greeting: box('.user-greeting').top, header: box('header').bottom, links: box('.home-links').bottom, footer: box('footer').top, footerBottom: box('footer').bottom, nav: box('.bottom-nav').top }
+    })
+    expect(geometry.doc).toBeLessThanOrEqual(height + 1)
+    expect(geometry.body).toBeLessThanOrEqual(height + 1)
+    expect(geometry.greeting).toBeGreaterThanOrEqual(geometry.header)
+    expect(geometry.footerBottom).toBeLessThanOrEqual(geometry.nav - 4)
+    if (height >= 844) {
+      expect(geometry.main, `${height}px viewport, ${top}px top inset`).toBeLessThanOrEqual(geometry.client + 1)
+      expect(geometry.links).toBeLessThanOrEqual(geometry.footer + 1)
+      await page.locator('main').evaluate(element => element.scrollTo(0, 100))
+      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(1)
+    } else {
+      expect(geometry.main).toBeGreaterThan(geometry.client)
+      await page.locator('main').evaluate(element => element.scrollTo(0, element.scrollHeight))
+      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeGreaterThan(0)
+      await expect(page.getByRole('link', { name: 'Будущим первокурсникам' })).toBeInViewport()
+    }
+    if (height === 844 && top === 92) await page.screenshot({ path: testInfo.outputPath('home-393x844-telegram-fullscreen-favorite.png') })
+  }
+})
+
 test('fits the complete home screen without page or main scrolling on Telegram phones', async ({ page }, testInfo) => {
   for (const [width, height] of [[295, 667], [320, 568], [375, 667], [390, 720], [390, 730], [390, 844], [393, 852], [430, 932]]) {
     await page.setViewportSize({ width, height })
