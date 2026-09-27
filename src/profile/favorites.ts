@@ -11,10 +11,26 @@ const request = async (method: 'GET' | 'PUT' | 'DELETE', item?: FavoriteInput | 
     headers: { ...initDataHeaders(), ...(item ? { 'Content-Type': 'application/json' } : {}) },
     body: item ? JSON.stringify(item) : undefined,
   })
-  if (!response.ok) throw new Error(response.status === 401 ? 'Откройте приложение через Telegram, чтобы пользоваться избранным.' : 'Не удалось сохранить избранное. Попробуйте ещё раз.')
+  if (!response.ok) {
+    const message = response.status === 401
+      ? 'Откройте приложение через Telegram, чтобы пользоваться избранным.'
+      : method === 'GET'
+        ? 'Не удалось загрузить избранное. Проверьте подключение и попробуйте ещё раз.'
+        : 'Не удалось сохранить избранное. Попробуйте ещё раз.'
+    throw new Error(message)
+  }
   return response
 }
 
-export const getFavorites = async (): Promise<Favorite[]> => (await (await request('GET')).json() as { items: Favorite[] }).items
+export const getFavorites = async (): Promise<Favorite[]> => {
+  try {
+    const payload = await (await request('GET')).json() as { items?: unknown }
+    if (!Array.isArray(payload.items)) throw new Error('Invalid favorites response')
+    return payload.items as Favorite[]
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Откройте приложение через Telegram, чтобы пользоваться избранным.') throw error
+    throw new Error('Не удалось загрузить избранное. Проверьте подключение и попробуйте ещё раз.')
+  }
+}
 export const addFavorite = async (item: FavoriteInput) => { await request('PUT', { courseId: item.courseId, path: item.path, type: item.type, name: item.name }) }
 export const removeFavorite = async (item: FavoriteInput) => { await request('DELETE', { courseId: item.courseId, path: item.path }) }

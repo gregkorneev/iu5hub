@@ -18,3 +18,13 @@ it('uses signed Telegram data and the correct payload for favorite mutations', a
   expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ courseId: item.courseId, path: item.path, type: item.type, name: item.name })
   expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({ courseId: item.courseId, path: item.path })
 })
+
+it('shows a user-friendly message when the favorites response is invalid', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('<!doctype html>', { status: 200, headers: { 'Content-Type': 'text/html' } })))
+  await expect(getFavorites()).rejects.toThrow('Не удалось загрузить избранное. Проверьте подключение и попробуйте ещё раз.')
+})
+
+it('shows a user-friendly message when the favorites service is unavailable', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 503 })))
+  await expect(getFavorites()).rejects.toThrow('Не удалось загрузить избранное. Проверьте подключение и попробуйте ещё раз.')
+})

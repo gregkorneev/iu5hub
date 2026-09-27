@@ -2,6 +2,7 @@ import folderIndex from '../generated/search-folder-index.json'
 
 export interface TaggedFolder { objectKey: string; courseId: string; path: string; diskPath: string; name: string; tags: string[]; teachers: string[] }
 export interface FolderSearchResult extends TaggedFolder { matchedTerms: string[] }
+export const folderMatchLabel = ({ matchedTerms, teachers }: FolderSearchResult) => matchedTerms.slice(0, 2).map((term) => teachers.includes(term) ? `Преподаватель: ${term}` : `Тег: ${term}`).join(' · ')
 
 const folders = folderIndex as TaggedFolder[]
 const normalize = (value: string) => value.normalize('NFC').trim().toLocaleLowerCase('ru')

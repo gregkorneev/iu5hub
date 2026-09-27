@@ -139,6 +139,23 @@ test('rolls back a failed favorite write and leaves catalog controls usable', as
   await expect(page).toHaveURL(/#\/course\/course-1\?path=/)
 })
 
+test('keeps favorites errors understandable when the API returns an invalid response and retry recovers', async ({ page }) => {
+  let attempts = 0
+  await page.route('**/api/profile/favorites', async (route) => {
+    if (route.request().method() !== 'GET') return route.fallback()
+    attempts += 1
+    if (attempts <= 2) return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html>' })
+    return route.fulfill({ json: { items: [] } })
+  })
+  await page.goto('/#/profile')
+  await expect(page.getByRole('heading', { name: 'Не удалось загрузить избранное' })).toBeVisible()
+  await expect(page.getByRole('alert')).toContainText('Проверьте подключение и попробуйте ещё раз')
+  await expect(page.getByRole('alert')).not.toContainText('Unexpected token')
+  await page.getByRole('button', { name: 'Повторить' }).click()
+  await expect(page.getByRole('heading', { name: 'В избранном пока ничего нет' })).toBeVisible()
+  expect(attempts).toBe(3)
+})
+
 test('offers removal when a saved file is gone from Yandex Disk', async ({ page }) => {
   await page.goto('/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80')
   const file = page.locator('.disk-file').filter({ hasText: 'Лекция 1.pdf' })

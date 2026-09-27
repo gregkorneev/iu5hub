@@ -18,6 +18,7 @@
 | приватной аналитике и метриках | `analytics.md`, `security.md` |
 | личном профиле и избранном | `profile.md`, `decisions/ADR-0004-telegram-profile-favorites.md` |
 | расписании учебных групп ИУ5 | `schedule.md` |
+| полном UX-аудите и рекомендациях | `ux-audit.md` |
 | рисках и временном контексте | `known-issues.md`, `agent-handoffs.md` |
 
 Код и тесты выше Wiki в иерархии истины; при расхождении обновляйте документацию.

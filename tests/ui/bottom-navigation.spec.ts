@@ -145,9 +145,11 @@ test.describe('persistent bottom navigation', () => {
     await nav.getByRole('link', { name: 'Поиск' }).click()
     expect(new URL(page.url()).hash).toBe(searchPath)
     await expect(searchInput).toBeFocused()
+    await expect(page.getByLabel('Подсказки поиска')).toHaveCount(0)
     await searchInput.evaluate((input: HTMLInputElement) => input.blur())
     await nav.getByRole('link', { name: 'Поиск' }).click()
     await expect(searchInput).toBeFocused()
+    await expect(page.getByLabel('Подсказки поиска')).toHaveCount(0)
   })
 
   test('shows Statistics only for confirmed admins and maps direct routes, unknown paths, and role denial', async ({ page }) => {
