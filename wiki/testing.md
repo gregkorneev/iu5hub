@@ -34,6 +34,7 @@ The Excel workbook is regenerated from CSV by `npm run search:workbook`; its hum
 - Cloudflare Pages config: required token/account/project values and a valid project name.
 - Playwright critical UI suite: startup, courses/folders/files, direct HashRouter route, Russian/empty search, Telegram BackButton fixture, mobile overflow and serious/critical axe violations. Vite starts automatically through Playwright `webServer`; no tunnel or Telegram login is required.
 - Header branding uses the single public asset `/logo-iu5.jpeg`; the browser suite verifies it loads on the home route.
+- Telegram mobile header regression verifies the brand is left-aligned and clears the top controls on a 430×844 viewport using distinct 59px device and 92px content safe-area insets. Physical Telegram device rendering remains a manual check.
 - Основной текст использует системный стек шрифтов, а бренд — локальный ALS Sector. Browser checks загружают Regular и Bold и проверяют, что бренд использует ALS Sector, а корневой элемент — системный стек.
 - Home search: on a mobile viewport a live suggestion must remain visually above the course catalog and tappable at its centre; the regression asserts it with `document.elementFromPoint`.
 - Home search also accepts a Latin transliteration of a Russian query (for example, `ma` finds `Математический анализ`); the mobile regression covers this input before checking the suggestion's tappability.

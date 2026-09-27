@@ -1,6 +1,30 @@
 import { test, expect } from './fixtures'
 
 test.describe('persistent bottom navigation', () => {
+  test('places the Telegram mobile brand below interface controls and aligns it to the app edge', async ({ page }) => {
+    await page.setViewportSize({ width: 430, height: 844 })
+    await page.goto('/#/')
+    await page.evaluate(() => {
+      const app = (window as Window & { Telegram: { WebApp: { safeAreaInset: Record<string, number>; contentSafeAreaInset: Record<string, number> } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.safeAreaInset = { top: 59, right: 0, bottom: 34, left: 0 }
+      app.contentSafeAreaInset = { top: 92, right: 0, bottom: 34, left: 0 }
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('contentSafeAreaChanged')
+    })
+
+    const geometry = await page.evaluate(() => {
+      const app = document.querySelector('.app')!.getBoundingClientRect()
+      const header = document.querySelector('.app > header')!.getBoundingClientRect()
+      const brand = document.querySelector('.header-brand-group')!.getBoundingClientRect()
+      return { appLeft: app.left, headerTop: header.top, brandLeft: brand.left }
+    })
+    expect(geometry.headerTop).toBeGreaterThanOrEqual(99)
+    const greeting = await page.locator('.user-greeting').boundingBox()
+    const header = await page.locator('.app > header').boundingBox()
+    expect(greeting && header).toBeTruthy()
+    expect(greeting!.y).toBeGreaterThanOrEqual(header!.y + header!.height)
+    expect(Math.abs(geometry.brandLeft - geometry.appLeft)).toBeLessThanOrEqual(1)
+  })
+
   test('brand logo and text return home from every primary route and a search result', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 720 })
     await page.goto('/#/course/course-1')
@@ -167,7 +191,8 @@ test.describe('persistent bottom navigation', () => {
     const group = await page.locator('header .header-brand-group').boundingBox()
     const header = await page.locator('header').boundingBox()
     expect(header && brand && statisticsBounds && group).toBeTruthy()
-    expect(Math.abs(group!.x + group!.width / 2 - (header!.x + header!.width / 2))).toBeLessThanOrEqual(1)
+    if (await page.evaluate(() => innerWidth <= 620)) expect(Math.abs(group!.x - header!.x)).toBeLessThanOrEqual(1)
+    else expect(Math.abs(group!.x + group!.width / 2 - (header!.x + header!.width / 2))).toBeLessThanOrEqual(1)
     expect(statisticsBounds!.x).toBeGreaterThanOrEqual(brand!.x + brand!.width)
     expect(statisticsBounds!.x - (brand!.x + brand!.width)).toBeLessThanOrEqual(12)
     expect(group!.x).toBeGreaterThanOrEqual(header!.x)

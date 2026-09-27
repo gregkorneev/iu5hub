@@ -9,6 +9,9 @@ export const applyTelegramViewport = () => {
   set('--tg-viewport-stable-height', app.viewportStableHeight)
   const device = app.safeAreaInset
   const content = app.contentSafeAreaInset
+  const deviceTop = device?.top ?? 0
+  const contentTop = content?.top ?? 0
+  set('--tg-header-clearance', deviceTop > 0 ? Math.max(0, 40 - Math.max(0, contentTop - deviceTop)) : 0)
   for (const side of ['top', 'right', 'bottom', 'left'] as const) {
     const deviceInset = device?.[side] ?? 0
     const contentInset = content?.[side] ?? 0

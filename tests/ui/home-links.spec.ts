@@ -5,14 +5,13 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await page.goto('/#/')
 
   const brandGeometry = await page.evaluate(() => {
-    const header = document.querySelector('header')!.getBoundingClientRect()
     const group = document.querySelector('.header-brand-group')!.getBoundingClientRect()
     const brand = document.querySelector('.brand')!.getBoundingClientRect()
     const greeting = document.querySelector('.user-greeting')!.getBoundingClientRect()
     return {
-      headerCenter: header.left + header.width / 2,
-      groupCenter: group.left + group.width / 2,
-      brandCenter: brand.left + brand.width / 2,
+      appLeft: document.querySelector('.app')!.getBoundingClientRect().left,
+      groupLeft: group.left,
+      brandLeft: brand.left,
       greetingLeft: greeting.left,
       descriptionLeft: document.querySelector('.hero > p:not(.eyebrow)')!.getBoundingClientRect().left,
       coursesLeft: document.querySelector('.home-courses h2')!.getBoundingClientRect().left,
@@ -21,9 +20,9 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
       greetingFontSize: parseFloat(getComputedStyle(document.querySelector('.user-greeting')!).fontSize),
     }
   })
-  expect(Math.abs(brandGeometry.groupCenter - brandGeometry.headerCenter)).toBeLessThanOrEqual(1)
-  expect(Math.abs(brandGeometry.brandCenter - brandGeometry.headerCenter)).toBeLessThanOrEqual(1)
-  expect(brandGeometry.greetingLeft).toBeLessThan(brandGeometry.headerCenter)
+  expect(Math.abs(brandGeometry.groupLeft - brandGeometry.appLeft)).toBeLessThanOrEqual(1)
+  expect(Math.abs(brandGeometry.brandLeft - brandGeometry.appLeft)).toBeLessThanOrEqual(1)
+  expect(brandGeometry.greetingLeft).toBeCloseTo(brandGeometry.appLeft, 0)
   expect(brandGeometry.greetingLeft).toBeCloseTo(brandGeometry.descriptionLeft, 0)
   expect(brandGeometry.greetingLeft).toBeCloseTo(brandGeometry.coursesLeft, 0)
   expect(brandGeometry.greetingColor).toBe(brandGeometry.brandColor)
