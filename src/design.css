@@ -438,7 +438,7 @@ section + section { margin-top: 2.5rem; }
 }
 
 .app--home { display:flex; flex-direction:column; height:auto; min-height:var(--tg-viewport-height); overflow:visible; }
-.app--home main { display:flex; flex:1 1 auto; flex-direction:column; justify-content:safe center; min-height:0; padding-block:var(--space-4) calc(var(--space-6) + var(--space-6)); }
+.app--home main { display:flex; flex:1 1 auto; flex-direction:column; justify-content:safe center; min-height:0; padding-block:var(--space-4) var(--space-6); }
 .home-content-stack { width:100%; }
 html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: auto; }
 
@@ -581,7 +581,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home { --bottom-nav-clearance: 4.25rem; }
   .app--home header { position: relative; top: 0; min-height: 3rem; }
   .app--home .user-greeting { margin: var(--space-1) 0 var(--space-1); font-size: 1rem; line-height: 1.2; }
-  .app--home main { padding: var(--space-4) 0 calc(var(--space-6) + var(--space-6)); }
+  .app--home main { padding: var(--space-4) 0 var(--space-6); }
   .app--home .hero { margin-bottom: 0; }
   .app--home section + section { margin-top: var(--space-1); }
   .app--home .hero + .home-courses { margin-top: var(--space-4); }
@@ -654,4 +654,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 }
 @media (max-height: 600px) {
   .app--home main { padding-block: var(--space-1) 0; }
+}
+@media (min-height: 741px) {
+  .app--home main { padding-bottom: calc(var(--space-6) + var(--space-6)); }
 }
