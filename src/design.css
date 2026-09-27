@@ -658,14 +658,15 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home .hero > p:not(.eyebrow), .app--home .hero + .home-courses { margin-top: var(--space-1); }
   .app--home .user-greeting { margin-bottom: 2px; }
   .app--home .section-title { margin-bottom: var(--space-1); }
-  .app--home .course-grid a { min-height: 3.5rem; padding: .375rem var(--space-2); }
+  .app--home .course-grid { gap: 0; }
+  .app--home .course-grid a { min-height: 3.25rem; padding: .25rem var(--space-2); }
   .app--home .course-grid b { display: none; }
   .app--home .home-favorites__link { min-height: 2.75rem; }
   .app--home .home-favorites__copy small { display: none; }
   .app--home .home-favorites__link > svg:first-child { width: 1rem; height: 1rem; }
   .app--home .home-links .section-title { margin-bottom: var(--space-1); }
-  .app--home .home-links__list a { min-height: 3rem; padding-block: var(--space-1); font-size: .6875rem; }
-  .app--home .home-links__list a > svg:first-child { width: 1rem; height: 1rem; }
+  .app--home .home-links__list a { min-height: 3rem; gap: 2px; padding-block: var(--space-1); font-size: .625rem; }
+  .app--home .home-links__list a > svg:first-child { width: .875rem; height: .875rem; }
   .app--home footer { padding-bottom: var(--space-1); font-size: .625rem; }
 }
 @media (max-height: 600px) {
