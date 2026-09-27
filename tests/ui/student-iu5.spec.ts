@@ -139,7 +139,8 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(hints).toContainText('Аналитическая геометрия')
     await expect(hints.getByRole('button').first().locator('strong')).toHaveText('Аналитическая геометрия')
     await expect(hints.getByRole('button').first().locator('small').first()).toHaveText('1 course / 1 Семестр')
-    await expect(hints.getByRole('button').first().locator('.search-match')).toHaveText('Преподаватель: Грибов')
+    await expect(hints.locator('.search-match')).toHaveCount(0)
+    await expect(hints).not.toContainText(/совпадение по|найдено по|преподаватель:|тег:/i)
     await input.fill('ГРИБ')
     const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Аналитическая геометрия/ })
     await expect(suggestion).toBeVisible()
@@ -149,14 +150,20 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(page.getByRole('button', { name: 'Конспект.pdf Скачать файл' })).toBeVisible()
   })
 
-  test('full search uses only tagged folders with case-insensitive prefixes', async ({ page }) => {
-    await page.goto('/#/search?q=%D0%93%D0%A0%D0%98%D0%91')
-    await expect(page.getByText('Найдено папок: 2')).toBeVisible()
-    const result = page.getByRole('link', { name: /Аналитическая геометрия/ })
-    await expect(result).toBeVisible()
-    await expect(result.locator('strong')).toHaveText('Аналитическая геометрия')
-    await expect(result.locator('small').first()).toHaveText('1 course / 1 Семестр')
-    await expect(result.locator('.search-match')).toHaveText('Преподаватель: Грибов')
+  test('full search uses only tagged folders with case-insensitive prefixes and compact context', async ({ page }, testInfo) => {
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 })
+      await page.goto('/#/search?q=%D0%93%D0%A0%D0%98%D0%91')
+      await expect(page.getByText('Найдено папок: 2')).toBeVisible()
+      const result = page.getByRole('link', { name: /Аналитическая геометрия/ })
+      await expect(result).toBeVisible()
+      await expect(result.locator('strong')).toHaveText('Аналитическая геометрия')
+      await expect(result.locator('small')).toHaveCount(1)
+      await expect(result.locator('small').first()).toHaveText('1 course / 1 Семестр')
+      await expect(result).not.toContainText(/совпадение по|найдено по|преподаватель:|тег:/i)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
+      if (width === 320) await page.screenshot({ path: testInfo.outputPath('search-results-320.png'), fullPage: true })
+    }
     await page.goto('/#/search?q=%D1%84%D0%B8%D0%B7%D0%B8%D0%BA%D0%B0')
     const physicsResults = page.getByRole('link', { name: /Физика/ })
     await expect(physicsResults).toHaveCount(2)
