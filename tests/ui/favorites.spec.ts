@@ -48,6 +48,31 @@ test('saves folders and files without opening them, restores them after reload, 
   await expect(page.getByRole('heading', { name: 'В избранном пока ничего нет' })).toBeVisible()
 })
 
+test('opens a saved folder from anywhere on its card while keeping the heart action separate', async ({ page }) => {
+  await page.goto('/#/course/course-1')
+  const semester = page.locator('.semester-button-grid .favorite-card').first()
+  await semester.getByRole('button', { name: /Добавить в избранное/ }).click()
+  await page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Профиль' }).click()
+
+  const folder = page.locator('.profile-item--folder').filter({ hasText: 'Курс 1' }).first()
+  const openFolderAt = async (x: number, y: number) => {
+    const bounds = await folder.boundingBox()
+    expect(bounds).toBeTruthy()
+    await page.mouse.click(bounds!.x + x, bounds!.y + y)
+    await expect(page).toHaveURL(/#\/course\/course-1\?path=/)
+    await page.goto('/#/profile')
+  }
+
+  const bounds = await folder.boundingBox()
+  expect(bounds).toBeTruthy()
+  await openFolderAt(8, bounds!.height / 2)
+  await openFolderAt(bounds!.width - 90, bounds!.height - 8)
+
+  await folder.getByRole('button', { name: /Удалить из избранного/ }).click()
+  await expect(page).toHaveURL(/#\/profile$/)
+  await expect(folder).toHaveCount(0)
+})
+
 test('keeps favorite hearts clear of folder and file titles throughout the catalog and profile', async ({ page }, testInfo) => {
   const longRootName = 'Очень длинное название папки для проверки переноса текста на маленьком экране'
   const longSubjectName = 'Парадигмы и конструкции языков программирования'

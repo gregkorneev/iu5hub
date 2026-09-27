@@ -556,6 +556,10 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
 .profile-group h3 { margin: 0; font-size: 1rem; color: var(--text-secondary); }
 .profile-group .disk-list { margin-top: .75rem; }
 .profile-item { grid-template-columns: 1.5rem minmax(0, 1fr) 2.75rem; align-items: center; gap: .75rem; }
+.profile-item--folder { position: relative; }
+.profile-item__folder-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.profile-item__folder-link:focus-visible::after { outline: 2px solid var(--action); outline-offset: -3px; }
+.profile-item--folder > .favorite-button { position: relative; z-index: 1; }
 .profile-item__icon { position: relative; width: 1.375rem; height: 1.25rem; }
 .profile-item__icon--dir::before, .profile-item__icon--dir::after { content: ""; position: absolute; left: 0; background: var(--action); }
 .profile-item__icon--dir::before { top: .25rem; width: 1.375rem; height: 1rem; border-radius: .1875rem; }
