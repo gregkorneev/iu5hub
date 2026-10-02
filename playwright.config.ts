@@ -15,7 +15,9 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-chromium', use: { ...devices['iPhone 13'], browserName: 'chromium' } },
+    ...(process.platform === 'darwin' ? [] : [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }]),
     { name: 'webkit', use: { ...devices['iPhone 13'], browserName: 'webkit' } },
+    { name: 'webkit-desktop', use: { ...devices['Desktop Safari'], browserName: 'webkit' } },
   ],
   webServer: {
     command: 'npm run dev -- --host 127.0.0.1 --port 4173',

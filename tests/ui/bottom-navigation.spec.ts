@@ -64,8 +64,8 @@ test.describe('persistent bottom navigation', () => {
         return { x, y, hitBrand: link.contains(document.elementFromPoint(x, y)), scrollY }
       }, part)
       expect(point.hitBrand, `${part} on ${destination}: ${JSON.stringify(point)}`).toBe(true)
-      if (testInfo.project.name === 'chromium') await page.mouse.click(point.x, point.y)
-      else await page.touchscreen.tap(point.x, point.y)
+      if (testInfo.project.use.isMobile) await page.touchscreen.tap(point.x, point.y)
+      else await page.mouse.click(point.x, point.y)
       await expect(page).toHaveURL(/#\/$/)
       await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
       await expect(page.getByRole('heading', { name: 'Студент ИУ5', level: 1 })).toBeVisible()

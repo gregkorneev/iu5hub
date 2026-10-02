@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-02
+
+- Search suggestions now retain visibility while keyboard focus moves through the suggestion group and close when focus leaves it. A regression test covers Tab navigation in Chromium desktop/mobile and suggestion selection in WebKit.
+- Playwright coverage now includes desktop WebKit in addition to Chromium, mobile Chromium, and mobile WebKit emulation. Ubuntu CI installs Firefox; local Firefox is skipped on macOS due to the OS profile-creation failure.
+- Added a successful full cross-browser QA record and documented the remaining physical-device, real Telegram WebView, assistive-technology, local favorites API, and Safari download-permission checks in `wiki/ux-audit.md`, `wiki/testing.md`, and `wiki/known-issues.md`.
+
 - 2026-09-27: Главная адаптирует вертикальные отступы и высоту карточек под эффективную safe-area Telegram, когда на ней показано избранное. На высоких iPhone-подобных viewport контент помещается без внутреннего скролла; на коротких экранах естественная прокрутка сохраняется.
 - 2026-09-27: Telegram startup now requests true Bot API fullscreen centrally after `ready()` and `expand()`, falls back to expanded height on unsupported/failure clients and does not re-request after user exit. Device/content safe-area insets and live viewport events feed responsive layout; theme color is sent to Telegram for status/control contrast. API tests/build pass; native clients remain unverified. Current official Web Apps docs document `mode=compact`, not `mode=fullscreen`.
 - 2026-09-27: Приветствие на главной выровнено по левому краю основного текста и секции «Курсы» без собственного бокового отступа; мобильный кегль увеличен до 16px.

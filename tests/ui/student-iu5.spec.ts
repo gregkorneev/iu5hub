@@ -153,6 +153,37 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(page.getByRole('button', { name: 'Конспект.pdf Скачать файл' })).toBeVisible()
   })
 
+  test('keeps Search suggestions available while keyboard focus moves through the results', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.startsWith('webkit'), 'WebKit on this host does not tab-focus buttons without macOS full keyboard access')
+    await page.goto('/#/search')
+    const input = page.getByRole('searchbox', { name: 'Поиск по предметам и преподавателям' })
+    await input.fill('гриб')
+    const suggestion = page.getByLabel('Подсказки поиска').getByRole('button').first()
+    await expect(suggestion).toBeVisible()
+
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('button', { name: 'Найти' })).toBeFocused()
+    await page.waitForTimeout(200)
+    await expect(suggestion).toBeVisible()
+    await page.keyboard.press('Tab')
+    await expect(suggestion).toBeFocused()
+
+    await page.keyboard.press('Tab')
+    await expect(page.getByLabel('Подсказки поиска').getByRole('button').nth(1)).toBeFocused()
+    await page.keyboard.press('Tab')
+    await page.waitForTimeout(200)
+    await expect(page.getByLabel('Подсказки поиска')).toHaveCount(0)
+
+    await input.fill('гриб')
+    await expect(suggestion).toBeVisible()
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Enter')
+
+    await expect(page).toHaveURL(/#\/course\/course-1\?path=/)
+    await expect(page.getByText(/^Папка:/)).toContainText('Аналитическая геометрия')
+  })
+
   test('full search uses only tagged folders with case-insensitive prefixes and compact context', async ({ page }, testInfo) => {
     for (const width of [320, 390]) {
       await page.setViewportSize({ width, height: 844 })

@@ -15,13 +15,14 @@ export function SearchBox({ initial = '', compact = false, autoFocus = false }: 
   const [edited, setEdited] = useState(false)
   const listId = useId()
   const currentSuggestions = query.trim() ? searchFolders(query).slice(0, 8) : []
+  const suggestionsOpen = focused && edited && currentSuggestions.length > 0
   const openFolder = (item: { courseId: string; diskPath: string }) => navigate(`/course/${item.courseId}?path=${encodeURIComponent(item.diskPath)}`, { state: { fromTab: 'search', searchPath: `/search?q=${encodeURIComponent(query.trim())}` } })
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const value = query.trim()
     if (value) { track('search'); navigate(`/search?q=${encodeURIComponent(value)}`) }
   }
-  return <div className="search-shell"><form className={`search ${compact ? 'search--compact' : ''}`} role="search" onSubmit={submit}><label className="sr-only" htmlFor={listId}>Поиск по предметам и преподавателям</label><input id={listId} name="q" type="search" value={query} onFocus={() => setFocused(true)} onBlur={() => globalThis.setTimeout(() => setFocused(false), 150)} onChange={({ target }) => { setQuery(target.value); setEdited(true) }} placeholder="Предмет или преподаватель" autoComplete="off" autoFocus={autoFocus} /><button type="submit">Найти</button></form>{focused && edited && currentSuggestions.length > 0 && <div className="search-suggestions" aria-label="Подсказки поиска">{currentSuggestions.map((item) => <button key={item.objectKey} type="button" onClick={() => openFolder(item)}><strong>{item.name}</strong><small>{item.path.split('/').slice(0, -1).join(' / ') || item.path}</small></button>)}</div>}</div>
+  return <div className="search-shell" onFocus={() => setFocused(true)} onBlur={(event) => { const shell = event.currentTarget; globalThis.setTimeout(() => setFocused(shell.contains(document.activeElement)), 0) }}><form className={`search ${compact ? 'search--compact' : ''}`} role="search" onSubmit={submit}><label className="sr-only" htmlFor={listId}>Поиск по предметам и преподавателям</label><input id={listId} name="q" type="search" value={query} onChange={({ target }) => { setQuery(target.value); setEdited(true) }} placeholder="Предмет или преподаватель" autoComplete="off" autoFocus={autoFocus} /><button type="submit">Найти</button></form>{suggestionsOpen && <div className="search-suggestions" role="group" aria-label="Подсказки поиска">{currentSuggestions.map((item) => <button key={item.objectKey} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => openFolder(item)}><strong>{item.name}</strong><small>{item.path.split('/').slice(0, -1).join(' / ') || item.path}</small></button>)}</div>}</div>
 }
 
 export function SubjectCard({ subject, count }: { subject: Subject; count?: number }) {

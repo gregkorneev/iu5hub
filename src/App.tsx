@@ -74,9 +74,9 @@ function Layout({ children }: { children: ReactNode }) {
       </div>
     </header>
     <div className="bottom-touch-bar">
-      {showBack && <div className="bottom-context-actions" role="group" aria-label="Действия текущего раздела">
+      {showBack && <nav className="bottom-context-actions" aria-label="Действия текущего раздела">
         <button className="in-app-back" onClick={() => goBack(navigate)}>← Назад</button>
-      </div>}
+      </nav>}
       <nav className="bottom-nav" aria-label="Основная навигация">
         {bottomTabs.map(({ id, to, label, Icon }) => <Link key={id} to={to} onClick={id === 'search' ? activateSearch : undefined} aria-current={activeNav === id ? 'page' : undefined}>
           <Icon aria-hidden="true" focusable="false" /><span>{label}</span>
