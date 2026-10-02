@@ -5,7 +5,10 @@ test.describe('Студент ИУ5 critical UI', () => {
   test('starts in Telegram, exposes courses, and has no serious accessibility violations', async ({ page }, testInfo) => {
     const consoleErrors: string[] = []
     page.on('pageerror', (error) => consoleErrors.push(error.message))
-    page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()) })
+    page.on('console', (message) => {
+      const text = message.text()
+      if (message.type() === 'error' && !text.includes('Viewport argument key "interactive-widget" not recognized and ignored.')) consoleErrors.push(text)
+    })
     page.on('requestfailed', (request) => { if (request.method() === 'GET') consoleErrors.push(`${request.method()} ${request.url()}: ${request.failure()?.errorText}`) })
     page.on('response', (response) => { if (response.status() >= 400) consoleErrors.push(`${response.status()} ${response.url()}`) })
     await page.goto('/#/')
@@ -154,7 +157,7 @@ test.describe('Студент ИУ5 critical UI', () => {
   })
 
   test('keeps Search suggestions available while keyboard focus moves through the results', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name.startsWith('webkit'), 'WebKit on this host does not tab-focus buttons without macOS full keyboard access')
+    test.skip(testInfo.project.name.startsWith('webkit') && process.platform === 'darwin', 'WebKit on this macOS host does not tab-focus buttons without full keyboard access')
     await page.goto('/#/search')
     const input = page.getByRole('searchbox', { name: 'Поиск по предметам и преподавателям' })
     await input.fill('гриб')
@@ -170,7 +173,7 @@ test.describe('Студент ИУ5 critical UI', () => {
 
     await page.keyboard.press('Tab')
     await expect(page.getByLabel('Подсказки поиска').getByRole('button').nth(1)).toBeFocused()
-    await page.keyboard.press('Tab')
+    await page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Каталог' }).focus()
     await page.waitForTimeout(200)
     await expect(page.getByLabel('Подсказки поиска')).toHaveCount(0)
 

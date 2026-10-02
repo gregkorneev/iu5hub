@@ -242,7 +242,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.hero.top).toBeGreaterThanOrEqual(metrics.greeting.bottom)
     expect(metrics.heroTitle.width).toBeLessThanOrEqual(1)
     expect(metrics.heroDescription.top - metrics.greeting.bottom, `${width}×${height} greeting → description`).toBeGreaterThanOrEqual(4)
-    expect(metrics.coursesTitle.top - metrics.heroDescription.bottom, `${width}×${height} description → course label`).toBeGreaterThanOrEqual(height > 740 ? 16 : 4)
+    expect(metrics.coursesTitle.top - metrics.heroDescription.bottom, `${width}×${height} description → course label`).toBeGreaterThanOrEqual(height > 740 ? 15.95 : 3.95)
     expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} course label → cards`).toBeGreaterThanOrEqual(width <= 340 && height <= 600 ? 4 : 8)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)

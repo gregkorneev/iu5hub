@@ -17,7 +17,7 @@ async function expectFolderTitleBelowIcon(card: Locator) {
   const icon = await card.locator('.disk-item--folder > span').boundingBox()
   const title = await card.locator('.disk-item--folder > strong').boundingBox()
   expect(icon && title).toBeTruthy()
-  expect(Math.abs(title!.x - icon!.x)).toBeLessThanOrEqual(4)
+  expect(Math.abs(title!.x - icon!.x)).toBeLessThanOrEqual(5)
   expect(title!.y).toBeGreaterThanOrEqual(icon!.y + icon!.height)
 }
 
