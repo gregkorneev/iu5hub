@@ -9,13 +9,13 @@ test('shows the Telegram identity as a compact link to Profile only for signed-i
     await expect(identity.locator('.user-greeting__avatar')).toHaveText('С')
     await expect(identity.locator('strong')).toContainText('Студент с очень длинным именем')
     await expect(identity.locator('small')).toHaveText('@student')
-    await expect(identity.locator('.user-greeting__identity')).toHaveCSS('display', 'flex')
-    const identityRows = await identity.locator('.user-greeting__identity').evaluate((element) => {
+    await expect(identity.locator('.user-greeting__identity')).toHaveCSS('display', 'grid')
+    const identityStacks = await identity.locator('.user-greeting__identity').evaluate((element) => {
       const name = element.querySelector('strong')!.getBoundingClientRect()
       const username = element.querySelector('small')!.getBoundingClientRect()
-      return name.right <= username.left && name.top < username.bottom && username.top < name.bottom
+      return username.top >= name.bottom
     })
-    expect(identityRows).toBeTruthy()
+    expect(identityStacks).toBeTruthy()
     const bounds = await identity.boundingBox()
     expect(bounds).not.toBeNull()
     expect(bounds!.height).toBeGreaterThanOrEqual(44)
