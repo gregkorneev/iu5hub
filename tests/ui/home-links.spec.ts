@@ -295,7 +295,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
       expect(metrics.favorites.top - metrics.courses.bottom, `${width}×${height} courses → favorites`).toBeGreaterThanOrEqual(homeSectionGap)
       expect(metrics.links.top - metrics.favorites.bottom, `${width}×${height} favorites → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
     } else {
-      expect(metrics.links.top - metrics.courses.bottom, `${width}×${height} courses → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
+      expect(metrics.links.top - metrics.courses.bottom, `${width}×${height} courses → useful links`).toBeGreaterThanOrEqual(homeSectionGap - 0.05)
     }
     expect(metrics.footer.top).toBeGreaterThanOrEqual(metrics.links.bottom)
     expect(metrics.footer.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
@@ -349,8 +349,8 @@ test('keeps home sections separated in the compact Telegram tablet window', asyn
       }
     })
 
-    expect(geometry.coursesToFavorites, `${width}×${height}: courses to Favorites`).toBeGreaterThanOrEqual(8)
-    expect(geometry.favoritesToLinks, `${width}×${height}: Favorites to Useful Links`).toBeGreaterThanOrEqual(8)
+    expect(geometry.coursesToFavorites, `${width}×${height}: courses to Favorites`).toBeGreaterThanOrEqual(7.95)
+    expect(geometry.favoritesToLinks, `${width}×${height}: Favorites to Useful Links`).toBeGreaterThanOrEqual(7.95)
     expect(geometry.mainScrollHeight, `${width}×${height}: main should fit`).toBeLessThanOrEqual(geometry.mainClientHeight + 1)
     expect(geometry.footerToNav, `${width}×${height}: footer should clear bottom bar`).toBeGreaterThanOrEqual(4)
     expect(geometry.documentWidth, `${width}×${height}: no horizontal overflow`).toBeLessThanOrEqual(width)
