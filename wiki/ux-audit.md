@@ -2,25 +2,25 @@
 
 ## Дополнение — 2 октября 2026
 
-Повторная cross-browser проверка прошла: `npm run qa` завершился успешно; 222 Playwright-проверки прошли, две клавиатурные WebKit-проверки пропущены из-за поведения Tab на macOS-хосте. Добавлены desktop WebKit проверки и Linux CI Firefox. Реальный P2 дефект поиска исправлен: подсказки больше не исчезают при переходе фокуса с поля ввода на кнопку и результат. Дополнительно проверен production сайт в macOS Safari: главная, каталог, поиск и Telegram-only подсказка в профиле работают. Safari показал запрос разрешения на загрузку PDF, который был отклонён; поэтому сам файл не скачивался.
+Повторная cross-browser проверка прошла: локальный `npm run qa` завершился успешно; 226 Playwright-проверок прошли, две клавиатурные WebKit-проверки пропущены из-за поведения Tab на macOS-хосте. GitHub Actions run [37069107899](https://github.com/gregkorneev/iu5hub/actions/runs/37069107899) успешно выполнил 285 Playwright-проверок на Ubuntu с Chromium, Firefox и WebKit. Добавлены desktop WebKit проверки и Linux CI Firefox. Реальный P2 дефект поиска исправлен: подсказки больше не исчезают при переходе фокуса с поля ввода на кнопку и результат. Firefox также выявил P2 переполнение подписи «Расписание» в четырёхвкладочной панели на 320px; узкая панель теперь использует дополнительную безопасную ширину. Дополнительно проверен production сайт в macOS Safari: главная, каталог, поиск и Telegram-only подсказка в профиле работают. Safari показал запрос разрешения на загрузку PDF, который был отклонён; поэтому сам файл не скачивался.
 
 Остаточные ограничения: физические iOS/Android/iPad/Windows устройства, настоящее Telegram WebView, VoiceOver/TalkBack и remote device cloud недоступны в этой среде. Локальный Vite не предоставляет favorites API, поэтому реальную операцию сохранения нельзя проверить через локальный exploratory browser; mocked Playwright сценарии для сохранения, удаления и восстановления проходят. Полная матрица статусов и точное покрытие записаны в `testing.md` и `known-issues.md`.
 
 | Platform | Device / browser | Test type | Result |
 | --- | --- | --- | --- |
 | macOS | Native Safari on this Mac | Production smoke | Home, Catalog, Search, and expected Telegram-only Profile guidance passed; PDF download stopped at the browser permission prompt. |
-| Desktop browser | Playwright Chromium | Automated functional, route/history, responsive and axe smoke | 56/56 passed. |
-| Mobile browser emulation | Playwright iPhone-sized Chromium viewport | Responsive, touch-oriented flows and navigation | 56/56 passed; viewport emulation, not a physical iPhone. |
-| Mobile browser emulation | Playwright iPhone-sized WebKit viewport | Responsive and touch-oriented flows | 55 passed, 1 keyboard test skipped; WebKit engine emulation, not Mobile Safari or a physical device. |
-| Desktop browser emulation | Playwright Desktop Safari WebKit project | Desktop functional/responsive flows | 55 passed, 1 keyboard test skipped; WebKit engine, not a native macOS Safari run. |
+| Desktop browser | Playwright Chromium | Automated functional, route/history, responsive and axe smoke | 57/57 passed. |
+| Mobile browser emulation | Playwright iPhone-sized Chromium viewport | Responsive, touch-oriented flows and navigation | 57/57 passed; viewport emulation, not a physical iPhone. |
+| Mobile browser emulation | Playwright iPhone-sized WebKit viewport | Responsive and touch-oriented flows | 56 passed, 1 keyboard test skipped; WebKit engine emulation, not Mobile Safari or a physical device. |
+| Desktop browser emulation | Playwright Desktop Safari WebKit project | Desktop functional/responsive flows | 56 passed, 1 keyboard test skipped; WebKit engine, not a native macOS Safari run. |
 | iPadOS / tablet | 1024×768 and 1180×820 responsive viewports in Playwright | Layout checks | Tablet-width layout cases passed; no iPad or iPadOS Safari device was used. |
-| Linux CI | Ubuntu GitHub Actions runner | Chromium, Firefox, WebKit | Firefox install/project added to CI; results await the post-push workflow. This is hosted Linux, not Windows. |
+| Linux CI | Ubuntu GitHub Actions runner | Chromium, Firefox, WebKit | GitHub Actions run 37069107899 passed 285/285 browser tests. This is hosted Linux, not Windows. |
 | Windows / Edge | No Windows device or browser available | Not run | Requires a Windows runner/device check. |
 | Android / iOS devices and Telegram clients | No physical devices or signed-in Telegram WebView available | Not run | Requires real device smoke and signed-in account. |
 
 **Automation:** rerun `npm run qa` for lint, typecheck, Vitest, Node/Worker, metadata/schedule validation, production build, and the full local Playwright project matrix. GitHub Actions `verify` runs Chromium, Firefox and WebKit on Ubuntu. Playwright retains failure screenshots, videos and traces under ignored `test-results/`; route, navigation, responsive geometry, error recovery, touch, reduced-motion and accessibility smoke remain repeatable. Visual screenshots are regression evidence rather than pixel-diff baselines.
 
-**Issues:** two P2 issues were fixed. Search previously closed suggestions when keyboard focus moved from its input to the submit button; focus now remains active within the search shell and resets after focus exits, retaining native searchbox/button semantics. Firefox exposed the «Расписание» label overflowing its navigation slot at 320px; horizontal link padding is reduced below 380px, without reducing target height. The unlabeled contextual action group is now a named navigation landmark, resolving the route axe `region` finding. The Linux CI run confirmed both cross-browser test artifacts and is being rerun after these final assertions/style adjustments. No P0/P1 issue was found in the tested flows.
+**Issues:** two P2 issues were fixed. Search previously closed suggestions when keyboard focus moved from its input to the submit button; focus now remains active within the search shell and resets after focus exits, retaining native searchbox/button semantics. Firefox exposed the «Расписание» label overflowing its navigation slot at 320px; below 380px the four-tab dock now uses more of the safe horizontal viewport, without reducing target height. The unlabeled contextual action group is now a named navigation landmark, resolving the route axe `region` finding. Linux CI passed Chromium, Firefox and WebKit (285/285). No P0/P1 issue was found in the tested flows.
 
 ## Итог
 
