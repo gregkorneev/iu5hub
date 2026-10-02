@@ -85,9 +85,9 @@ function Layout({ children }: { children: ReactNode }) {
     </div>
     <main key={`${location.pathname}${location.search}`} data-navigation={direction}>
       {home ? <div className="home-content-stack">{user && <Link className="user-greeting" to="/profile" aria-label={`Открыть профиль: ${user.firstName || user.username || 'Студент'}`}>
-        <span className="user-greeting__avatar" aria-hidden="true">{(user.firstName || user.username || 'С').trim().charAt(0).toLocaleUpperCase()}</span>
         <span className="user-greeting__identity"><strong>{user.firstName || user.username || 'Студент'}</strong>{user.username && <small>@{user.username}</small>}</span>
         <ChevronRight aria-hidden="true" focusable="false" />
+        <span className="user-greeting__avatar" aria-hidden="true">{(user.firstName || user.username || 'С').trim().charAt(0).toLocaleUpperCase()}</span>
       </Link>}{children}</div> : children}
     </main>
     <footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer>
@@ -104,8 +104,8 @@ function Home() {
   const favorites = useFavorites()
   return <>
     <section className="hero"><h1 className="sr-only">Студент ИУ5</h1><p>Выберите курс, чтобы открыть каталог учебных материалов.</p></section>
-    <section className="home-courses">
-      <div className="section-title"><h2 className="eyebrow">Курсы</h2></div>
+    <section className="home-courses" aria-labelledby="home-courses-title">
+      <h2 className="sr-only" id="home-courses-title">Курсы</h2>
       <div className="course-grid">{courses.map((course, index) => <Link key={course.id} aria-label={`${course.title}. ${course.description}. Открыть каталог`} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span className="course-grid__heading"><span className="course-grid__number" aria-hidden="true">{index + 1}</span><strong className="course-grid__label">Курс</strong></span><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div>
     </section>
     {!favorites.loading && !favorites.error && favorites.items.length > 0 && <section className="home-favorites" aria-labelledby="home-favorites-title">

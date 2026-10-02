@@ -33,16 +33,21 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
       groupCenter: group.left + group.width / 2,
       headerCenter: document.querySelector('.app > header')!.getBoundingClientRect().left + document.querySelector('.app > header')!.getBoundingClientRect().width / 2,
       greetingLeft: greeting.left,
-      descriptionLeft: document.querySelector('.hero > p:not(.eyebrow)')!.getBoundingClientRect().left,
-      coursesLeft: document.querySelector('.home-courses h2')!.getBoundingClientRect().left,
+      greetingRight: greeting.right,
+      coursesRight: document.querySelector('.course-grid')!.getBoundingClientRect().right,
       greetingColor: getComputedStyle(document.querySelector('.user-greeting')!).color,
       brandColor: getComputedStyle(document.querySelector('.brand')!).color,
       greetingFontSize: parseFloat(getComputedStyle(document.querySelector('.user-greeting')!).fontSize),
     }
   })
   expect(Math.abs(brandGeometry.groupCenter - brandGeometry.headerCenter)).toBeLessThanOrEqual(1)
-  expect(brandGeometry.greetingLeft).toBeCloseTo(brandGeometry.descriptionLeft, 0)
-  expect(brandGeometry.greetingLeft).toBeCloseTo(brandGeometry.coursesLeft, 0)
+  expect(brandGeometry.greetingRight).toBeCloseTo(brandGeometry.coursesRight, 0)
+  expect(await page.locator('.user-greeting').evaluate((greeting) => {
+    const children = Array.from(greeting.children)
+    return children[0].classList.contains('user-greeting__identity')
+      && children[1].tagName.toLowerCase() === 'svg'
+      && children[2].classList.contains('user-greeting__avatar')
+  })).toBeTruthy()
   expect(brandGeometry.greetingColor).toBe(brandGeometry.brandColor)
   expect(brandGeometry.greetingFontSize).toBeGreaterThanOrEqual(16)
   await expect(page.locator('.hero h1')).toHaveClass(/sr-only/)
@@ -257,7 +262,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         width: document.documentElement.scrollWidth,
         main: main.scrollHeight,
         mainClient: main.clientHeight,
-        header: box('header'), greeting: box('.user-greeting'), content: box('main'), stack: box('.home-content-stack'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), coursesTitle: box('.home-courses h2'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
+        header: box('header'), greeting: box('.user-greeting'), content: box('main'), stack: box('.home-content-stack'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         centerBias: (box('main').top + box('main').height / 2) - (box('.home-content-stack').top + box('.home-content-stack').height / 2),
         innerTop: box('main').top + parseFloat(getComputedStyle(document.querySelector('main')!).paddingTop),
         innerBottom: box('main').bottom - parseFloat(getComputedStyle(document.querySelector('main')!).paddingBottom),
@@ -276,13 +281,11 @@ test('fits the complete home screen without page or main scrolling on Telegram p
       expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a gap after the header`).toBeGreaterThanOrEqual(24)
     }
     expect(metrics.greeting.top).toBeGreaterThanOrEqual(metrics.header.bottom)
-    expect(Math.abs(metrics.greeting.left - metrics.heroDescription.left), `${width}×${height} greeting left alignment`).toBeLessThanOrEqual(1)
-    expect(Math.abs(metrics.greeting.left - metrics.coursesTitle.left), `${width}×${height} courses left alignment`).toBeLessThanOrEqual(1)
+    expect(Math.abs(metrics.greeting.right - metrics.courseGrid.right), `${width}×${height} profile right alignment`).toBeLessThanOrEqual(1)
     expect(metrics.hero.top).toBeGreaterThanOrEqual(metrics.greeting.bottom)
     expect(metrics.heroTitle.width).toBeLessThanOrEqual(1)
     expect(metrics.heroDescription.top - metrics.greeting.bottom, `${width}×${height} greeting → description`).toBeGreaterThanOrEqual(4)
-    expect(metrics.coursesTitle.top - metrics.heroDescription.bottom, `${width}×${height} description → course label`).toBeGreaterThanOrEqual(height > 740 ? 15.95 : 3.95)
-    expect(metrics.courseGrid.top - metrics.coursesTitle.bottom, `${width}×${height} course label → cards`).toBeGreaterThanOrEqual(width <= 340 && height <= 600 ? 4 : 8)
+    expect(metrics.courseGrid.top - metrics.heroDescription.bottom, `${width}×${height} description → course cards`).toBeGreaterThanOrEqual(height > 740 ? 15.95 : 3.95)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)
     const homeSectionGap = height > 740 ? 16 : 0
