@@ -17,6 +17,10 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(page.getByRole('heading', { name: 'Материалы на Яндекс.Диске' })).toHaveCount(0)
     await expect(page.getByText('Учебные материалы', { exact: true })).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Курс 1/ })).toBeVisible()
+    const courseHeading = page.locator('.course-grid__heading').first()
+    await expect(courseHeading).toHaveText('1Курс')
+    await expect(courseHeading.locator('.course-grid__label')).toBeVisible()
+    await expect(page.getByText('Курс 1', { exact: true })).toHaveCount(0)
     await expect(page.getByAltText('Логотип Студент ИУ5')).toHaveAttribute('src', '/logo-iu5.jpeg')
     await expect.poll(() => page.getByAltText('Логотип Студент ИУ5').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
     expect(await page.evaluate(async () => {

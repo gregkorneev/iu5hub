@@ -106,7 +106,7 @@ function Home() {
     <section className="hero"><h1 className="sr-only">Студент ИУ5</h1><p>Выберите курс, чтобы открыть каталог учебных материалов.</p></section>
     <section className="home-courses">
       <div className="section-title"><h2 className="eyebrow">Курсы</h2></div>
-      <div className="course-grid">{courses.map((course, index) => <Link key={course.id} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span>{index + 1}</span><strong>{course.title}</strong><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div>
+      <div className="course-grid">{courses.map((course, index) => <Link key={course.id} aria-label={`${course.title}. ${course.description}. Открыть каталог`} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span className="course-grid__heading"><span className="course-grid__number" aria-hidden="true">{index + 1}</span><strong className="course-grid__label">Курс</strong></span><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div>
     </section>
     {!favorites.loading && !favorites.error && favorites.items.length > 0 && <section className="home-favorites" aria-labelledby="home-favorites-title">
       <Link className="home-favorites__link" to="/profile">

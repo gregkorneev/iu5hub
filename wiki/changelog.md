@@ -2,6 +2,10 @@
 
 ## 2026-10-03
 
+- Home course tiles now place the colored course number next to “Курс” and omit the repeated number from the visible label. The full course title remains available to assistive technology and on the course page.
+
+## 2026-10-03
+
 - Корневой каталог на телефонах теперь использует высоту видимого CSS viewport (`100dvh`), чтобы устаревшее значение Telegram `viewportHeight` не сдвигало ссылки за нижнюю панель. Safe areas продолжают приходить из Telegram; на действительно коротком экране внутренняя прокрутка сохраняется.
 
 ## 2026-10-02
