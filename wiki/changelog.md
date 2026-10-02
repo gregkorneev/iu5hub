@@ -2,7 +2,7 @@
 
 ## 2026-10-03
 
-- Home course tiles now place the colored course number next to “Курс” and omit the repeated number from the visible label. The full course title remains available to assistive technology and on the course page.
+- Home course tiles now place the colored course number next to “Курс” at matching type sizes, and omit the repeated number from the visible label. The full course title remains available to assistive technology and on the course page.
 
 ## 2026-10-03
 

@@ -21,6 +21,11 @@ test.describe('Студент ИУ5 critical UI', () => {
     await expect(courseHeading).toHaveText('1Курс')
     await expect(courseHeading.locator('.course-grid__label')).toBeVisible()
     await expect(page.getByText('Курс 1', { exact: true })).toHaveCount(0)
+    expect(await page.locator('.course-grid__heading').evaluateAll((headings) => headings.every((heading) => {
+      const number = heading.querySelector('.course-grid__number')
+      const label = heading.querySelector('.course-grid__label')
+      return number && label && getComputedStyle(number).fontSize === getComputedStyle(label).fontSize
+    }))).toBeTruthy()
     await expect(page.getByAltText('Логотип Студент ИУ5')).toHaveAttribute('src', '/logo-iu5.jpeg')
     await expect.poll(() => page.getByAltText('Логотип Студент ИУ5').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
     expect(await page.evaluate(async () => {
