@@ -131,7 +131,7 @@ test('keeps four primary tabs and the administrator header action within a 320px
   expect(brandBounds && groupBounds && statsBounds).toBeTruthy()
   const headerBounds = await page.locator('header').boundingBox()
   expect(headerBounds).toBeTruthy()
-  expect(Math.abs(groupBounds!.x - headerBounds!.x)).toBeLessThanOrEqual(1)
+  expect(Math.abs(groupBounds!.x + groupBounds!.width / 2 - (headerBounds!.x + headerBounds!.width / 2))).toBeLessThanOrEqual(1)
   expect(statsBounds!.x).toBeGreaterThanOrEqual(brandBounds!.x + brandBounds!.width)
   expect(statsBounds!.x - (brandBounds!.x + brandBounds!.width)).toBeLessThanOrEqual(12)
   expect(groupBounds!.x).toBeGreaterThanOrEqual(headerBounds!.x)
