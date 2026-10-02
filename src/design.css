@@ -283,12 +283,19 @@ main[data-navigation="back"] { animation-name: page-return; }
 footer { padding: var(--space-4) 0 var(--space-5); border-top: 1px solid var(--separator); font-size: var(--type-meta); }
 .user-greeting { display: flex; align-items: center; gap: var(--space-2); width: fit-content; max-width: 100%; min-height: 44px; margin: var(--space-5) var(--space-4) 0; color: var(--text-primary); border-radius: var(--radius-pill); }
 .user-greeting__avatar { display: grid; flex: none; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--action); color: var(--action-text); font-size: .875rem; font-weight: var(--weight-strong); }
-.user-greeting__identity { display: flex; align-items: baseline; gap: var(--space-2); min-width: 0; line-height: 1.15; }
+.user-greeting__identity { display: flex; flex: 1; align-items: baseline; gap: var(--space-2); min-width: 0; line-height: 1.15; }
 .user-greeting__identity strong, .user-greeting__identity small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .user-greeting__identity strong { font-size: 1rem; font-weight: var(--weight-strong); }
 .user-greeting__identity small { color: var(--text-secondary); font-size: var(--type-meta); }
 .user-greeting > svg { flex: none; width: 1rem; height: 1rem; color: var(--text-secondary); }
-.app--home .user-greeting { margin-left: auto; margin-right: 0; flex-direction: row; }
+.home-intro-row { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; }
+.home-intro-row:has(.user-greeting) { grid-template-columns: minmax(0, 1fr) minmax(0, 48%); gap: var(--space-3); }
+.home-intro-row:has(.user-greeting) .hero { grid-column: 1; grid-row: 1; }
+.home-intro-row:has(.user-greeting) .user-greeting { grid-column: 2; grid-row: 1; }
+.home-intro-row .hero { min-width: 0; margin: 0; }
+.home-intro-row .hero > p:not(.eyebrow) { max-width: none; margin: 0; }
+.app--home .home-intro-row .hero > p:not(.eyebrow) { margin-top: 0; }
+.home-intro-row .user-greeting { width: 100%; min-width: 0; max-width: 100%; margin: 0; }
 .user-greeting:active { opacity: .7; }
 .user-greeting:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
 h1, .section-title h2 { color: var(--text-primary); font-size: var(--type-screen); line-height: 1.12; letter-spacing: -.035em; }
@@ -608,11 +615,11 @@ body:has(.app--home) { min-height: 100dvh; }
   html:has(.app--home), body:has(.app--home), .app.app--home { height: 100dvh; }
   .app--home { --bottom-nav-clearance: 4.25rem; }
   .app--home header { position: relative; top: 0; min-height: 3rem; }
-  .app--home .user-greeting { margin: var(--space-1) 0 var(--space-1) auto; font-size: 1rem; }
+  .app--home .user-greeting { font-size: 1rem; }
   .app--home main { padding: var(--space-4) 0 var(--space-6); }
   .app--home .hero { margin-bottom: 0; }
   .app--home section + section { margin-top: var(--space-1); }
-  .app--home .hero + .home-courses { margin-top: var(--space-4); }
+  .app--home .home-intro-row + .home-courses { margin-top: var(--space-4); }
   .app--home .home-favorites, .app--home .home-links { margin-top: var(--space-5); }
   .app--home .course-grid a { min-height: 4rem; padding: var(--space-1) var(--space-3); }
   .app--home .course-grid__heading { font-size: 1.375rem; }
@@ -657,7 +664,7 @@ body:has(.app--home) { min-height: 100dvh; }
 }
 @media (max-width: 620px) and (max-height: 740px) and (orientation: portrait) {
   .app--home .hero > p:not(.eyebrow) { margin-top: var(--space-2); }
-  .app--home .hero + .home-courses { margin-top: var(--space-2); }
+  .app--home .home-intro-row + .home-courses { margin-top: var(--space-2); }
   .app--home .home-favorites, .app--home .home-links { margin-top: 0; }
   .app--home .home-courses .section-title { margin-bottom: var(--space-2); }
   .app--home .course-grid a { min-height: 4rem; padding: var(--space-1) var(--space-3); }
@@ -668,7 +675,7 @@ body:has(.app--home) { min-height: 100dvh; }
 @media (max-width: 340px) and (max-height: 740px) and (orientation: portrait) {
   .app--home main { padding: var(--space-2) 0 0; }
   .app--home .hero > p:not(.eyebrow) { margin-top: var(--space-1); }
-  .app--home .hero + .home-courses { margin-top: var(--space-1); }
+  .app--home .home-intro-row + .home-courses { margin-top: var(--space-1); }
   .app--home .home-courses .section-title { margin-bottom: var(--space-2); }
   .app--home .course-grid { gap: var(--space-1); }
   .app--home .course-grid a { min-height: 3.5rem; padding: .375rem var(--space-2); gap: 1px; }
@@ -676,14 +683,14 @@ body:has(.app--home) { min-height: 100dvh; }
 }
 @media (min-width: 341px) and (max-width: 380px) and (max-height: 680px) and (orientation: portrait) {
   .app--home main { padding-top: var(--space-1); }
-  .app--home .hero > p:not(.eyebrow), .app--home .hero + .home-courses { margin-top: var(--space-1); }
+  .app--home .home-intro-row + .home-courses { margin-top: var(--space-1); }
   .app--home .course-grid { gap: 2px; }
 }
 @media (min-width: 480px) and (max-width: 620px) and (max-height: 740px) and (orientation: portrait) {
   .app--home .home-favorites, .app--home .home-links { margin-top: var(--space-2); }
 }
 @media (max-width: 340px) and (max-height: 600px) and (orientation: portrait) {
-  .app--home .hero > p:not(.eyebrow), .app--home .hero + .home-courses { margin-top: var(--space-1); }
+  .app--home .home-intro-row + .home-courses { margin-top: var(--space-1); }
   .app--home .user-greeting { margin-bottom: 2px; }
   .app--home .section-title { margin-bottom: var(--space-1); }
   .app--home .course-grid { gap: 0; }
@@ -704,6 +711,6 @@ body:has(.app--home) { min-height: 100dvh; }
   .app--home main { padding-bottom: clamp(0px, calc(100dvh - var(--tg-safe-area-top) - 756px), 4rem); }
   .app--home .course-grid a { min-height: clamp(4rem, calc(100dvh - var(--tg-safe-area-top) - 780px + 4rem), 5.5rem); }
   .app--home:has(.home-favorites) .course-grid a { min-height: clamp(4rem, calc(100dvh - var(--tg-safe-area-top) - 820px + 4rem), 5.5rem); }
-  .app--home:has(.home-favorites) .hero + .home-courses { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-4)); }
+  .app--home:has(.home-favorites) .home-intro-row + .home-courses { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-4)); }
   .app--home:has(.home-favorites) .home-favorites, .app--home:has(.home-favorites) .home-links { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-5)); }
 }

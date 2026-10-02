@@ -40,7 +40,6 @@ function Layout({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
     if (location.pathname === '/') window.scrollTo(0, 0)
   }, [location.pathname])
-  const user = getTelegramUser()
   const [admin, setAdmin] = useState(false)
   useEffect(() => { let current = true; void adminFetch('/api/admin/me').then((response) => response.ok ? response.json() : null).then((data: { isAdmin?: boolean } | null) => { if (current) setAdmin(data?.isAdmin === true) }).catch(() => undefined); return () => { current = false } }, [])
   const home = location.pathname === '/'
@@ -84,11 +83,7 @@ function Layout({ children }: { children: ReactNode }) {
       </nav>
     </div>
     <main key={`${location.pathname}${location.search}`} data-navigation={direction}>
-      {home ? <div className="home-content-stack">{user && <Link className="user-greeting" to="/profile" aria-label={`Открыть профиль: ${user.firstName || user.username || 'Студент'}`}>
-        <span className="user-greeting__identity"><strong>{user.firstName || user.username || 'Студент'}</strong>{user.username && <small>@{user.username}</small>}</span>
-        <ChevronRight aria-hidden="true" focusable="false" />
-        <span className="user-greeting__avatar" aria-hidden="true">{(user.firstName || user.username || 'С').trim().charAt(0).toLocaleUpperCase()}</span>
-      </Link>}{children}</div> : children}
+      {home ? <div className="home-content-stack">{children}</div> : children}
     </main>
     <footer>Студент ИУ5 · Материалы открываются на Яндекс.Диске</footer>
     {showWelcome && <Welcome onFinish={() => setShowWelcome(false)} />}
@@ -100,10 +95,18 @@ function FavoriteButton({ item }: { item: FavoriteInput }) {
   return <button className={`favorite-button${saved ? ' favorite-button--saved' : ''}`} type="button" aria-label={`${saved ? 'Удалить из избранного' : 'Добавить в избранное'}: ${item.name}`} aria-pressed={saved} title={saved ? 'Удалить из избранного' : 'Добавить в избранное'} disabled={loading || !!error || pending.has(favoriteKey(item))} onClick={() => void toggle(item)}><svg aria-hidden="true" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" /></svg></button>
 }
 function Home() {
+  const user = getTelegramUser()
   const { courses } = useCatalog()
   const favorites = useFavorites()
   return <>
-    <section className="hero"><h1 className="sr-only">Студент ИУ5</h1><p>Выберите курс, чтобы открыть каталог учебных материалов.</p></section>
+    <div className="home-intro-row">
+      {user && <Link className="user-greeting" to="/profile" aria-label={`Открыть профиль: ${user.firstName || user.username || 'Студент'}`}>
+        <span className="user-greeting__identity"><strong>{user.firstName || user.username || 'Студент'}</strong>{user.username && <small>@{user.username}</small>}</span>
+        <ChevronRight aria-hidden="true" focusable="false" />
+        <span className="user-greeting__avatar" aria-hidden="true">{(user.firstName || user.username || 'С').trim().charAt(0).toLocaleUpperCase()}</span>
+      </Link>}
+      <section className="hero"><h1 className="sr-only">Студент ИУ5</h1><p>Выберите курс, чтобы открыть каталог учебных материалов.</p></section>
+    </div>
     <section className="home-courses" aria-labelledby="home-courses-title">
       <h2 className="sr-only" id="home-courses-title">Курсы</h2>
       <div className="course-grid">{courses.map((course, index) => <Link key={course.id} aria-label={`${course.title}. ${course.description}. Открыть каталог`} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span className="course-grid__heading"><span className="course-grid__number" aria-hidden="true">{index + 1}</span><strong className="course-grid__label">Курс</strong></span><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div>
