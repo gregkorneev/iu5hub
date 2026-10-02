@@ -3,6 +3,7 @@
 ## 2026-10-02
 
 - Search suggestions now retain visibility while keyboard focus moves through the suggestion group and close when focus leaves it. A regression test covers Tab navigation in Chromium desktop/mobile and suggestion selection in WebKit.
+- Firefox CI caught the 320px «Расписание» tab label exceeding its cell by a few pixels; narrow navigation tabs now have more label space while retaining their existing hit height. The schedule overflow check measures actual inline text ranges instead of the zero `clientWidth` of inline `<small>` text.
 - Playwright coverage now includes desktop WebKit in addition to Chromium, mobile Chromium, and mobile WebKit emulation. Ubuntu CI installs Firefox; local Firefox is skipped on macOS due to the OS profile-creation failure.
 - Added a successful full cross-browser QA record and documented the remaining physical-device, real Telegram WebView, assistive-technology, local favorites API, and Safari download-permission checks in `wiki/ux-audit.md`, `wiki/testing.md`, and `wiki/known-issues.md`.
 

@@ -229,7 +229,17 @@ test('keeps mobile page scroll locked while schedule lessons scroll inside their
       const cards = [...list.querySelectorAll('.schedule-lesson')]
       const box = list.getBoundingClientRect()
       const second = cards[1].getBoundingClientRect()
-      const labelOverflows = cards.flatMap((card) => [...card.querySelectorAll<HTMLElement>('h2, p, small')].filter((label) => label.scrollWidth > label.clientWidth + 1).map((label) => ({ text: label.textContent, client: label.clientWidth, scroll: label.scrollWidth })))
+      const labelOverflows = cards.flatMap((card) => {
+        const box = card.getBoundingClientRect()
+        const style = getComputedStyle(card)
+        const left = box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft)
+        const right = box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight)
+        return [...card.querySelectorAll<HTMLElement>('h2, p, small')].flatMap((label) => {
+          const range = document.createRange()
+          range.selectNodeContents(label)
+          return [...range.getClientRects()].filter((rect) => rect.left < left - 1 || rect.right > right + 1).map((rect) => ({ text: label.textContent, left: rect.left, right: rect.right, contentLeft: left, contentRight: right }))
+        })
+      })
       return { overflow: getComputedStyle(list).overflowY, scrollHeight: list.scrollHeight, clientHeight: list.clientHeight, mainScrollHeight: main.scrollHeight, mainClientHeight: main.clientHeight, secondVisible: second.top < box.bottom && second.bottom <= box.bottom + 1, listBottom: box.bottom, navTop: nav.getBoundingClientRect().top, fitsViewport: heading.getBoundingClientRect().right <= innerWidth + 1 && box.right <= innerWidth + 1, labelsFit: labelOverflows.length === 0, labelOverflows }
     })
     expect(metrics.overflow).toBe('auto')

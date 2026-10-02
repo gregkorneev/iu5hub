@@ -45,7 +45,7 @@ html:has(.app--home), body:has(.app--home) { overflow: hidden; }
 
 @media (max-width: 380px) {
   .brand { font-size: .92rem; }
-  .bottom-nav a { padding-inline: 5px; }
+  .bottom-nav a { padding-inline: 2px; }
   .search { flex-direction: column; }
   .search button { width: 100%; }
 }

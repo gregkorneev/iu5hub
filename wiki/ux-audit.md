@@ -20,7 +20,7 @@
 
 **Automation:** rerun `npm run qa` for lint, typecheck, Vitest, Node/Worker, metadata/schedule validation, production build, and the full local Playwright project matrix. GitHub Actions `verify` runs Chromium, Firefox and WebKit on Ubuntu. Playwright retains failure screenshots, videos and traces under ignored `test-results/`; route, navigation, responsive geometry, error recovery, touch, reduced-motion and accessibility smoke remain repeatable. Visual screenshots are regression evidence rather than pixel-diff baselines.
 
-**Issues:** one reproducible P2 keyboard defect was fixed: moving focus from Search input to its submit button closed suggestions before the result could be reached. Search focus now remains active within the search shell and resets after focus exits; native searchbox/button semantics are preserved. The unlabeled contextual action group is now a named navigation landmark, resolving the route axe `region` finding. No P0/P1 issue was found in the tested flows.
+**Issues:** two P2 issues were fixed. Search previously closed suggestions when keyboard focus moved from its input to the submit button; focus now remains active within the search shell and resets after focus exits, retaining native searchbox/button semantics. Firefox exposed the «Расписание» label overflowing its navigation slot at 320px; horizontal link padding is reduced below 380px, without reducing target height. The unlabeled contextual action group is now a named navigation landmark, resolving the route axe `region` finding. The Linux CI run confirmed both cross-browser test artifacts and is being rerun after these final assertions/style adjustments. No P0/P1 issue was found in the tested flows.
 
 ## Итог
 
