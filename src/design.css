@@ -705,7 +705,7 @@ body:has(.app--home) { min-height: 100dvh; }
   .app--home footer { padding-bottom: var(--space-1); font-size: .625rem; }
 }
 @media (max-height: 600px) {
-  .app--home main { padding-block: var(--space-1) 0; }
+  .app--home main { justify-content: flex-start; padding-block: var(--space-1) 0; }
 }
 @media (min-width: 341px) and (max-width: 620px) and (min-height: 741px) and (orientation: portrait) {
   .app--home main { padding-bottom: clamp(0px, calc(100dvh - var(--tg-safe-area-top) - 756px), 4rem); }
@@ -713,4 +713,7 @@ body:has(.app--home) { min-height: 100dvh; }
   .app--home:has(.home-favorites) .course-grid a { min-height: clamp(4rem, calc(100dvh - var(--tg-safe-area-top) - 820px + 4rem), 5.5rem); }
   .app--home:has(.home-favorites) .home-intro-row + .home-courses { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-4)); }
   .app--home:has(.home-favorites) .home-favorites, .app--home:has(.home-favorites) .home-links { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-5)); }
+}
+@media (orientation: landscape) and (max-height: 800px) {
+  .app--home main { justify-content: flex-start; padding-top: var(--space-4); }
 }

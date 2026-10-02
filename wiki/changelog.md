@@ -2,6 +2,7 @@
 
 ## 2026-10-03
 
+- In landscape, the Home content now starts below the header with a consistent gap instead of leaving excess vertical space above the profile and course introduction; natural page scrolling remains enabled.
 - The cross-browser QA matrix passed in GitHub Actions: 285 Playwright tests across Chromium, Firefox and WebKit. Firefox’s narrow four-tab navigation clipping was fixed, and Firefox-specific fractional CSS-pixel measurement tolerances were added to layout regressions.
 - Home profile is on the same row as the introductory text, with description at left and profile at right. The name and Telegram username stack on two lines; the narrower profile column gives the description more width while the avatar and navigation affordance stay visible.
 - Home Profile shortcut moved to the right edge, with its identity text on the left and avatar nearest the edge. The visible blue «Курсы» label was removed while its screen-reader heading remains.
