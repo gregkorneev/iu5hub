@@ -29,6 +29,38 @@ test('shows the Telegram identity as a compact link to Profile only for signed-i
   await expect(page.locator('.user-greeting')).toHaveCount(0)
 })
 
+test('wraps the compact Profile shortcut in its own glass bubble without dead space', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/#/')
+  await page.evaluate(() => {
+    const telegram = (window as Window & { Telegram: { WebApp: { initDataUnsafe: { user?: { first_name: string; username: string } } } } }).Telegram.WebApp
+    telegram.initDataUnsafe.user = { first_name: 'GREG', username: 'gregkor' }
+  })
+  await page.goto('/#/profile')
+  await page.goto('/#/')
+
+  const identity = page.getByRole('link', { name: 'Открыть профиль: GREG' })
+  const geometry = await identity.evaluate((element) => {
+    const username = element.querySelector('small')!.getBoundingClientRect()
+    const chevron = element.querySelector('svg')!.getBoundingClientRect()
+    const bounds = element.getBoundingClientRect()
+    return { width: bounds.width, height: bounds.height, profileToChevronGap: chevron.left - username.right, radius: getComputedStyle(element).borderRadius, backdrop: getComputedStyle(element).backdropFilter, right: bounds.right, rowRight: document.querySelector('.home-intro-row')!.getBoundingClientRect().right }
+  })
+  expect(geometry.width).toBeLessThan(200)
+  expect(geometry.height).toBeGreaterThanOrEqual(44)
+  expect(geometry.profileToChevronGap).toBeLessThanOrEqual(12)
+  expect(geometry.radius).toBe('999px')
+  expect(geometry.backdrop).toContain('blur(')
+  expect(Math.abs(geometry.right - geometry.rowRight)).toBeLessThanOrEqual(1)
+  await page.screenshot({ path: testInfo.outputPath('profile-glass-bubble.png') })
+
+  await page.emulateMedia({ contrast: 'more' })
+  await expect(identity).toHaveCSS('backdrop-filter', 'none')
+  const fallbackBackground = await identity.evaluate((element) => getComputedStyle(element).backgroundColor)
+  expect(fallbackBackground).not.toBe('rgba(0, 0, 0, 0)')
+  expect(fallbackBackground).not.toBe('transparent')
+})
+
 test('shows clickable Yandex Disk and GitHub links below courses on the home screen', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/')

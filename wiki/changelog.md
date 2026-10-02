@@ -2,6 +2,7 @@
 
 ## 2026-10-03
 
+- The Home Profile shortcut now uses a compact, right-aligned Liquid Glass bubble. Its identity text and controls stay close together; high-contrast and reduced-transparency settings use a solid fallback.
 - In landscape, the Home content now starts below the header with a consistent gap instead of leaving excess vertical space above the profile and course introduction; natural page scrolling remains enabled.
 - The cross-browser QA matrix passed in GitHub Actions: 285 Playwright tests across Chromium, Firefox and WebKit. Firefox’s narrow four-tab navigation clipping was fixed, and Firefox-specific fractional CSS-pixel measurement tolerances were added to layout regressions.
 - Home profile is on the same row as the introductory text, with description at left and profile at right. The name and Telegram username stack on two lines; the narrower profile column gives the description more width while the avatar and navigation affordance stay visible.
