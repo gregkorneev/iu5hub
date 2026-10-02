@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-03
+
+- Корневой каталог на телефонах теперь использует высоту видимого CSS viewport (`100dvh`), чтобы устаревшее значение Telegram `viewportHeight` не сдвигало ссылки за нижнюю панель. Safe areas продолжают приходить из Telegram; на действительно коротком экране внутренняя прокрутка сохраняется.
+
 ## 2026-10-02
 
 - Search suggestions now retain visibility while keyboard focus moves through the suggestion group and close when focus leaves it. A regression test covers Tab navigation in Chromium desktop/mobile and suggestion selection in WebKit.

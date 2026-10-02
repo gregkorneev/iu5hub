@@ -445,10 +445,11 @@ section + section { margin-top: 2.5rem; }
   .search input { padding-inline: var(--space-2); }
 }
 
-.app--home { display:flex; flex-direction:column; height:auto; min-height:var(--tg-viewport-height); overflow:visible; }
+.app--home { display:flex; flex-direction:column; height:auto; min-height:100dvh; overflow:visible; }
 .app--home main { display:flex; flex:1 1 auto; flex-direction:column; justify-content:safe center; min-height:0; padding-block:var(--space-4) var(--space-6); }
 .home-content-stack { width:100%; }
 html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: auto; }
+body:has(.app--home) { min-height: 100dvh; }
 
 @supports (backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {
@@ -603,6 +604,7 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   html:has(.profile-page), body:has(.profile-page) { height: var(--tg-viewport-height); overflow-y: hidden; }
   .app:is(.app--home, :has(.schedule-page), :has(.profile-page)) { height: var(--tg-viewport-height); min-height: 0; overflow: hidden; }
   .app:is(.app--home, :has(.schedule-page), :has(.profile-page)) main { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; animation: mobile-page-fade var(--duration-transition) ease-out both; }
+  html:has(.app--home), body:has(.app--home), .app.app--home { height: 100dvh; }
   .app--home { --bottom-nav-clearance: 4.25rem; }
   .app--home header { position: relative; top: 0; min-height: 3rem; }
   .app--home .user-greeting { margin: var(--space-1) 0 var(--space-1); font-size: 1rem; }
@@ -699,9 +701,9 @@ html:has(.app--home), body:has(.app--home) { overflow-x: hidden; overflow-y: aut
   .app--home main { padding-block: var(--space-1) 0; }
 }
 @media (min-width: 341px) and (max-width: 620px) and (min-height: 741px) and (orientation: portrait) {
-  .app--home main { padding-bottom: clamp(0px, calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 756px), 4rem); }
-  .app--home .course-grid a { min-height: clamp(4rem, calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 780px + 4rem), 5.5rem); }
-  .app--home:has(.home-favorites) .course-grid a { min-height: clamp(4rem, calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 820px + 4rem), 5.5rem); }
-  .app--home:has(.home-favorites) .hero + .home-courses { margin-top: clamp(var(--space-2), calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-4)); }
-  .app--home:has(.home-favorites) .home-favorites, .app--home:has(.home-favorites) .home-links { margin-top: clamp(var(--space-2), calc(var(--tg-viewport-height) - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-5)); }
+  .app--home main { padding-bottom: clamp(0px, calc(100dvh - var(--tg-safe-area-top) - 756px), 4rem); }
+  .app--home .course-grid a { min-height: clamp(4rem, calc(100dvh - var(--tg-safe-area-top) - 780px + 4rem), 5.5rem); }
+  .app--home:has(.home-favorites) .course-grid a { min-height: clamp(4rem, calc(100dvh - var(--tg-safe-area-top) - 820px + 4rem), 5.5rem); }
+  .app--home:has(.home-favorites) .hero + .home-courses { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-4)); }
+  .app--home:has(.home-favorites) .home-favorites, .app--home:has(.home-favorites) .home-links { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-5)); }
 }

@@ -197,6 +197,49 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
   }
 })
 
+test('uses the visible CSS viewport when Telegram reports stale Home heights', async ({ page }, testInfo) => {
+  await page.route('**/api/profile/favorites', route => route.fulfill({ json: { items: [
+    { courseId: 'course-1', path: '1 семестр', type: 'dir', name: '1 семестр', createdAt: 1 },
+  ] } }))
+  for (const [height, reported] of [[852, 1100], [852, 700], [568, 1100]]) {
+    await page.setViewportSize({ width: 393, height })
+    await page.goto('/#/')
+    await page.evaluate(reportedHeight => {
+      const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; safeAreaInset: object; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+      app.viewportHeight = reportedHeight
+      app.viewportStableHeight = reportedHeight
+      app.safeAreaInset = { top: 59, right: 0, bottom: 34, left: 0 }
+      app.contentSafeAreaInset = { top: 92, right: 0, bottom: 34, left: 0 }
+      ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('viewportChanged')
+    }, reported)
+    await expect(page.locator('.home-favorites')).toBeVisible()
+    const metrics = await page.evaluate(() => {
+      const main = document.querySelector('main')!
+      const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+      return { viewport: innerHeight, appHeight: box('.app').height, html: document.documentElement.scrollHeight, body: document.body.scrollHeight,
+        mainScroll: main.scrollHeight, mainClient: main.clientHeight, headerBottom: box('header').bottom, greetingTop: box('.user-greeting').top,
+        linksBottom: box('.home-links').bottom, footerTop: box('footer').top, footerBottom: box('footer').bottom, navTop: box('.bottom-nav').top }
+    })
+    expect(metrics.appHeight).toBeCloseTo(metrics.viewport, 0)
+    expect(metrics.html).toBeLessThanOrEqual(height + 1)
+    expect(metrics.body).toBeLessThanOrEqual(height + 1)
+    expect(metrics.footerBottom).toBeLessThanOrEqual(metrics.navTop - 4)
+    if (height === 852) {
+      expect(metrics.mainScroll, `${height}px CSS viewport with Telegram reporting ${reported}px`).toBeLessThanOrEqual(metrics.mainClient + 1)
+      expect(metrics.greetingTop).toBeGreaterThanOrEqual(metrics.headerBottom)
+      expect(metrics.linksBottom).toBeLessThanOrEqual(metrics.footerTop)
+      await page.locator('main').evaluate(element => element.scrollTo(0, 100))
+      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(1)
+      await page.screenshot({ path: testInfo.outputPath(`home-393x852-telegram-reports-${reported}.png`) })
+    } else {
+      expect(metrics.mainScroll).toBeGreaterThan(metrics.mainClient)
+      await page.locator('main').evaluate(element => element.scrollTo(0, element.scrollHeight))
+      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeGreaterThan(0)
+      await expect(page.getByRole('link', { name: 'Будущим первокурсникам' })).toBeInViewport()
+    }
+  }
+})
+
 test('fits the complete home screen without page or main scrolling on Telegram phones', async ({ page }, testInfo) => {
   for (const [width, height] of [[295, 667], [320, 568], [375, 667], [390, 720], [390, 730], [390, 844], [393, 852], [430, 932]]) {
     await page.setViewportSize({ width, height })
