@@ -2,6 +2,7 @@
 
 ## 2026-10-05
 
+- Stabilized Firefox's high-contrast Profile regression by applying the contrast preference before a fresh Home document load; the assertion still requires no blur and an opaque surface.
 - Header brand (logo + «Студент ИУ5») remains geometrically centered; the admin «Статистика» action is positioned at the header's right edge. Added narrow-screen alignment regressions.
 - Home «Избранное» сразу открывает единственную сохранённую папку; один файл или несколько элементов ведут в список профиля. Добавлены два focused Playwright-сценария для прямого перехода и fallback.
 - Added the «Диск Белодедова 2026-2027» external link as the first item in the course-2 Electrical Engineering folder; it opens through Telegram's external-link integration.
