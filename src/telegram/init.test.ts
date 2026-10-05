@@ -10,6 +10,7 @@ describe('initializeTelegram', () => {
     const setProperty = vi.fn()
     const removeProperty = vi.fn()
     const app = {
+      initData: 'query_id=test',
       viewportHeight: 420,
       viewportStableHeight: 420,
       safeAreaInset: { top: 12, right: 0, bottom: 8, left: 0 },
@@ -108,6 +109,7 @@ describe('initializeTelegram', () => {
     const listeners: Record<string, () => void> = {}
     const meta = { setAttribute: vi.fn() }
     const app = {
+      initData: 'query_id=test',
       colorScheme: 'light',
       ready: vi.fn(),
       expand: vi.fn(),

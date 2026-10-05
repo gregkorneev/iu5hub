@@ -6,12 +6,16 @@ const set = (name: string, value?: string) => value
 
 export const applyTelegramTheme = () => {
   const app = getTelegramWebApp()
-  const params = app?.themeParams
-  document.documentElement.style.colorScheme = app?.colorScheme ?? ''
-  const headerColor = params?.bg_color ?? (app?.colorScheme === 'dark' ? '#0d203a' : '#f6faff')
-  app?.setHeaderColor?.(headerColor)
+  const inTelegram = Boolean(app?.initData)
+  const params = inTelegram ? app?.themeParams : undefined
+  const colorScheme = inTelegram ? app?.colorScheme : undefined
+  document.documentElement.style.colorScheme = colorScheme ?? ''
+  const systemPrefersDark = !inTelegram && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-color-scheme: dark)').matches
+  const headerColor = params?.bg_color ?? (colorScheme === 'dark' || (!inTelegram && systemPrefersDark) ? '#0d203a' : '#f6faff')
+  if (inTelegram) app?.setHeaderColor?.(headerColor)
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', headerColor)
-  if (app?.colorScheme) document.documentElement.dataset.telegramTheme = app.colorScheme
+  if (colorScheme) document.documentElement.dataset.telegramTheme = colorScheme
   else delete document.documentElement.dataset.telegramTheme
   set('--platform-background', params?.bg_color)
   set('--platform-text', params?.text_color)
