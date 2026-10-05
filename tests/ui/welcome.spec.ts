@@ -94,3 +94,44 @@ test('stays within a short Telegram safe area and follows its dark theme', async
     expect(target && target.height >= 44 && target.width >= 44).toBe(true)
   }
 })
+
+test('keeps dark browser fallback actions readable and gives the not-found page a main heading', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.addInitScript(() => { (window as Window & { Telegram?: unknown }).Telegram = undefined })
+  await page.goto('/#/')
+
+  const primaryAction = await new AxeBuilder({ page }).include('.welcome-dialog__primary').withRules(['color-contrast']).analyze()
+  expect(primaryAction.violations).toEqual([])
+  await page.getByRole('button', { name: 'Пропустить' }).click()
+
+  await page.goto('/#/course/course-1')
+  const retry = page.locator('.favorite-error button')
+  await expect(retry).toBeVisible()
+  const retryContrast = await new AxeBuilder({ page }).include('.favorite-error button').withRules(['color-contrast']).analyze()
+  expect(retryContrast.violations).toEqual([])
+
+  await page.goto('/#/bad-route')
+  await expect(page.getByRole('heading', { name: 'Страница не найдена', level: 1 })).toBeVisible()
+})
+
+test('keeps Telegram dark favorite retry readable after a failed save', async ({ page }) => {
+  await page.route('**/api/profile/favorites', async (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { items: [] } })
+    return route.fulfill({ status: 503, json: { error: 'Unavailable' } })
+  })
+  await page.goto('/#/')
+  await page.getByRole('button', { name: 'Пропустить' }).click()
+  await page.evaluate(() => {
+    const app = (window as Window & { Telegram: { WebApp: { colorScheme: string; themeParams: Record<string, string> } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+    app.colorScheme = 'dark'
+    app.themeParams = { bg_color: '#101820', text_color: '#f3f8ff', secondary_bg_color: '#172a40', button_color: '#78b4ff', button_text_color: '#102333' }
+    ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('themeChanged')
+  })
+
+  await page.goto('/#/course/course-1')
+  await page.getByRole('button', { name: /Добавить в избранное/ }).first().click()
+  const retry = page.locator('.favorite-error button')
+  await expect(retry).toBeVisible()
+  const contrast = await new AxeBuilder({ page }).include('.favorite-error button').withRules(['color-contrast']).analyze()
+  expect(contrast.violations).toEqual([])
+})

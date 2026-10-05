@@ -73,6 +73,7 @@ button, a, [role="button"] { touch-action: manipulation; user-select: none; -web
   --surface-secondary: color-mix(in srgb, var(--telegram-secondary-background, var(--platform-background)) 20%, #173a63 80%);
   --text-secondary: color-mix(in srgb, var(--platform-text) 78%, var(--surface-primary) 22%);
   --separator: color-mix(in srgb, var(--brand-blue) 20%, transparent);
+  --action-quiet: #8cc5f4;
   --action: color-mix(in srgb, var(--telegram-button-color, var(--brand-blue)) 15%, var(--brand-blue) 85%);
   --action-text: #062448;
   --action-glass: color-mix(in srgb, var(--brand-blue) 16%, transparent);
@@ -541,6 +542,10 @@ body:has(.app--home) { min-height: 100dvh; }
   @keyframes page-fade { from { opacity: .8; } to { opacity: 1; } }
   :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search button, .button, .download-button, .in-app-back, .filters a, .bottom-nav a, .stats-periods button, .home-links__list a):active { transform: none; filter: brightness(.92); }
 }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-telegram-theme]) { --action-text: #fff; --action-quiet: #8cc5f4; }
+}
 @supports not (backdrop-filter: blur(1px)) {
   .home-links__list a { background: var(--surface-elevated); }
   .user-greeting, .admin-stats-link { background: var(--surface-elevated); }
@@ -565,7 +570,7 @@ body:has(.app--home) { min-height: 100dvh; }
 .disk-file__open { align-self: stretch; }
 .disk-file .download-button { width: 2.75rem; height: 2.75rem; }
 .favorite-error { padding: .75rem 1rem; border: 1px solid var(--material-edge); border-radius: var(--radius-medium); background: var(--surface-secondary); color: var(--text-primary); }
-.favorite-error button { min-height: 2.75rem; margin-left: .5rem; border: 0; background: transparent; color: var(--action); text-decoration: underline; }
+.favorite-error button { min-height: 2.75rem; margin-left: .5rem; border: 0; background: transparent; color: var(--action-quiet); text-decoration: underline; }
 .profile-page { max-width: 48rem; }
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) { .profile-page { max-width: none; } }
 .profile-page > .eyebrow { margin: 0 0 var(--space-4); }
