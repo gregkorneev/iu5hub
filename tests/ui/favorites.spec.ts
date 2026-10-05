@@ -48,6 +48,42 @@ test('saves folders and files without opening them, restores them after reload, 
   await expect(page.getByRole('heading', { name: 'В избранном пока ничего нет' })).toBeVisible()
 })
 
+test('opens the only saved folder directly from Home with its favorite route state', async ({ page }) => {
+  await page.goto('/#/course/course-1')
+  const semester = page.locator('.semester-button-grid .favorite-card').first()
+  await semester.getByRole('button', { name: /Добавить в избранное/ }).click()
+  await page.locator('.breadcrumb').getByRole('link', { name: 'Главная' }).click()
+
+  await page.getByRole('link', { name: /Избранное/ }).click()
+  await expect(page).toHaveURL(/#\/course\/course-1\?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80$/)
+  await expect(page.getByRole('link', { name: 'Алгебра' })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => (history.state as { usr?: { fromFavorite?: { courseId?: string; path?: string; type?: string; name?: string } } }).usr?.fromFavorite)).toMatchObject({
+    courseId: 'course-1', path: '1 семестр', type: 'dir', name: '1 семестр',
+  })
+})
+
+test('keeps Home favorites on Profile for one saved file and for multiple favorites', async ({ page }) => {
+  await page.goto('/#/course/course-1')
+  const semester = page.locator('.semester-button-grid .favorite-card').first()
+  await semester.getByRole('link').click()
+  const lecture = page.locator('.disk-file').filter({ hasText: 'Лекция 1.pdf' })
+  await lecture.getByRole('button', { name: /Добавить в избранное/ }).click()
+  await page.locator('.breadcrumb').getByRole('link', { name: 'Главная' }).click()
+  await page.getByRole('link', { name: /Избранное/ }).click()
+  await expect(page).toHaveURL(/#\/profile$/)
+  await expect(page.locator('.profile-item')).toHaveCount(1)
+  await expect(page.locator('.profile-item')).toContainText('Лекция 1.pdf')
+
+  await page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Каталог' }).click()
+  await page.getByRole('link', { name: /Курс 1/ }).click()
+  const savedSemester = page.locator('.semester-button-grid .favorite-card').first()
+  await savedSemester.getByRole('button', { name: /Добавить в избранное/ }).click()
+  await page.locator('.breadcrumb').getByRole('link', { name: 'Главная' }).click()
+  await page.getByRole('link', { name: /Избранное/ }).click()
+  await expect(page).toHaveURL(/#\/profile$/)
+  await expect(page.locator('.profile-item')).toHaveCount(2)
+})
+
 test('opens a saved folder from anywhere on its card while keeping the heart action separate', async ({ page }) => {
   await page.goto('/#/course/course-1')
   const semester = page.locator('.semester-button-grid .favorite-card').first()

@@ -2,6 +2,7 @@
 
 ## 2026-10-05
 
+- Home «Избранное» сразу открывает единственную сохранённую папку; один файл или несколько элементов ведут в список профиля. Добавлены два focused Playwright-сценария для прямого перехода и fallback.
 - Added the «Диск Белодедова 2026-2027» external link as the first item in the course-2 Electrical Engineering folder; it opens through Telegram's external-link integration.
 - Yandex Disk folders with more than four entries use the existing semester folder grid. Home «Курс» labels now share the bold weight of «Избранное», and the Home Profile shortcut shows only the Telegram username without `@`.
 - Kept Home tile spacing at 8px on compact screens with natural scrolling when content does not fit; aligned remaining material metadata radius and file-action spacing with design tokens. Audited role-based Liquid Glass opacity and radius tokens against current Apple guidance.

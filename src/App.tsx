@@ -98,6 +98,7 @@ function Home() {
   const user = getTelegramUser()
   const { courses } = useCatalog()
   const favorites = useFavorites()
+  const onlySavedFolder = favorites.items.length === 1 && favorites.items[0].type === 'dir' ? favorites.items[0] : undefined
   return <>
     <div className="home-intro-row">
       {user?.username && <Link className="user-greeting" to="/profile" aria-label={`Открыть профиль: ${user.username}`}>
@@ -112,7 +113,7 @@ function Home() {
       <div className="course-grid">{courses.map((course, index) => <Link key={course.id} aria-label={`${course.title}. ${course.description}. Открыть каталог`} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span className="course-grid__heading"><span className="course-grid__number" aria-hidden="true">{index + 1}</span><strong className="course-grid__label">Курс</strong></span><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div>
     </section>
     {!favorites.loading && !favorites.error && favorites.items.length > 0 && <section className="home-favorites" aria-labelledby="home-favorites-title">
-      <Link className="home-favorites__link" to="/profile">
+      <Link className="home-favorites__link" to={onlySavedFolder ? `/course/${onlySavedFolder.courseId}?path=${encodeURIComponent(onlySavedFolder.path)}` : '/profile'} state={onlySavedFolder ? { fromFavorite: onlySavedFolder } : undefined}>
         <Heart aria-hidden="true" focusable="false" />
         <span className="home-favorites__copy"><h2 id="home-favorites-title">Избранное</h2><small>Сохранённые папки и файлы</small></span>
         <span className="home-favorites__count" aria-label={`${favorites.items.length} в избранном`}>{favorites.items.length}</span>

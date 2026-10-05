@@ -24,6 +24,8 @@ The Worker validates a bounded JSON body, course identifier, path, type and name
 
 The key is `courseId + path`, as returned by the current catalog. Opening a saved folder uses the existing `/#/course/:courseId?path=…` route. Opening a file resolves a fresh URL through `MaterialsRepository.getFileUrl` and uses the existing safe link flow. If the resource was moved or removed, the profile reports that it is unavailable and offers removal; it does not try to track Yandex renames.
 
+On Home, the «Избранное» tile opens a folder directly when exactly one favorite exists and it is a folder. A single saved file or multiple favorites open the Profile list.
+
 ## Release
 
 Production release (2026-09-25): migration `0002_favorites.sql` was applied to existing D1, a strong unique `USER_ID_HMAC_SECRET` was provisioned as a Worker secret, the Worker and Pages frontend were deployed, and production auth/CORS smoke checks passed. Keep the secret stable; its value is not stored in Git, `wrangler.toml`, Vite variables or logs. Complete a real Mini App check with two Telegram accounts and a reload or second device; local browser fixtures cannot prove that device-level synchronization.
