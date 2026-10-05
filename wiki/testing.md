@@ -1,5 +1,36 @@
 # Testing
 
+## Final release acceptance — 2026-10-05
+
+`npm run qa` passed after the accessibility fixes: lint, typecheck, 30 Vitest tests, 54 Node/Worker tests, search/tagging/schedule data validation, production build, and Playwright (**254 passed, 2 skipped**, 256 total). The two skips are the existing WebKit keyboard-only cases on this macOS host; WebKit pointer/touch coverage passes. Firefox is omitted from local Playwright on macOS. CI's prior Linux Firefox result is recorded below, but it predates these latest fixes.
+
+### Browser/device matrix
+
+| Platform / environment | Browser / viewport | Test type | Result |
+| --- | --- | --- | --- |
+| macOS physical host | Native Safari, large Mac display (~3024×1700 screenshot) | Production smoke: Home → Search → result → Catalog, in-app Back, browser Back, direct route/profile guidance | Passed. No real device emulation; PDF download was not completed because Safari displayed a site download permission prompt. |
+| macOS physical host | Native Google Chrome, same large desktop setup | Production smoke: search `Физика`, suggestion, folder, breadcrumb focus | Passed. |
+| Local browser automation | Playwright Chromium / Desktop Chrome project | Full functional, route, history, error, accessibility, responsive tests | Included in the 254 passed cases. |
+| Local browser automation | Playwright Chromium with iPhone 13 viewport/touch emulation | Mobile responsive/touch scenarios | Passed. This is viewport/device emulation, not iPhone Safari or a physical iPhone. |
+| Local browser automation | Playwright WebKit with iPhone 13 viewport/touch emulation | Mobile WebKit scenarios | Passed except one host-specific keyboard-only skip. This is WebKit emulation, not Mobile Safari. |
+| Local browser automation | Playwright WebKit desktop project | Desktop WebKit scenarios | Passed except one host-specific keyboard-only skip; not native Safari. |
+| Local browser automation | Chromium and WebKit: 16 widths (320–1920 CSS px), 7 routes, + landscape | Responsive overflow sweep: Home, course, semester, Search with result, Schedule, Profile, 404 | 118 checks per engine, **0 horizontal overflows**. Viewport simulation only. |
+| Local browser automation | 1024×768 / 1180×820 tablet layouts | Layout geometry | Existing UI tests pass; no physical iPad/iPadOS browser used. |
+| Production, signed-out browser | Worker endpoints | Error/recovery UX | Protected profile/analytics requests return expected 401 without Telegram `initData`; guest Profile explains Telegram-only favorites. |
+| Windows 11 / Edge, Chrome, Firefox | Not available | Not run | No Windows host/browser in this environment. |
+| iOS / Mobile Safari, Android / Chrome, iPadOS / Safari | Not available | Not run | No physical or cloud device service/device account available; no claim of native-device verification. |
+| Telegram Mini App | iOS, Android, Desktop | Not available | Telegram-specific fullscreen, safe-area values, software keyboard, system Back, external link and VoiceOver/TalkBack remain device-only checks. |
+
+### Release findings
+
+| ID | Priority | Status | Finding / fix / regression |
+| --- | --- | --- | --- |
+| A11Y-01 | P2 | Fixed | Dark browser fallback onboarding button «Далее» had 3.14:1 contrast. Scoped dark fallback token now uses white text over the action surface. Axe color-contrast regression covers the first-run dialog. |
+| A11Y-02 | P2 | Fixed | Favorite error «Повторить» action failed axe contrast in dark theme. It now uses the brighter quiet-action token in both dark browser fallback and Telegram dark theme. Axe regressions cover failed favorite save and API fallback. |
+| A11Y-03 | P3 | Fixed | Invalid route used an h2 through generic EmptyState and had no h1. The 404 now has a level-one heading and «На главную» recovery link; Playwright asserts it. |
+
+No P0/P1 or unresolved product P2 was found in the exercised flows. Manual keyboard verification covered native macOS Chrome focus visibility and route navigation; assistive screen readers were unavailable. Exact release recommendation and evidence are in `ux-audit.md`.
+
 - **2026-10-05 Home vertical spacing:** Home starts 12–16 CSS px below the header and tall-phone section gaps are 12px; short-screen scrolling stays intact. Reviewed the 390×844 with-Favorites screenshot. `npx playwright test tests/ui/home-links.spec.ts --project=chromium` passed 11/11, including 390×844, 393×844/853 with 24px/92px Telegram content insets, 393×720 natural scrolling and 480–620px compact tablet widths. Full `npm run qa` passed; Playwright passed 246 tests with two host-specific WebKit keyboard skips. Local macOS does not include Firefox. Physical Telegram confirmation remains pending.
 - **2026-10-05 Firefox contrast fallback:** CI run [37338664784](https://github.com/gregkorneev/iu5hub/actions/runs/37338664784) exposed that the Profile bubble kept its blur when contrast was toggled after Home had been navigated in the SPA. The focused test now enables `prefers-contrast: more`, reloads Home, and still asserts the bubble has no backdrop blur and an opaque fill. GitHub Actions run [37340897612](https://github.com/gregkorneev/iu5hub/actions/runs/37340897612) passed all 310 Playwright tests, including Firefox; the focused Chromium regression also passes locally.
 - **2026-10-05 Header brand and Statistics action:** focused Chromium Playwright verifies the logo/title center remains aligned to the header center at 320px, while the admin Statistics button stays at the right edge with its minimum touch target. The focused header tests passed 2/2.

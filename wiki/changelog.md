@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-05 — final UX/UI/QA release acceptance
+
+- Fixed A11Y-01/A11Y-02 dark-theme action text contrast and A11Y-03 missing 404 `h1`; added axe and route regression tests.
+- Final `npm run qa`: 30 Vitest, 54 Node/Worker, validation/build checks and 254/256 Playwright cases passed (two WebKit keyboard skips are host-specific).
+- Chromium and WebKit responsive sweep: 118 route/viewport combinations per engine across 320–1920 CSS px plus landscape; no horizontal overflow. Native macOS Safari and Chrome production smoke passed.
+- Release status is **PASS WITH KNOWN ISSUES**. Native iOS/Android/iPad/Windows and Telegram WebView verification remain unavailable and explicitly unclaimed; see `testing.md`, `ux-audit.md` and `known-issues.md`.
+
 ## 2026-10-05
 
 - On portrait phones, removed the excess gap above Home content, set 12px spacing between major sections and aligned the Home stack to the top of available content. Kept compact-screen scrolling and safe-area behavior covered by browser tests; full local `npm run qa` passed (246 Playwright passes, two host-specific WebKit keyboard skips).

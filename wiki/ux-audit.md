@@ -1,5 +1,35 @@
 # UX-аудит «Студент ИУ5» — 27 сентября 2026
 
+## Final release acceptance — 5 октября 2026
+
+**Вердикт: PASS WITH KNOWN ISSUES.** На исправленной версии нет подтверждённых P0, P1 или оставшихся продуктовых P2 в проверенных сценариях. `npm run qa` завершился успешно: lint, typecheck, 30 Vitest, 54 Node/Worker, все search/tagging/schedule data checks, production build и Playwright — 254 passed / 2 host-specific WebKit keyboard skips. После этого отдельный responsive sweep проверил 118 сочетаний маршрута и ширины на Chromium и 118 на WebKit (16 точек от 320 до 1920 CSS px и landscape); горизонтального overflow не обнаружено.
+
+### Подтверждённые findings
+
+| ID | Priority / status | Platform, browser, viewport | Steps | Expected → actual | Evidence / root cause | Fix / regression |
+| --- | --- | --- | --- | --- | --- | --- |
+| A11Y-01 | P2 · Fixed | Production, dark system appearance, Chrome; first-run onboarding | Open Home in a fresh browser profile and scan «Далее» with axe-core 4.13 | ≥4.5:1 → 3.14:1 | Serious `color-contrast`; foreground/background `#001b36` / `#0066cf`; fallback action text inherited light-surface color under system dark mode. | Scoped system dark fallback token changes action label to white; axe regression in `welcome.spec.ts`. |
+| A11Y-02 | P2 · Fixed | Production, dark theme, Catalog, 390×844 mobile viewport simulation; Chrome/axe | Open `/course/course-1`, let unauthenticated favorites request fail, scan «Повторить» | ≥4.5:1 → contrast failure on dark surface | Serious `color-contrast`; retry reused a dim `--action` color as text. The 401 is expected without Telegram `initData`; the guidance/retry UI itself was valid. | Retry uses high-contrast `--action-quiet`; tests cover system dark fallback and Telegram dark failed-save state. |
+| A11Y-03 | P3 · Fixed | Production, invalid route `/#/bad-route`; desktop Chrome | Open an unknown hash route, inspect headings and recovery | A page-level h1 → only an h2 from generic EmptyState | axe `page-has-heading-one`; not-found reused the shared state component. Recovery path existed but heading hierarchy was incomplete. | Dedicated 404 section has h1 plus «На главную» link; Playwright h1 regression. |
+
+No other confirmed P0/P1/P2 findings. Native desktop manual smoke used production on macOS Safari and Chrome: Home, Search, search suggestion/result, Catalog folder, in-app Back, browser Back, and keyboard focus. Native keyboard traversal on one macOS browser is not a screen-reader/AT certification. Production protected API calls return 401 when opened outside Telegram; the UI explains Telegram-only favorites and does not throw a client exception. Local Vite has no Worker, so its analytics 404s are expected fixture/environment gaps.
+
+### Test matrix and limits
+
+| Test environment | Engine/browser | Coverage | Result / classification |
+| --- | --- | --- | --- |
+| Native macOS desktop, production | Safari | Home → Search → result → Catalog, back, signed-out Profile message | Passed native desktop smoke. Large Mac display screenshot ~3024×1700; no smaller native window sweep or downloaded PDF. |
+| Native macOS desktop, production | Google Chrome | Search `Физика`, suggestion/result, Catalog, breadcrumb focus | Passed native desktop smoke; same host, not Windows Chrome. |
+| Local Playwright projects | Chromium desktop, Chromium with iPhone-sized touch/viewport emulation, WebKit with iPhone-sized emulation, WebKit desktop | Route/user/error paths, search, welcome, schedule, navigation, touch geometry, axe, responsive | 254 passed, 2 WebKit keyboard-only skips. Chromium/WebKit browser engines and CSS viewports; no physical mobile devices. |
+| Local Playwright responsive sweep | Chromium and WebKit, 320/360/375/390/414/430/480/600/768/820/1024/1280/1366/1440/1600/1920 CSS px; landscape 844×390 | Home, course, semester, Search result, Schedule, Profile, 404 | 118 checks per engine; no horizontal overflow. This is viewport simulation. |
+| Tablet-width emulation | Chromium/WebKit at 1024×768 and 1180×820 | Profile width and layout | Passed existing layout assertions; no iPadOS or iPad Safari device. |
+| Windows 11 | Edge, Chrome, Firefox | Not available | Not run; no Windows host or Windows browser in this session. |
+| iOS / Android / iPadOS | Mobile Safari / Chrome Android / Safari | Not available | No physical or cloud real-device service. Native keyboard, toolbar collapse, safe areas, Dynamic Island/notch, home indicator, Android system Back, rotation and touch feel are unverified. |
+| Telegram Mini App | iOS, Android, Desktop | Not available | Test fixtures cover Telegram theme, safe-area and BackButton APIs; actual Telegram WebView/fullscreen/account flows remain device-only. |
+| Screen reader / assistive tech | VoiceOver, TalkBack, Windows screen reader | Not available | Axe and accessibility tree checks are not AT sessions. |
+
+The full current table and regression instructions are in `testing.md`; open platform requirements remain tracked in `known-issues.md` and `telegram.md`. No physical-device service/API key or Windows runner was connected, so that coverage remains a release follow-up rather than being described as passed.
+
 ## Дополнение — 2 октября 2026
 
 Повторная cross-browser проверка прошла: локальный `npm run qa` завершился успешно; 226 Playwright-проверок прошли, две клавиатурные WebKit-проверки пропущены из-за поведения Tab на macOS-хосте. GitHub Actions run [37069107899](https://github.com/gregkorneev/iu5hub/actions/runs/37069107899) успешно выполнил 285 Playwright-проверок на Ubuntu с Chromium, Firefox и WebKit. Добавлены desktop WebKit проверки и Linux CI Firefox. Реальный P2 дефект поиска исправлен: подсказки больше не исчезают при переходе фокуса с поля ввода на кнопку и результат. Firefox также выявил P2 переполнение подписи «Расписание» в четырёхвкладочной панели на 320px; узкая панель теперь использует дополнительную безопасную ширину. Дополнительно проверен production сайт в macOS Safari: главная, каталог, поиск и Telegram-only подсказка в профиле работают. Safari показал запрос разрешения на загрузку PDF, который был отклонён; поэтому сам файл не скачивался.
