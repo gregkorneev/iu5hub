@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-05
+
+- Fixed the fullscreen desktop Home profile capsule touching the first course card by adding a conditional 12px vertical gap; added Chromium/WebKit geometry regressions at 604×424, 1280×800 and 1920×1080.
+
 ## 2026-10-05 — final UX/UI/QA release acceptance
 
 - Fixed A11Y-01/A11Y-02 dark-theme action text contrast and A11Y-03 missing 404 `h1`; added axe and route regression tests.

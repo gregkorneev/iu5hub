@@ -1,5 +1,9 @@
 # Testing
 
+## Desktop Home profile spacing regression — 2026-10-05
+
+Reproduced the fullscreen desktop visual collision: the Home profile capsule's lower border touched the first course card's top edge because the intro row is followed by the course section without a section-to-section gap. Added a conditional 12 CSS px gap when `.user-greeting` is present. The Playwright regression checks 604×424, 1280×800 and 1920×1080, verifies the capsule clears course cards and the admin Statistics action clears the centered brand, and stores one 1920×1080 screenshot artifact. Full `npm run qa` passed 258 Playwright cases (two host-specific WebKit keyboard skips); after hardening the test with explicit waits for asynchronous profile/admin rendering, the focused Chromium and desktop WebKit run passed 2/2. These are local browser viewport tests, not physical hardware or native Safari/Windows browser checks.
+
 ## Final release acceptance — 2026-10-05
 
 Final gate details after the deployed dark-theme fallback fix: lint, typecheck, 30 Vitest tests, 54 Node/Worker tests, search/tagging/schedule data validation and production build passed. The 256-case local Playwright suite passed on a two-worker rerun (**254 passed, 2 skipped**). Its first six-worker run had one transient favorites optimistic-update failure; that scenario passed in isolation and in the full rerun. The two skips are existing WebKit keyboard-only cases on this macOS host; WebKit pointer/touch coverage passes. GitHub Actions [run 37348833831](https://github.com/gregkorneev/iu5hub/actions/runs/37348833831) then passed **320/320** Playwright tests on Ubuntu across Chromium, Firefox and WebKit. This provides Firefox engine coverage but is not native Windows Firefox.

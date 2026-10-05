@@ -297,6 +297,7 @@ footer { padding: var(--space-4) 0 var(--space-5); border-top: 1px solid var(--s
 .home-intro-row .hero > p:not(.eyebrow) { max-width: none; margin: 0; }
 .app--home .home-intro-row .hero > p:not(.eyebrow) { margin-top: 0; }
 .home-intro-row .user-greeting { justify-self: end; width: fit-content; min-width: 0; max-width: 100%; margin: 0; }
+.home-intro-row:has(.user-greeting) + .home-courses { margin-top: var(--space-3); }
 .user-greeting:active { opacity: .7; }
 .user-greeting:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
 h1, .section-title h2 { color: var(--text-primary); font-size: var(--type-screen); line-height: 1.12; letter-spacing: -.035em; }

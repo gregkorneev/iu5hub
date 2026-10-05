@@ -64,6 +64,38 @@ test('wraps the compact Profile shortcut in its own glass bubble without dead sp
   expect(fallbackBackground).not.toBe('transparent')
 })
 
+test('keeps the Home profile shortcut clear of course cards in fullscreen desktop layouts', async ({ page }, testInfo) => {
+  await page.route('**/api/admin/me', route => route.fulfill({ json: { isAdmin: true } }))
+  for (const [width, height] of [[604, 424], [1280, 800], [1920, 1080]]) {
+    await page.setViewportSize({ width, height })
+    await page.goto('/#/')
+    await page.evaluate(() => {
+      (window as Window & { Telegram: { WebApp: { initDataUnsafe: { user: unknown } } } }).Telegram.WebApp.initDataUnsafe.user = { id: 1, first_name: 'Greg', username: 'gregkor' }
+    })
+    await page.goto('/#/profile')
+    await page.goto('/#/')
+    await expect(page.locator('.user-greeting')).toBeVisible()
+    await expect(page.locator('.admin-stats-link')).toBeVisible()
+
+    const geometry = await page.evaluate(() => {
+      const box = (selector: string) => {
+        const { x, y, right, bottom } = document.querySelector(selector)!.getBoundingClientRect()
+        return { x, y, right, bottom }
+      }
+      const overlaps = (a: ReturnType<typeof box>, b: ReturnType<typeof box>) => a.x < b.right && a.right > b.x && a.y < b.bottom && a.bottom > b.y
+      return {
+        profileToCourses: box('.home-courses').y - box('.home-intro-row').bottom,
+        profileOverCourses: overlaps(box('.user-greeting'), box('.home-courses')),
+        brandOverStats: overlaps(box('.brand'), box('.admin-stats-link')),
+      }
+    })
+    expect(geometry.profileToCourses, `${width}×${height} profile-to-courses gap`).toBeGreaterThanOrEqual(12)
+    expect(geometry.profileOverCourses, `${width}×${height} profile/course overlap`).toBe(false)
+    expect(geometry.brandOverStats, `${width}×${height} header overlap`).toBe(false)
+    if (width === 1920) await page.screenshot({ path: testInfo.outputPath('fullscreen-home-profile-spacing.png') })
+  }
+})
+
 test('pins the Belodedov disk first in Electrical Engineering and grids folders with five items', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/course/course-2')
