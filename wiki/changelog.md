@@ -2,6 +2,7 @@
 
 ## 2026-10-05
 
+- Header brand (logo + «Студент ИУ5») remains geometrically centered; the admin «Статистика» action is positioned at the header's right edge. Added narrow-screen alignment regressions.
 - Home «Избранное» сразу открывает единственную сохранённую папку; один файл или несколько элементов ведут в список профиля. Добавлены два focused Playwright-сценария для прямого перехода и fallback.
 - Added the «Диск Белодедова 2026-2027» external link as the first item in the course-2 Electrical Engineering folder; it opens through Telegram's external-link integration.
 - Yandex Disk folders with more than four entries use the existing semester folder grid. Home «Курс» labels now share the bold weight of «Избранное», and the Home Profile shortcut shows only the Telegram username without `@`.

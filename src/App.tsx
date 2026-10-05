@@ -66,11 +66,11 @@ function Layout({ children }: { children: ReactNode }) {
     <header>
       <div className="header-brand-group">
         <Link className="brand" to="/" aria-label="Студент ИУ5 — главная"><img src="/logo-iu5.jpeg" alt="Логотип Студент ИУ5" />Студент ИУ5</Link>
-        {admin && <Link className="admin-stats-link" to="/admin/stats" aria-label="Статистика" aria-current={activeNav === 'stats' ? 'page' : undefined}>
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 20V11M9 20V5M15 20v-8M21 20V8" /></svg>
-          <span>Статистика</span>
-        </Link>}
       </div>
+      {admin && <Link className="admin-stats-link" to="/admin/stats" aria-label="Статистика" aria-current={activeNav === 'stats' ? 'page' : undefined}>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 20V11M9 20V5M15 20v-8M21 20V8" /></svg>
+        <span>Статистика</span>
+      </Link>}
     </header>
     <div className="bottom-touch-bar">
       {showBack && <nav className="bottom-context-actions" aria-label="Действия текущего раздела">
