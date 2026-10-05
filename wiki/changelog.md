@@ -6,6 +6,7 @@
 - Final `npm run qa`: 30 Vitest, 54 Node/Worker, validation/build checks and 254/256 Playwright cases passed (two WebKit keyboard skips are host-specific).
 - Chromium and WebKit responsive sweep: 118 route/viewport combinations per engine across 320–1920 CSS px plus landscape; no horizontal overflow. Native macOS Safari and Chrome production smoke passed.
 - Release status is **PASS WITH KNOWN ISSUES**. Native iOS/Android/iPad/Windows and Telegram WebView verification remain unavailable and explicitly unclaimed; see `testing.md`, `ux-audit.md` and `known-issues.md`.
+- Follow-up production retest found and fixed the SDK-present/outside-Telegram theme case: Telegram JS may set a default light scheme even with empty `initData`. Theme params now apply only with actual initData; system dark fallback is preserved. Added SDK-present empty-initData regression plus true Telegram-dark coverage. Cloudflare production smoke on the new asset confirmed dark `color-scheme`, white onboarding action text, working Russian search and 404 recovery. Local full Playwright rerun passed 254/256 at two workers; one transient failure in the initial six-worker run was isolated and did not recur. See the final gate note in `testing.md`.
 
 ## 2026-10-05
 
