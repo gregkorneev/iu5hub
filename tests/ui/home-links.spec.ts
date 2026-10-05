@@ -232,7 +232,7 @@ test('shows a Favorites block between courses and Useful Links and opens the exi
   await expect(page.getByText('Физика.pdf', { exact: true })).toBeVisible()
 })
 
-test('centers the full home stack including Favorites on a tall phone', async ({ page }, testInfo) => {
+test('keeps Home blocks compact and consistently spaced on a tall phone', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.route('**/api/profile/favorites', (route) => route.fulfill({ json: { items: [
     { courseId: 'course-1', path: '/1 sem/Математика', type: 'dir', name: 'Математика', createdAt: 1 },
@@ -244,22 +244,28 @@ test('centers the full home stack including Favorites on a tall phone', async ({
     const main = document.querySelector('main')!
     const mainBox = main.getBoundingClientRect()
     const stackBox = document.querySelector('.home-content-stack')!.getBoundingClientRect()
-    const styles = getComputedStyle(main)
-    const innerTop = mainBox.top + parseFloat(styles.paddingTop)
-    const innerBottom = mainBox.bottom - parseFloat(styles.paddingBottom)
+    const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
     return {
-      stackCenter: stackBox.top + stackBox.height / 2,
-      availableCenter: (innerTop + innerBottom) / 2,
+      stackTop: stackBox.top,
+      contentTop: mainBox.top + parseFloat(getComputedStyle(main).paddingTop),
+      headerToGreeting: box('.user-greeting').top - box('header').bottom,
+      introToCourses: box('.home-courses').top - box('.home-intro-row').bottom,
+      coursesToFavorites: box('.home-favorites').top - box('.home-courses').bottom,
+      favoritesToLinks: box('.home-links').top - box('.home-favorites').bottom,
       mainScrollHeight: main.scrollHeight,
       mainClientHeight: main.clientHeight,
       width: document.documentElement.scrollWidth,
       viewportWidth: innerWidth,
     }
   })
-  expect(Math.abs(geometry.stackCenter - geometry.availableCenter)).toBeLessThanOrEqual(8)
+  expect(Math.abs(geometry.stackTop - geometry.contentTop)).toBeLessThanOrEqual(1)
+  for (const gap of [geometry.headerToGreeting, geometry.introToCourses, geometry.coursesToFavorites, geometry.favoritesToLinks]) {
+    expect(gap).toBeGreaterThanOrEqual(11.95)
+    expect(gap).toBeLessThanOrEqual(16)
+  }
   expect(geometry.mainScrollHeight).toBeLessThanOrEqual(geometry.mainClientHeight + 1)
   expect(geometry.width).toBeLessThanOrEqual(geometry.viewportWidth)
-  await page.screenshot({ path: testInfo.outputPath('home-balanced-390x844-with-favorites.png') })
+  await page.screenshot({ path: testInfo.outputPath('home-compact-390x844-with-favorites.png') })
 })
 
 test('fits Home with a saved item and Telegram fullscreen insets without hiding real overflow', async ({ page }, testInfo) => {
@@ -282,13 +288,22 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
       const main = document.querySelector('main')!
       const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
       return { doc: document.documentElement.scrollHeight, body: document.body.scrollHeight, main: main.scrollHeight, client: main.clientHeight,
-        greeting: box('.user-greeting').top, header: box('header').bottom, links: box('.home-links').bottom, footer: box('footer').top, footerBottom: box('footer').bottom, nav: box('.bottom-nav').top }
+        greeting: box('.user-greeting').top, header: box('header').bottom,
+        introToCourses: box('.home-courses').top - box('.home-intro-row').bottom,
+        coursesToFavorites: box('.home-favorites').top - box('.home-courses').bottom, favoritesToLinks: box('.home-links').top - box('.home-favorites').bottom,
+        links: box('.home-links').bottom, footer: box('footer').top, footerBottom: box('footer').bottom, nav: box('.bottom-nav').top }
     })
     expect(geometry.doc).toBeLessThanOrEqual(height + 1)
     expect(geometry.body).toBeLessThanOrEqual(height + 1)
     expect(geometry.greeting).toBeGreaterThanOrEqual(geometry.header)
     expect(geometry.footerBottom).toBeLessThanOrEqual(geometry.nav - 4)
     if (height >= 844) {
+      expect(geometry.greeting - geometry.header).toBeGreaterThanOrEqual(11.95)
+      expect(geometry.greeting - geometry.header).toBeLessThanOrEqual(16)
+      for (const gap of [geometry.introToCourses, geometry.coursesToFavorites, geometry.favoritesToLinks]) {
+        expect(gap).toBeGreaterThanOrEqual(11.95)
+        expect(gap).toBeLessThanOrEqual(16)
+      }
       expect(geometry.main, `${height}px viewport, ${top}px top inset`).toBeLessThanOrEqual(geometry.client + 1)
       expect(geometry.links).toBeLessThanOrEqual(geometry.footer + 1)
       await page.locator('main').evaluate(element => element.scrollTo(0, 100))
@@ -367,10 +382,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         width: document.documentElement.scrollWidth,
         main: main.scrollHeight,
         mainClient: main.clientHeight,
-        header: box('header'), greeting: box('.user-greeting'), content: box('main'), stack: box('.home-content-stack'), intro: box('.home-intro-row'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
-        centerBias: (box('main').top + box('main').height / 2) - (box('.home-content-stack').top + box('.home-content-stack').height / 2),
-        innerTop: box('main').top + parseFloat(getComputedStyle(document.querySelector('main')!).paddingTop),
-        innerBottom: box('main').bottom - parseFloat(getComputedStyle(document.querySelector('main')!).paddingBottom),
+        header: box('header'), greeting: box('.user-greeting'), content: box('main'), intro: box('.home-intro-row'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
       }
     })
@@ -379,11 +391,8 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.width, `${width}×${height} horizontal`).toBeLessThanOrEqual(width)
     expect(metrics.main, `${width}×${height} main`).toBeLessThanOrEqual(metrics.mainClient + 1)
     if ([390, 393, 430].includes(width) && height >= 844) {
-      const stackCenter = metrics.stack.top + metrics.stack.height / 2
-      const availableCenter = (metrics.innerTop + metrics.innerBottom) / 2
-      expect(Math.abs(stackCenter - availableCenter), `${width}×${height} content stack should be centered in free space`).toBeLessThanOrEqual(8)
-      expect(metrics.centerBias, `${width}×${height} stack should sit slightly above main center`).toBeGreaterThanOrEqual(20)
-      expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a gap after the header`).toBeGreaterThanOrEqual(24)
+      expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeGreaterThanOrEqual(11.95)
+      expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeLessThanOrEqual(16)
     }
     expect(metrics.greeting.top).toBeGreaterThanOrEqual(metrics.header.bottom)
     expect(Math.abs(metrics.greeting.right - metrics.intro.right), `${width}×${height} profile right alignment`).toBeLessThanOrEqual(1)
@@ -391,10 +400,10 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.greeting.top).toBeLessThan(metrics.heroDescription.bottom)
     expect(metrics.greeting.bottom).toBeGreaterThan(metrics.heroDescription.top)
     expect(metrics.heroTitle.width).toBeLessThanOrEqual(1)
-    expect(metrics.courseGrid.top - metrics.intro.bottom, `${width}×${height} introduction → course cards`).toBeGreaterThanOrEqual(height > 740 ? 15.95 : 3.95)
+    expect(metrics.courseGrid.top - metrics.intro.bottom, `${width}×${height} introduction → course cards`).toBeGreaterThanOrEqual(height > 740 ? 11.95 : 3.95)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)
-    const homeSectionGap = height > 740 ? 16 : 0
+    const homeSectionGap = height > 740 ? 11.95 : 0
     if (metrics.favorites) {
       expect(metrics.links.top).toBeGreaterThanOrEqual(metrics.favorites.bottom)
       expect(metrics.favorites.top - metrics.courses.bottom, `${width}×${height} courses → favorites`).toBeGreaterThanOrEqual(homeSectionGap)

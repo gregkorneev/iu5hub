@@ -621,11 +621,12 @@ body:has(.app--home) { min-height: 100dvh; }
   .app--home { --bottom-nav-clearance: 4.25rem; }
   .app--home header { position: relative; top: 0; min-height: 3rem; }
   .app--home .user-greeting { font-size: 1rem; }
-  .app--home main { padding: var(--space-4) 0 var(--space-6); }
+  .app--home .home-intro-row:has(.user-greeting) .user-greeting { align-self: start; }
+  .app--home main { justify-content: flex-start; padding: var(--space-3) 0 var(--space-6); }
   .app--home .hero { margin-bottom: 0; }
   .app--home section + section { margin-top: var(--space-1); }
-  .app--home .home-intro-row + .home-courses { margin-top: var(--space-4); }
-  .app--home .home-favorites, .app--home .home-links { margin-top: var(--space-5); }
+  .app--home .home-intro-row + .home-courses { margin-top: var(--space-3); }
+  .app--home .home-favorites, .app--home .home-links { margin-top: var(--space-3); }
   .app--home .course-grid a { min-height: 4rem; padding: var(--space-1) var(--space-3); }
   .app--home .course-grid__heading { font-size: 1.375rem; }
   .app--home .course-grid b { margin-top: var(--space-1); }
@@ -716,8 +717,9 @@ body:has(.app--home) { min-height: 100dvh; }
   .app--home main { padding-bottom: clamp(0px, calc(100dvh - var(--tg-safe-area-top) - 756px), 4rem); }
   .app--home .course-grid a { min-height: clamp(4rem, calc(100dvh - var(--tg-safe-area-top) - 780px + 4rem), 5.5rem); }
   .app--home:has(.home-favorites) .course-grid a { min-height: clamp(4rem, calc(100dvh - var(--tg-safe-area-top) - 820px + 4rem), 5.5rem); }
-  .app--home:has(.home-favorites) .home-intro-row + .home-courses { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-4)); }
-  .app--home:has(.home-favorites) .home-favorites, .app--home:has(.home-favorites) .home-links { margin-top: clamp(var(--space-2), calc(100dvh - var(--tg-safe-area-top) - 820px + var(--space-2)), var(--space-5)); }
+  .app--home:has(.home-favorites) .home-intro-row + .home-courses,
+  .app--home:has(.home-favorites) .home-favorites,
+  .app--home:has(.home-favorites) .home-links { margin-top: var(--space-3); }
 }
 @media (orientation: landscape) and (max-height: 800px) {
   .app--home main { justify-content: flex-start; padding-top: var(--space-4); }

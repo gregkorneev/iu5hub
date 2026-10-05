@@ -2,6 +2,7 @@
 
 ## 2026-10-05
 
+- On portrait phones, removed the excess gap above Home content, set 12px spacing between major sections and aligned the Home stack to the top of available content. Kept compact-screen scrolling and safe-area behavior covered by browser tests; full local `npm run qa` passed (246 Playwright passes, two host-specific WebKit keyboard skips).
 - Stabilized Firefox's high-contrast Profile regression by applying the contrast preference before a fresh Home document load; the assertion still requires no blur and an opaque surface. Full CI passed all 310 Playwright tests.
 - Header brand (logo + «Студент ИУ5») remains geometrically centered; the admin «Статистика» action is positioned at the header's right edge. Added narrow-screen alignment regressions.
 - Home «Избранное» сразу открывает единственную сохранённую папку; один файл или несколько элементов ведут в список профиля. Добавлены два focused Playwright-сценария для прямого перехода и fallback.
