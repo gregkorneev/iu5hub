@@ -3,6 +3,7 @@ import { test, expect } from './fixtures'
 
 test.describe('Студент ИУ5 critical UI', () => {
   test('starts in Telegram, exposes courses, and has no serious accessibility violations', async ({ page }, testInfo) => {
+    await page.route('**/api/profile/favorites', (route) => route.fulfill({ json: { items: [{ courseId: 'course-1', path: '1 семестр/Математический анализ', type: 'dir', name: 'Математический анализ', createdAt: 1 }] } }))
     const consoleErrors: string[] = []
     page.on('pageerror', (error) => consoleErrors.push(error.message))
     page.on('console', (message) => {
@@ -22,7 +23,8 @@ test.describe('Студент ИУ5 critical UI', () => {
     const courseHeading = page.locator('.course-grid__heading').first()
     await expect(courseHeading).toHaveText('1Курс')
     await expect(courseHeading.locator('.course-grid__label')).toBeVisible()
-    await expect(courseHeading.locator('.course-grid__label')).toHaveCSS('font-weight', '400')
+    await expect(page.locator('.home-favorites__copy h2')).toHaveText('Избранное')
+    expect(await page.locator('.course-grid__label').first().evaluate((label) => getComputedStyle(label).fontWeight)).toBe(await page.locator('.home-favorites__copy h2').evaluate((heading) => getComputedStyle(heading).fontWeight))
     await expect(page.getByText('Курс 1', { exact: true })).toHaveCount(0)
     expect(await page.locator('.course-grid__heading').evaluateAll((headings) => headings.every((heading) => {
       const number = heading.querySelector('.course-grid__number')

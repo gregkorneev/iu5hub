@@ -369,7 +369,7 @@ section + section { margin-top: 2.5rem; }
 .course-grid__heading { display: flex; align-items: baseline; gap: .4rem; font-size: 2rem; }
 .course-grid .course-grid__number { font-size: 1em; letter-spacing: -.05em; }
 :root[data-telegram-theme="dark"] .course-grid__number { color: var(--brand-blue); }
-.course-grid strong.course-grid__label { color: var(--text-primary); font-size: 1em; font-weight: 400; line-height: 1.2; }
+.course-grid strong.course-grid__label { color: var(--text-primary); font-size: 1em; font-weight: var(--weight-strong); line-height: 1.2; }
 .course-grid b { margin-top: var(--space-2); color: var(--action); font-size: .75rem; }
 .semester-button { min-height: 9rem; padding: var(--space-5); color: var(--text-primary); }
 .semester-button span { font-size: 2.5rem; letter-spacing: -.05em; }
