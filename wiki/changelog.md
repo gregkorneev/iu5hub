@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-05
+
+- Added the «Диск Белодедова 2026-2027» external link as the first item in the course-2 Electrical Engineering folder; it opens through Telegram's external-link integration.
+- Yandex Disk folders with more than four entries use the existing semester folder grid. Home «Курс» labels now use regular weight, and the Home Profile shortcut shows only the Telegram username without `@`.
+- Kept Home tile spacing at 8px on compact screens with natural scrolling when content does not fit; aligned remaining material metadata radius and file-action spacing with design tokens. Audited role-based Liquid Glass opacity and radius tokens against current Apple guidance.
+- `npm run qa` passed: 30 Vitest, 54 Node/Worker tests, data validation, production build, and 238/240 Playwright cases (two host-specific WebKit keyboard skips).
+
 ## 2026-10-03
 
 - The Home Profile shortcut now uses a compact, right-aligned Liquid Glass bubble. Its identity text and controls stay close together; high-contrast and reduced-transparency settings use a solid fallback.

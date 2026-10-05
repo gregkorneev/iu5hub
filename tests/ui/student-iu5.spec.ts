@@ -22,6 +22,7 @@ test.describe('Студент ИУ5 critical UI', () => {
     const courseHeading = page.locator('.course-grid__heading').first()
     await expect(courseHeading).toHaveText('1Курс')
     await expect(courseHeading.locator('.course-grid__label')).toBeVisible()
+    await expect(courseHeading.locator('.course-grid__label')).toHaveCSS('font-weight', '400')
     await expect(page.getByText('Курс 1', { exact: true })).toHaveCount(0)
     expect(await page.locator('.course-grid__heading').evaluateAll((headings) => headings.every((heading) => {
       const number = heading.querySelector('.course-grid__number')
@@ -76,8 +77,10 @@ test.describe('Студент ИУ5 critical UI', () => {
 
   test('aligns every file download control to the same card edge', async ({ page }) => {
     for (const route of ['/#/course/course-1?path=1%20%D1%81%D0%B5%D0%BC%D0%B5%D1%81%D1%82%D1%80']) {
+      await page.setViewportSize({ width: 320, height: 844 })
       await page.goto(route)
       await expect(page.getByRole('button', { name: 'Скачать Лекция 1.pdf' })).toBeVisible()
+      await expect(page.locator('.disk-file').first()).toHaveCSS('column-gap', '4px')
       expect(await page.locator('.disk-file').evaluateAll((cards) => {
         const edges = cards.map((card) => {
           const cardBox = card.getBoundingClientRect()

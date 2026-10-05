@@ -6,16 +6,11 @@ test('shows the Telegram identity as a compact link to Profile only for signed-i
     await page.goto('/#/')
     const identity = page.getByRole('link', { name: /Открыть профиль:/ })
     await expect(identity).toHaveAttribute('href', '#/profile')
-    await expect(identity.locator('.user-greeting__avatar')).toHaveText('С')
-    await expect(identity.locator('strong')).toContainText('Студент с очень длинным именем')
-    await expect(identity.locator('small')).toHaveText('@student')
+    await expect(identity.locator('.user-greeting__avatar')).toHaveText('S')
+    await expect(identity.locator('strong')).toHaveText('student')
+    await expect(identity.locator('small')).toHaveCount(0)
     await expect(identity.locator('.user-greeting__identity')).toHaveCSS('display', 'grid')
-    const identityStacks = await identity.locator('.user-greeting__identity').evaluate((element) => {
-      const name = element.querySelector('strong')!.getBoundingClientRect()
-      const username = element.querySelector('small')!.getBoundingClientRect()
-      return username.top >= name.bottom
-    })
-    expect(identityStacks).toBeTruthy()
+    await expect(identity.locator('.user-greeting__identity')).toHaveCSS('grid-template-rows', /\d+px/)
     const bounds = await identity.boundingBox()
     expect(bounds).not.toBeNull()
     expect(bounds!.height).toBeGreaterThanOrEqual(44)
@@ -26,6 +21,10 @@ test('shows the Telegram identity as a compact link to Profile only for signed-i
   }
   await page.evaluate(() => { (window as Window & { Telegram: { WebApp: { initDataUnsafe: { user?: unknown } } } }).Telegram.WebApp.initDataUnsafe.user = undefined })
   await page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link', { name: 'Каталог' }).click()
+  await expect(page.locator('.user-greeting')).toHaveCount(0)
+  await page.evaluate(() => { (window as Window & { Telegram: { WebApp: { initDataUnsafe: { user?: unknown } } } }).Telegram.WebApp.initDataUnsafe.user = { first_name: 'Имя без username' } })
+  await page.goto('/#/profile')
+  await page.goto('/#/')
   await expect(page.locator('.user-greeting')).toHaveCount(0)
 })
 
@@ -39,9 +38,9 @@ test('wraps the compact Profile shortcut in its own glass bubble without dead sp
   await page.goto('/#/profile')
   await page.goto('/#/')
 
-  const identity = page.getByRole('link', { name: 'Открыть профиль: GREG' })
+  const identity = page.getByRole('link', { name: 'Открыть профиль: gregkor' })
   const geometry = await identity.evaluate((element) => {
-    const username = element.querySelector('small')!.getBoundingClientRect()
+    const username = element.querySelector('strong')!.getBoundingClientRect()
     const chevron = element.querySelector('svg')!.getBoundingClientRect()
     const bounds = element.getBoundingClientRect()
     return { width: bounds.width, height: bounds.height, profileToChevronGap: chevron.left - username.right, radius: getComputedStyle(element).borderRadius, backdrop: getComputedStyle(element).backdropFilter, right: bounds.right, rowRight: document.querySelector('.home-intro-row')!.getBoundingClientRect().right }
@@ -59,6 +58,67 @@ test('wraps the compact Profile shortcut in its own glass bubble without dead sp
   const fallbackBackground = await identity.evaluate((element) => getComputedStyle(element).backgroundColor)
   expect(fallbackBackground).not.toBe('rgba(0, 0, 0, 0)')
   expect(fallbackBackground).not.toBe('transparent')
+})
+
+test('pins the Belodedov disk first in Electrical Engineering and grids folders with five items', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/#/course/course-2')
+  await page.getByRole('link', { name: /3\s*семестр/ }).click()
+  await page.getByRole('link', { name: 'Электротехника' }).click()
+  await expect(page).toHaveURL(/path=3%20sem%2F%D0%AD%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%BE%D1%82%D0%B5%D1%85%D0%BD%D0%B8%D0%BA%D0%B0/)
+  const list = page.locator('.semester-subject-grid')
+  await expect(list).toBeVisible()
+  const pinned = list.getByRole('link', { name: /Диск Белодедова 2026-2027/ })
+  await expect(pinned).toBeVisible()
+  await expect(list.locator(':scope > *').first()).toHaveAttribute('href', 'https://disk.yandex.ru/d/Ec-K9jdIgGalFg')
+  expect(await list.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(2)
+  await pinned.click()
+  await expect.poll(() => page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened.at(-1))).toBe('https://disk.yandex.ru/d/Ec-K9jdIgGalFg')
+  await page.goto('/#/course/course-2?path=%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA4')
+  await expect(page.locator('.semester-subject-grid')).toHaveCount(0)
+  await expect(page.locator('.disk-list > .favorite-card')).toHaveCount(4)
+  await page.goto('/#/course/course-2?path=%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA5')
+  await expect(page.locator('.semester-subject-grid > .favorite-card')).toHaveCount(5)
+})
+
+test('keeps home controls usable and scrolls without clipping at short viewports', async ({ page }) => {
+  for (const [width, height, needsScroll] of [[320, 568, false], [390, 480, true]] as const) {
+    await page.setViewportSize({ width, height })
+    await page.goto('/#/')
+    await expect(page.locator('.course-grid a').first()).toBeVisible()
+    const geometry = await page.evaluate(() => ({
+      courseGap: parseFloat(getComputedStyle(document.querySelector('.course-grid')!).rowGap),
+      courseHeight: document.querySelector('.course-grid a')!.getBoundingClientRect().height,
+      linkGap: parseFloat(getComputedStyle(document.querySelector('.home-links__list')!).columnGap),
+      linkHeight: document.querySelector('.home-links__list a')!.getBoundingClientRect().height,
+      pageHeight: document.documentElement.scrollHeight,
+      viewportHeight: window.innerHeight,
+      mainClientHeight: document.querySelector('main')!.clientHeight,
+      mainScrollHeight: document.querySelector('main')!.scrollHeight,
+      mainOverflow: getComputedStyle(document.querySelector('main')!).overflowY,
+      hasHorizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    }))
+    expect(geometry.courseGap, `${width}×${height} course gap`).toBeGreaterThanOrEqual(8)
+    expect(geometry.courseHeight).toBeGreaterThanOrEqual(44)
+    expect(geometry.linkGap).toBeGreaterThanOrEqual(8)
+    expect(geometry.linkHeight).toBeGreaterThanOrEqual(44)
+    expect(geometry.pageHeight).toBeGreaterThanOrEqual(geometry.viewportHeight)
+    expect(geometry.mainOverflow).toBe('auto')
+    if (needsScroll) expect(geometry.mainScrollHeight).toBeGreaterThan(geometry.mainClientHeight)
+    else expect(geometry.mainScrollHeight).toBeLessThanOrEqual(geometry.mainClientHeight)
+    expect(geometry.hasHorizontalOverflow).toBe(false)
+    await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = main.scrollHeight })
+    const reachedFooter = await page.evaluate(() => {
+      const footer = document.querySelector('footer')!.getBoundingClientRect()
+      const nav = document.querySelector('.bottom-nav')!.getBoundingClientRect()
+      const firstLink = document.querySelector('.home-links__list a')!.getBoundingClientRect()
+      return { mainScrollTop: document.querySelector('main')!.scrollTop, footerVisible: footer.top >= 0 && footer.bottom <= window.innerHeight, navVisible: nav.bottom <= window.innerHeight && nav.top >= 0, linkNotClipped: firstLink.width > 0 && firstLink.height >= 44 }
+    })
+    if (needsScroll) expect(reachedFooter.mainScrollTop).toBeGreaterThan(0)
+    expect(reachedFooter.footerVisible).toBeTruthy()
+    expect(reachedFooter.navVisible).toBeTruthy()
+    expect(reachedFooter.linkNotClipped).toBeTruthy()
+  }
 })
 
 test('shows clickable Yandex Disk and GitHub links below courses on the home screen', async ({ page }, testInfo) => {
