@@ -1,5 +1,13 @@
 # Testing
 
+## Final UX regression pass — 2026-10-06
+
+The candidate release changes passed `npm run qa`: lint, typecheck, 30 Vitest, 68 Node/Worker tests, search/tagging/schedule validations, production build, and **262/264 Playwright cases** (two existing host-specific WebKit keyboard-only skips). The retry-focus regression checks the failed-retry and successful-retry recovery paths in Chromium and WebKit. A11Y-04 P3 was fixed: when keyboard activation of Profile «Повторить» causes the error button to unmount, focus returns to that button if the retry fails, or to the persistent «Избранное» heading if it succeeds. Focus is restored only when the browser document is still focused and the user has not moved focus elsewhere.
+
+Production smoke used the Codex in-app browser (Chromium-based browser, not native Safari) on direct Home and `/#/search`. Viewport simulation at 320×568, 390×844, 820×1180, 1280×800 and 1920×1080 found no horizontal overflow; Search exposed its heading, labeled searchbox and primary nav, and the app emitted no page errors. The Telegram JavaScript SDK emitted its expected warning that BackButton is unsupported outside Telegram version 6.0. These checks are production browser/viewport checks, not physical or cloud device tests.
+
+Independent agents checked desktop Chromium/WebKit, mobile Chromium/WebKit emulation, and accessibility/visual regressions. Mobile/Tablet coverage remains browser emulation: no physical iPhone, Android device, iPad, Windows host, Mobile Safari, Android Chrome, Edge/Firefox native browser or Telegram WebView was available. See the release limitations below and `known-issues.md`.
+
 ## Desktop Home profile spacing regression — 2026-10-05
 
 Reproduced the fullscreen desktop visual collision: the Home profile capsule's lower border touched the first course card's top edge because the intro row is followed by the course section without a section-to-section gap. Added a conditional 12 CSS px gap when `.user-greeting` is present. The Playwright regression checks 604×424, 1280×800 and 1920×1080, verifies the capsule clears course cards and the admin Statistics action clears the centered brand, and stores one 1920×1080 screenshot artifact. Full `npm run qa` passed 258 Playwright cases (two host-specific WebKit keyboard skips); after hardening the test with explicit waits for asynchronous profile/admin rendering, the focused Chromium and desktop WebKit run passed 2/2. These are local browser viewport tests, not physical hardware or native Safari/Windows browser checks.

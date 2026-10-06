@@ -207,16 +207,21 @@ test('keeps favorites errors understandable when the API returns an invalid resp
   await page.route('**/api/profile/favorites', async (route) => {
     if (route.request().method() !== 'GET') return route.fallback()
     attempts += 1
-    if (attempts <= 2) return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html>' })
+    if (attempts <= 3) return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html>' })
     return route.fulfill({ json: { items: [] } })
   })
   await page.goto('/#/profile')
   await expect(page.getByRole('heading', { name: 'Не удалось загрузить избранное' })).toBeVisible()
   await expect(page.getByRole('alert')).toContainText('Проверьте подключение и попробуйте ещё раз')
   await expect(page.getByRole('alert')).not.toContainText('Unexpected token')
-  await page.getByRole('button', { name: 'Повторить' }).click()
+  const retry = page.getByRole('button', { name: 'Повторить' })
+  await retry.focus()
+  await page.keyboard.press('Enter')
+  await expect(retry).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('heading', { name: 'Избранное', level: 2 })).toBeFocused()
   await expect(page.getByRole('heading', { name: 'В избранном пока ничего нет' })).toBeVisible()
-  expect(attempts).toBe(3)
+  expect(attempts).toBe(4)
 })
 
 test('offers removal when a saved file is gone from Yandex Disk', async ({ page }) => {
