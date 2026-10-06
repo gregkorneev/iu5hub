@@ -228,3 +228,7 @@ For curated folder search, verify one-character suggestions, case-insensitive ta
 # Telegram support verification
 
 Worker tests mock Telegram Bot API calls. They cover private student text/photo/document/voice copy, unsupported and group messages, `/start`/`/stats` command precedence, temporary rate limit, duplicate delivery, encrypted routing and wrong-key failures, allowlisted Reply routing, unknown/non-admin replies, no admin profile identity in the copied content, delivery failures and 30-day cleanup alongside analytics cleanup. `npm run test` runs Worker Node tests. A successful unit/API test is not a real Telegram delivery test: final E2E requires a second Telegram account to send text and a screenshot, then use Telegram Reply and confirm the student sees the bot as sender. Production Worker was deployed 2026-10-06; requests with a missing or wrong webhook secret returned `401`.
+
+## Compact Home support hint — 2026-10-06
+
+At 295×667, the Home support card uses tighter spacing and smaller type so its complete hint remains visible without overflowing `main`; larger Home layouts retain the regular card styling. The Playwright regression seeds Favorites, verifies the guidance text is in view, checks the title stays on one line, and asserts Home `main` fits. Focused regression and complete-phone Home viewport tests passed across Chromium and WebKit projects.

@@ -469,6 +469,34 @@ test('fits the complete home screen without page or main scrolling on Telegram p
   }
 })
 
+test('keeps the support hint inside Home on a compact phone with Favorites', async ({ page }) => {
+  await page.route('**/api/profile/favorites', route => route.fulfill({ json: { items: [
+    { courseId: 'course-1', path: '1 семестр', type: 'dir', name: '1 семестр', createdAt: 1 },
+  ] } }))
+  await page.setViewportSize({ width: 295, height: 667 })
+  await page.goto('/#/')
+  await page.evaluate(() => {
+    const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+    app.viewportHeight = 667
+    app.viewportStableHeight = 667
+    app.contentSafeAreaInset = { top: 24, right: 0, bottom: 24, left: 0 }
+    ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('viewportChanged')
+  })
+
+  await expect(page.locator('.home-support')).toContainText('Напишите боту в чат.')
+  await expect(page.locator('.home-support p')).toBeInViewport()
+  const geometry = await page.evaluate(() => {
+    const main = document.querySelector('main')!
+    const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+    const title = document.querySelector('.home-support h2')!
+    return { mainHeight: main.clientHeight, mainContentHeight: main.scrollHeight, supportBottom: rect('.home-support').bottom, mainBottom: rect('main').bottom,
+      titleHeight: title.getBoundingClientRect().height, titleLineHeight: parseFloat(getComputedStyle(title).lineHeight) }
+  })
+  expect(geometry.mainContentHeight).toBeLessThanOrEqual(geometry.mainHeight + 1)
+  expect(geometry.supportBottom).toBeLessThanOrEqual(geometry.mainBottom + 1)
+  expect(geometry.titleHeight).toBeLessThanOrEqual(geometry.titleLineHeight + 1)
+})
+
 test('keeps home sections separated in the compact Telegram tablet window', async ({ page }, testInfo) => {
   await page.route('**/api/profile/favorites', (route) => route.fulfill({ json: { items: [
     { courseId: 'course-1', path: '/1 sem/Математика', type: 'dir', name: 'Математика', createdAt: 1 },

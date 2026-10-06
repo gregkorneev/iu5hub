@@ -699,6 +699,12 @@ body:has(.app--home) { min-height: 100dvh; }
   .app--home .course-grid a { min-height: 3.5rem; padding: .375rem var(--space-2); gap: 1px; }
   .app--home .course-grid b { margin-top: 0; font-size: .625rem; }
 }
+@media (max-width: 340px) and (max-height: 700px) and (orientation: portrait) {
+  .app--home .home-support { gap: var(--space-2); padding: var(--space-1) var(--space-2); }
+  .app--home .home-support > svg { width: 1rem; height: 1rem; }
+  .app--home .home-support h2 { font-size: .75rem; line-height: 1.15; }
+  .app--home .home-support p { margin-top: 0; font-size: .625rem; line-height: 1.2; }
+}
 @media (min-width: 341px) and (max-width: 380px) and (max-height: 680px) and (orientation: portrait) {
   .app--home main { padding-top: var(--space-1); }
   .app--home .home-intro-row + .home-courses { margin-top: var(--space-1); }
