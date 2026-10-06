@@ -18,6 +18,7 @@
 | локальном Telegram development через Quick Tunnel | `local-telegram-development.md` |
 | выпуске, проверках | `deployment.md`, `testing.md` |
 | приватной аналитике и метриках | `analytics.md`, `security.md` |
+| поддержке в личном чате бота | `support.md` |
 | личном профиле и избранном | `profile.md`, `decisions/ADR-0004-telegram-profile-favorites.md` |
 | расписании учебных групп ИУ5 | `schedule.md` |
 | полном UX-аудите и рекомендациях | `ux-audit.md` |

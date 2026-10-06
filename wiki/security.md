@@ -30,3 +30,9 @@ Schedule preference uses the same validated identity and a separate `profile_pre
 - Repeated calls cannot produce unbounded `app_open` rows.
 - D1 migrations, compiled bundles and logs contain no raw ID, profile/search data or secrets.
 - Two distinct verified Telegram users cannot read or delete each other's favorites; missing, tampered or expired initData receives `401`.
+
+## Telegram support boundary
+
+Support trusts only a Telegram webhook carrying the exact configured `TELEGRAM_WEBHOOK_SECRET`. Relay is limited to private chats. Commands run before support routing; `/stats` still requires an allowlisted administrator. For replies, the sender must be an allowlisted administrator in that private chat and the replied-to Telegram message ID must map to that same admin chat. Copies use Bot API `copyMessage`, never `forwardMessage`, so the bot is the student-facing sender.
+
+Support D1 rows contain `user_hash`, an AES-GCM encrypted student chat routing value, the allowlisted `admin_chat_id` route key, Telegram message IDs and timestamps. They do not contain message bodies/captions/media, file IDs, usernames, names, avatars or the raw student Telegram ID. The user hash derives from `USER_ID_HMAC_SECRET`; a separate strong Worker secret `SUPPORT_ENCRYPTION_KEY` encrypts student routing IDs with Web Crypto AES-GCM and a fresh random IV. Decryption is transient in Worker memory only for a Telegram API call. Never add these secrets to Git, Wiki values, logs, fixtures or frontend configuration. Routing retention is 30 days and is cleaned by the existing scheduled handler. See `support.md`.

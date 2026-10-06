@@ -1,4 +1,5 @@
 import { hashTelegramUserId, validateInitData } from './telegram.mjs'
+import { handleSupportMessage } from './support.mjs'
 
 const eventTypes = new Set(['search', 'subject_open', 'material_open', 'yandex_disk_open'])
 const periods = { today: 1, '7d': 7, '30d': 30, all: null }
@@ -169,7 +170,11 @@ async function webhook(request, env) {
   let update
   try { update = await request.json() } catch { return new Response(null, { status: 400 }) }
   const message = update?.message
-  if (message?.text?.trim() === '/stats' && message.chat?.type === 'private' && message.chat.id === message.from?.id && Number.isSafeInteger(message.from.id) && adminIds(env).has(String(message.from.id))) await telegramStats(env, message.chat.id)
+  if (typeof message?.text === 'string' && /^\/[A-Za-z0-9_]+(?:@[A-Za-z0-9_]+)?(?:\s|$)/.test(message.text.trim())) {
+    if (message.text.trim() === '/stats' && message.chat?.type === 'private' && message.chat.id === message.from?.id && Number.isSafeInteger(message.from.id) && adminIds(env).has(String(message.from.id))) await telegramStats(env, message.chat.id)
+    return new Response('ok')
+  }
+  await handleSupportMessage(message, env, env.ANALYTICS_DB)
   return new Response('ok')
 }
 
@@ -227,6 +232,11 @@ export default {
     }
   },
   async scheduled(_controller, env) {
-    await env.ANALYTICS_DB.prepare('DELETE FROM events WHERE created_at < ?').bind(unixNow() - 90 * 86_400).run()
+    const now = unixNow()
+    await env.ANALYTICS_DB.batch([
+      env.ANALYTICS_DB.prepare('DELETE FROM events WHERE created_at < ?').bind(now - 90 * 86_400),
+      env.ANALYTICS_DB.prepare('DELETE FROM support_routes WHERE created_at < ?').bind(now - 30 * 86_400),
+      env.ANALYTICS_DB.prepare('DELETE FROM support_requests WHERE created_at < ?').bind(now - 30 * 86_400),
+    ])
   },
 }

@@ -39,3 +39,5 @@ The profile's compact «Учебная группа» section shares the selecte
 The identity block separates the eyebrow, display name, Telegram username, and group preference card with the shared spacing tokens. The materials/favorites section uses a larger section gap after the group card; mobile spacing remains compact but does not collapse these text groups together. Browser QA measures these gaps at 320, 390 and 768 CSS pixels.
 
 Production migration `0003_profile_preferences.sql` is applied and the Worker deployment is complete. Production unauthenticated and CORS checks passed; reading/writing a real user's preference still needs a valid Telegram Mini App session.
+
+# The same Worker/D1 also provides Telegram support routing. Support rows are separate from favorites and schedule preferences and store only HMAC identity, encrypted chat routing, message IDs and timestamps; see `support.md`.

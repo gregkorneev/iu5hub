@@ -138,6 +138,10 @@ The personal profile uses the existing Worker and `ANALYTICS_DB` D1 database. Be
 
 ## Limitations
 
+## Telegram support Worker release
+
+Support extends the existing `iu5hub-analytics` Worker and D1 without a Pages deployment or new Cron Trigger. On 2026-10-06, migration `0004_support.sql` was applied, a strong random `SUPPORT_ENCRYPTION_KEY` was set using `wrangler secret put`, and the Worker was redeployed. Missing and wrong webhook secret production requests both returned `401`; API-level and Worker tests cover support and `/stats` command handling. Live `/stats` delivery and the full student/admin Reply journey still need a real Telegram check. For later deployments, run QA first, apply any pending D1 migration, retain the Worker-only secret, and use `npx wrangler deploy`. No `/start` handler or bot-chat welcome source exists in this repository; the external Telegram bot configuration was not changed because its active welcome text/source could not be established from the project checkout. See `support.md`.
+
 Cloudflare Pages is static frontend hosting, not the analytics backend. Private analytics additionally requires the Worker, D1 binding/migrations, Worker-only secrets and protected Telegram webhook described in `analytics.md`. Deploy and smoke-test it independently of a Pages artifact: a successful Pages deployment alone does not enable `/stats`, authentication, D1 or admin functions. When the Worker has its own hostname, set the public Pages build variable `VITE_ANALYTICS_API_BASE` to that HTTPS origin; it contains no credential and is protected by the Worker's origin allowlist and server-side Telegram validation.
 
 On 2026-09-21 the production Worker `iu5hub-analytics` was published on its `workers.dev` HTTPS origin, bound to D1 `iu5hub-analytics`, and its protected Telegram webhook was configured. The Pages production environment has `VITE_ANALYTICS_API_BASE` set to that origin. A subsequent Pages build is required whenever this build-time variable is changed.

@@ -62,3 +62,5 @@ Deploy the Worker to its HTTPS Worker hostname (or explicitly attach routes for 
 | `/stats` is silent | check route, secret-header setup and redacted Worker logs; do not expose the bot token |
 | Metrics stay at zero | check Worker route, D1 binding/migrations, real Telegram initData and allowlisted event type |
 | Events grow unexpectedly | verify 90-day scheduled cleanup and the dedup/rate-limit settings before changing definitions |
+
+# Support routing also uses the existing `ANALYTICS_DB` D1 binding but stores no analytics event or message content. See `support.md` for its encrypted routing schema, access boundary and 30-day retention.

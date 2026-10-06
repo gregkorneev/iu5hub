@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-06 — Telegram support
+
+- Add anonymous support relay through the existing Telegram bot, Worker and D1 with `copyMessage`, encrypted chat routing, deduplication, rate limiting and 30-day cleanup. See `support.md`.
+
 ## 2026-10-05
 
 - Fixed the fullscreen desktop Home profile capsule touching the first course card by adding a conditional 12px vertical gap; added Chromium/WebKit geometry regressions at 604×424, 1280×800 and 1920×1080.
