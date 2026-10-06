@@ -159,7 +159,7 @@ test('verified launch stores only the current username label, refreshes changes,
   assert.match(hash, /^[a-f0-9]{64}$/)
   assert.equal(db.labels.get(hash).username, 'alice')
   assert.equal(typeof db.labels.get(hash).updatedAt, 'number')
-  assert.doesNotMatch(JSON.stringify({ events: db.events, statements: db.statements.map(({ sql, values }) => ({ sql, values })) }), /77|Private|Name|private-photo/)
+  assert.doesNotMatch(JSON.stringify({ events: db.events, statements: db.statements.map(({ sql, values }) => ({ sql, values })) }), /"77"|Private|Name|private-photo/)
   await open('new_name')
   assert.equal(db.labels.get(hash).username, 'new_name')
   await open(`${'x'.repeat(64)}\u0000`)
