@@ -234,28 +234,41 @@ async function handle(request, env) {
       const lastSeenOn = url.searchParams.get('lastSeenOn') ?? ''
       const sortBy = url.searchParams.get('sortBy') ?? 'lastSeenAt'
       const sortDirection = url.searchParams.get('sortDirection') ?? 'desc'
-      const sortColumns = { username: 'l.username COLLATE NOCASE', launchCount: 'launchCount', firstSeenAt: 'u.first_seen_at', lastSeenAt: 'u.last_seen_at' }
+      const sortColumns = { username: 'username COLLATE NOCASE', launchCount: 'launchCount', firstSeenAt: 'firstSeenAt', lastSeenAt: 'lastSeenAt' }
       const sortColumn = Object.hasOwn(sortColumns, sortBy) ? sortColumns[sortBy] : null
       if (username.length > 64 || /[\u0000-\u001f\u007f-\u009f]/.test(username) ||
           (minLaunchCount !== null && (!Number.isSafeInteger(minLaunchCount) || minLaunchCount < 0)) ||
           (firstSeenOn && !validIsoDate(firstSeenOn)) || (lastSeenOn && !validIsoDate(lastSeenOn)) ||
           !sortColumn || !['asc', 'desc'].includes(sortDirection)) return json({ error: 'Invalid filter' }, 400)
       const limit = Math.min(rawLimit, 100)
-      const where = ['u.last_seen_at >= ?']
-      const bindings = [launchesExcludedUsername, start]
-      if (username) { where.push("instr(lower(COALESCE(l.username, 'Без username')), lower(?)) > 0"); bindings.push(username) }
-      if (minLaunchCount !== null) { where.push('(lower(COALESCE(l.username, \'\')) = lower(?) OR u.launch_count >= ?)'); bindings.push(launchesExcludedUsername, minLaunchCount) }
-      if (firstSeenOn) { where.push("date(u.first_seen_at, 'unixepoch') = ?"); bindings.push(firstSeenOn) }
-      if (lastSeenOn) { where.push("date(u.last_seen_at, 'unixepoch') = ?"); bindings.push(lastSeenOn) }
+      const where = ['1 = 1']
+      const bindings = [launchesExcludedUsername, start, start]
+      if (username) { where.push("instr(lower(COALESCE(username, 'Без username')), lower(?)) > 0"); bindings.push(username) }
+      if (minLaunchCount !== null) { where.push('(launchCount IS NULL OR launchCount >= ?)'); bindings.push(minLaunchCount) }
+      if (firstSeenOn) { where.push("date(firstSeenAt, 'unixepoch') = ?"); bindings.push(firstSeenOn) }
+      if (lastSeenOn) { where.push("date(lastSeenAt, 'unixepoch') = ?"); bindings.push(lastSeenOn) }
       const orderBy = sortBy === 'launchCount'
         ? `CASE WHEN launchCount IS NULL THEN 1 ELSE 0 END ASC, launchCount ${sortDirection.toUpperCase()}`
         : `${sortColumn} ${sortDirection.toUpperCase()}`
-      const rows = await queryAll(env.ANALYTICS_DB, `SELECT l.username, u.first_seen_at AS firstSeenAt,
-        u.last_seen_at AS lastSeenAt,
-        CASE WHEN lower(COALESCE(l.username, '')) = lower(?) THEN NULL ELSE u.launch_count END AS launchCount
+      const rows = await queryAll(env.ANALYTICS_DB, `WITH users_list AS (
+        SELECT l.username, u.first_seen_at AS firstSeenAt, u.last_seen_at AS lastSeenAt,
+          CASE WHEN lower(COALESCE(l.username, '')) = lower(?) THEN NULL ELSE u.launch_count END AS launchCount,
+          0 AS isLegacyAggregate
         FROM users u LEFT JOIN analytics_user_labels l ON l.user_hash = u.user_hash
-        WHERE ${where.join(' AND ')} ORDER BY ${orderBy}, u.user_hash ASC LIMIT ? OFFSET ?`, ...bindings, limit + 1, offset)
-      return json({ period, items: rows.slice(0, limit), nextOffset: rows.length > limit ? offset + limit : null })
+        WHERE u.last_seen_at >= ? AND u.legacy_anonymous_aggregate = 0
+        UNION ALL
+        SELECT NULL AS username, first_seen_at AS firstSeenAt, last_seen_at AS lastSeenAt,
+          launch_count AS launchCount, 1 AS isLegacyAggregate
+        FROM analytics_legacy_anonymous_summary WHERE id = 1 AND last_seen_at >= ?
+      )
+      SELECT username, firstSeenAt, lastSeenAt, launchCount, user_count AS userCount FROM (
+        SELECT users_list.*, NULL AS user_count FROM users_list WHERE isLegacyAggregate = 0
+        UNION ALL
+        SELECT users_list.*, analytics_legacy_anonymous_summary.user_count FROM users_list
+        JOIN analytics_legacy_anonymous_summary ON users_list.isLegacyAggregate = 1 AND analytics_legacy_anonymous_summary.id = 1
+      ) WHERE ${where.join(' AND ')} ORDER BY ${orderBy}, isLegacyAggregate ASC, username COLLATE NOCASE ASC, firstSeenAt ASC LIMIT ? OFFSET ?`, ...bindings, limit + 1, offset)
+      const items = rows.slice(0, limit).map(({ userCount, isLegacyAggregate: _isLegacyAggregate, ...item }) => userCount === null ? item : { ...item, userCount })
+      return json({ period, items, nextOffset: rows.length > limit ? offset + limit : null })
     }
     const field = request.method === 'GET' && url.pathname === '/api/admin/stats/subjects' ? 'subject_id' : request.method === 'GET' && url.pathname === '/api/admin/stats/materials' ? 'material_id' : null
     if (field) return json({ period, items: await queryAll(env.ANALYTICS_DB, `SELECT ${field} AS id, COUNT(*) AS count FROM events WHERE ${field} != '' AND created_at >= ? GROUP BY ${field} ORDER BY count DESC, id LIMIT 10`, start) })

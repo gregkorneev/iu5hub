@@ -19,6 +19,17 @@ async function mockDashboard(page: import('@playwright/test').Page) {
 }
 
 test.describe('admin analytics users', () => {
+  test('shows the one-time anonymous legacy cohort as a single summed row', async ({ page }) => {
+    await mockDashboard(page)
+    await page.route('**/api/admin/stats/users?*', (route) => route.fulfill({ json: { items: [
+      { username: null, userCount: 36, firstSeenAt: 1790006965, lastSeenAt: 1791316282, launchCount: 74 },
+    ], nextOffset: null } }))
+    await page.goto('/#/admin/stats')
+    const row = page.getByRole('row').filter({ hasText: '36 пользователей' })
+    await expect(row).toContainText('Без username · 36 пользователей')
+    await expect(row).toContainText('74')
+  })
+
   test('AdminStats has a clean viewport matrix in both themes', async ({ page }, testInfo) => {
     await mockDashboard(page)
     await page.route('**/api/admin/stats/users?*', (route) => route.fulfill({ json: { items: [

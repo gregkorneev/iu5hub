@@ -48,6 +48,10 @@ All boundaries are UTC unless an explicitly labelled dashboard view says otherwi
 
 The 30-day activity view includes zero-event UTC days and distinguishes daily distinct active users from launch count. Empty D1 is a valid zero state.
 
+### One-time legacy anonymous cohort snapshot
+
+Migration `0006_legacy_anonymous_users_summary.sql` snapshots the users that exist at migration time and have no username label into one frozen admin-list row. It sums their existing launch counters and preserves the earliest first-seen and latest last-seen timestamps, while the per-user rows and events remain untouched. The aggregate row also reports how many historical users it represents. A marker defaults to off for all rows, so users created after this one-time snapshot remain individual rows even when Telegram supplies no username. The overall audience counters continue to count the actual users; only the admin users list consolidates this legacy cohort. This snapshot is not recomputed by launches, scheduled cleanup or future deployments.
+
 ### Development-account launch suppression
 
 The verified analytics username `gregkor` is an internal development account. Its `users` row remains in the admin users list with its real `firstSeenAt` and `lastSeenAt`, but the endpoint returns `launchCount: null`, which the UI renders as a dash. Its `app_open` events are excluded from the dashboard's total launch metric and daily launch chart. Active-user totals, first/last-seen values, non-launch events and stored `users.launch_count` remain unchanged. Matching uses the current username in `analytics_user_labels`, case-insensitively; if that verified username changes, suppression follows the current label. This rule adds no identifier or stored data and does not modify events. Worker and UI regression coverage verifies the row remains visible, its launch count is hidden, case-insensitive matching works, and the aggregate/chart counts omit its opens.

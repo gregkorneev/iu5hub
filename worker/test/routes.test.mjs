@@ -23,6 +23,7 @@ class FakeDb {
   users = new Map()
   events = []
   labels = new Map()
+  legacySummary = null
   statements = []
 
   prepare(sql) {
@@ -70,24 +71,32 @@ class FakeDb {
     }
     if (!sql.includes('FROM users u LEFT JOIN analytics_user_labels')) return []
     this.statements.push({ sql, values })
-    let index = 2
-    const username = sql.includes('instr(lower(COALESCE(l.username') ? values[index++] : null
-    const hasMinLaunchCount = sql.includes('u.launch_count >= ?')
-    if (hasMinLaunchCount) index++
+    let index = 3
+    const username = sql.includes('instr(lower(COALESCE(username') ? values[index++] : null
+    const hasMinLaunchCount = sql.includes('launchCount >= ?')
     const minLaunchCount = hasMinLaunchCount ? values[index++] : null
-    const firstSeenOn = sql.includes("date(u.first_seen_at, 'unixepoch') = ?") ? values[index++] : null
-    const lastSeenOn = sql.includes("date(u.last_seen_at, 'unixepoch') = ?") ? values[index++] : null
+    const firstSeenOn = sql.includes("date(firstSeenAt, 'unixepoch') = ?") ? values[index++] : null
+    const lastSeenOn = sql.includes("date(lastSeenAt, 'unixepoch') = ?") ? values[index++] : null
     const limit = values.at(-2), offset = values.at(-1), start = values[1]
-    const sortMatch = sql.match(/ORDER BY (?:CASE WHEN launchCount IS NULL THEN 1 ELSE 0 END ASC, )?(launchCount|l\.username COLLATE NOCASE|u\.first_seen_at|u\.last_seen_at) (ASC|DESC)/)
-    const sortColumn = sortMatch?.[1] ?? 'u.last_seen_at'
+    const sortMatch = sql.match(/ORDER BY (?:CASE WHEN launchCount IS NULL THEN 1 ELSE 0 END ASC, )?(launchCount|username COLLATE NOCASE|firstSeenAt|lastSeenAt) (ASC|DESC)/)
+    const sortColumn = sortMatch?.[1] ?? 'lastSeenAt'
     const sortDirection = sortMatch?.[2] ?? 'DESC'
-    const sortValue = (row) => sortColumn === 'l.username COLLATE NOCASE' ? row.username : sortColumn === 'launchCount' ? row.launchCount : sortColumn === 'u.first_seen_at' ? row.firstSeenAt : row.lastSeenAt
+    const sortValue = (row) => sortColumn === 'username COLLATE NOCASE' ? row.username : sortColumn === 'launchCount' ? row.launchCount : sortColumn === 'firstSeenAt' ? row.firstSeenAt : row.lastSeenAt
     const launchExcluded = values[0]
-    return [...this.users.entries()].map(([userHash, user]) => ({
+    const rows = [...this.users.entries()].filter(([, user]) => !user.legacyAnonymousAggregate).map(([userHash, user]) => ({
       userHash, username: this.labels.get(userHash)?.username ?? null,
       firstSeenAt: user.firstSeen, lastSeenAt: user.lastSeen,
       launchCount: (this.labels.get(userHash)?.username ?? '').toLowerCase() === String(launchExcluded).toLowerCase() ? null : user.launches,
     })).filter((row) => row.lastSeenAt >= start &&
+      (!username || (row.username ?? 'Без username').toLowerCase().includes(username.toLowerCase())) &&
+      (minLaunchCount === null || row.launchCount === null || row.launchCount >= minLaunchCount) &&
+      (!firstSeenOn || new Date(row.firstSeenAt * 1000).toISOString().slice(0, 10) === firstSeenOn) &&
+      (!lastSeenOn || new Date(row.lastSeenAt * 1000).toISOString().slice(0, 10) === lastSeenOn))
+    if (this.legacySummary && this.legacySummary.lastSeenAt >= start) rows.push({
+      username: null, firstSeenAt: this.legacySummary.firstSeenAt, lastSeenAt: this.legacySummary.lastSeenAt,
+      launchCount: this.legacySummary.launchCount, userCount: this.legacySummary.userCount, userHash: 'legacy-aggregate',
+    })
+    return rows.filter((row) =>
       (!username || (row.username ?? 'Без username').toLowerCase().includes(username.toLowerCase())) &&
       (minLaunchCount === null || row.launchCount === null || row.launchCount >= minLaunchCount) &&
       (!firstSeenOn || new Date(row.firstSeenAt * 1000).toISOString().slice(0, 10) === firstSeenOn) &&
@@ -99,7 +108,7 @@ class FakeDb {
         return (sortDirection === 'ASC' ? primary : -primary) || a.userHash.localeCompare(b.userHash)
       })
       .slice(offset, offset + limit)
-      .map(({ userHash: _hash, ...item }) => item)
+      .map(({ userHash: _hash, ...item }) => ({ userCount: null, ...item }))
   }
 }
 
@@ -184,7 +193,7 @@ test('admin users list filters by period, sorts recent first, paginates, caps li
   assert.equal(body.items[0].username, null)
   assert.equal(body.items[0].launchCount, 3)
   assert.equal(body.nextOffset, 1)
-  assert.match(db.statements.at(-1).sql, /ORDER BY u\.last_seen_at DESC/)
+  assert.match(db.statements.at(-1).sql, /ORDER BY lastSeenAt DESC/)
   assert.equal(Object.hasOwn(body.items[0], 'user_hash'), false)
   response = await get('?period=30d&limit=1&offset=1')
   body = await response.json()
@@ -194,7 +203,7 @@ test('admin users list filters by period, sorts recent first, paginates, caps li
   body = await response.json()
   assert.equal(body.items.length, 3)
   assert.equal(body.items.length <= 100, true)
-  assert.equal(db.statements.filter(({ sql }) => sql.includes('LEFT JOIN analytics_user_labels')).at(-1).values[2], 101)
+  assert.equal(db.statements.filter(({ sql }) => sql.includes('LEFT JOIN analytics_user_labels')).at(-1).values.at(-2), 101)
   assert.equal((await get('?period=30d&limit=0')).status, 400)
   const alice = db.users.get('a')
   const filtered = await get(`?period=all&username=%40ali&minLaunchCount=3&firstSeenOn=${new Date(alice.firstSeen * 1000).toISOString().slice(0, 10)}&lastSeenOn=${new Date(alice.lastSeen * 1000).toISOString().slice(0, 10)}`)
@@ -240,6 +249,23 @@ test('admin users sort allowlist orders the full result before pagination', asyn
   assert.deepEqual(await sortedNames('firstSeenAt', 'desc'), ['beta', 'alice', 'zeta'])
   assert.deepEqual(await sortedNames('lastSeenAt', 'asc'), ['beta', 'zeta', 'alice'])
   assert.deepEqual(await sortedNames('lastSeenAt', 'desc'), ['alice', 'zeta', 'beta'])
+})
+
+test('one-time legacy anonymous cohort is returned once with frozen summed launches while future anonymous users stay separate', async () => {
+  const db = new FakeDb()
+  db.users.set('legacy-a', { firstSeen: now - 5_000, lastSeen: now - 200, launches: 17, legacyAnonymousAggregate: true })
+  db.users.set('legacy-b', { firstSeen: now - 4_000, lastSeen: now - 100, launches: 57, legacyAnonymousAggregate: true })
+  db.users.set('new-anonymous', { firstSeen: now - 60, lastSeen: now - 10, launches: 2 })
+  db.legacySummary = { userCount: 36, launchCount: 74, firstSeenAt: now - 5_000, lastSeenAt: now - 100 }
+  const headers = { 'X-Telegram-Init-Data': signedInitData(1) }
+  const get = (query) => worker.fetch(new Request(`https://worker.example/api/admin/stats/users?period=all${query}`, { headers }), { ...env, ANALYTICS_DB: db })
+
+  const first = await (await get('&limit=1&offset=0')).json()
+  assert.deepEqual(first.items[0], { username: null, firstSeenAt: now - 60, lastSeenAt: now - 10, launchCount: 2 })
+  assert.equal(first.nextOffset, 1)
+  const second = await (await get('&limit=1&offset=1')).json()
+  assert.deepEqual(second.items[0], { username: null, firstSeenAt: now - 5_000, lastSeenAt: now - 100, launchCount: 74, userCount: 36 })
+  assert.equal(second.nextOffset, null)
 })
 
 test('gregkor launch counts are hidden from users and excluded from aggregate launches only', async () => {
@@ -366,4 +392,15 @@ test('username labels migration is additive and stores no direct identity fields
   assert.match(migration, /user_hash TEXT PRIMARY KEY/)
   assert.match(migration, /username TEXT/)
   assert.doesNotMatch(migration, /telegram_id|first_name|last_name|photo|phone|bio|event/i)
+})
+
+test('legacy anonymous migration freezes only the existing unlabeled cohort and stores its aggregate once', async () => {
+  const migration = await readFile(new URL('../migrations/0006_legacy_anonymous_users_summary.sql', import.meta.url), 'utf8')
+  assert.match(migration, /legacy_anonymous_aggregate INTEGER NOT NULL DEFAULT 0/)
+  assert.match(migration, /SUM\(u\.launch_count\)/)
+  assert.match(migration, /MIN\(u\.first_seen_at\)/)
+  assert.match(migration, /MAX\(u\.last_seen_at\)/)
+  assert.match(migration, /WHERE l\.username IS NULL/)
+  assert.match(migration, /UPDATE users SET legacy_anonymous_aggregate = 1/)
+  assert.doesNotMatch(migration, /telegram_id|first_name|last_name|photo|avatar/i)
 })

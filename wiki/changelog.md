@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-07 — One-time anonymous legacy audience aggregation
+
+- Freeze the currently unlabeled historical cohort into one admin-list row with summed launches, earliest first-seen, latest last-seen and cohort size. Users created after migration remain separate, including users whose Telegram account has no username. Existing user rows/events and overall audience counts are preserved. Production migration `0006` applied: 36 users and 74 launches; Worker deployed as `01f69553-0eaf-4968-8c8e-c0c217ffa49d`. Full `npm run qa` passed (298 browser cases; 2 host-specific skips).
+
 ## 2026-10-07 — Development account launch suppression
 
 - The current verified username `gregkor` remains in the admin users list with first/last seen, but its launch count is masked and its launches are excluded from the aggregate launch metric and daily launch chart. Matching is case-insensitive against the existing username label. No identifier, event or stored counter changed. Worker route tests (18/18), focused UI tests (8/8), lint and typecheck passed.

@@ -1,5 +1,9 @@
 # Deployment
 
+## One-time legacy anonymous cohort snapshot — 2026-10-07
+
+Migration `0006_legacy_anonymous_users_summary.sql` was applied once. It captured 36 users without a username label as a frozen aggregate of 74 launches, their earliest first-seen and latest last-seen timestamps; member rows are flagged so the admin endpoint replaces them with a single row. It did not delete or alter per-user launch/event history. The marker defaults off, so users created after migration remain individual even without usernames. Worker `iu5hub-analytics` is deployed as version `01f69553-0eaf-4968-8c8e-c0c217ffa49d`; Pages UI publication follows the next `main` push. No later deployment recalculates the snapshot.
+
 ## Admin analytics username labels — 2026-10-06
 
 Migration `0005_analytics_user_labels.sql` follows `0004_support.sql`. It is additive and creates `analytics_user_labels(user_hash, username, updated_at)` keyed to existing `users(user_hash)`, plus a `last_seen_at` index for the bounded recent-first query. It did not alter `users`, `events`, profile or support tables. There is no backfill. Production migration was applied successfully; production D1 still reports 38 users and 440 events, while the new label table is empty pending future verified launches.
