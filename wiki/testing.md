@@ -239,4 +239,4 @@ Worker tests mock Telegram Bot API calls. They cover private student text/photo/
 
 ## Compact Home support hint — 2026-10-06
 
-At 295×667, the Home support card uses tighter spacing and smaller type so its complete hint remains visible without overflowing `main`; larger Home layouts retain the regular card styling. The Playwright regression seeds Favorites, verifies the guidance text is in view, checks the title stays on one line, and asserts Home `main` fits. Focused regression and complete-phone Home viewport tests passed across Chromium and WebKit projects.
+At 295×667, the Home support card and useful-link cards use tighter spacing and smaller type so the complete support hint remains visible without overflowing `main`; larger Home layouts retain their regular styling. The Playwright regression seeds Favorites, verifies the guidance text is in view, checks the title stays on one line, and asserts Home `main` fits. Focused regression and complete-phone Home viewport tests passed across Chromium and WebKit projects.
