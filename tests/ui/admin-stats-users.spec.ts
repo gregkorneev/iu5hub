@@ -174,6 +174,8 @@ test.describe('admin analytics users', () => {
     await expect(metrics).toHaveText(['Всего100', '30 дней33'])
     expect(await section.locator('summary').evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44)
     await expect(section).toHaveAttribute('open', '')
+    await expect(section.getByText('Нажмите, чтобы скрыть или показать')).toHaveCount(0)
+    await expect(section.getByText(/Username виден только администратору/)).toHaveCount(0)
     await expect(section.getByRole('table')).toBeVisible()
     await expect(section.getByLabel('Поиск по username')).toBeVisible()
     await disclosure.click()

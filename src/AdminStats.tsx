@@ -146,8 +146,7 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
     <div className="stats-periods" aria-label="Период статистики">{periods.map(([value, label]) => <button key={value} className={period === value ? 'active' : ''} onClick={() => selectPeriod(value)}>{label}</button>)}</div>
     <div className="stats-grid"><Metric label="Всего" value={data.summary.users.total} /><Metric label={periodMetric.label} value={periodMetric.value(data.summary.users)} /></div>
     <details className="stats-section stats-users-disclosure" open>
-      <summary><h2>Список пользователей</h2><span className="stats-users-toggle">Нажмите, чтобы скрыть или показать</span></summary>
-      <p className="stats-users-privacy">Username виден только администратору и обновляется при запуске Mini App. Telegram ID и имя не сохраняются.</p>
+      <summary><h2>Список пользователей</h2></summary>
       <form className="stats-users-search" onSubmit={(event) => { event.preventDefault(); applyUsernameSearch(draftUsername) }}>
         <label htmlFor="stats-username-search">Поиск по username</label>
         <input id="stats-username-search" type="search" value={draftUsername} placeholder="Например, ivanov" onChange={(event) => setDraftUsername(event.target.value)} />
