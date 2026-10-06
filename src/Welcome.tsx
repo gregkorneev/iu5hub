@@ -1,11 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { CalendarDays, LibraryBig, Search } from 'lucide-react'
+import { CalendarDays, LibraryBig, MessageCircle, Search } from 'lucide-react'
 import { welcomeStorageKey } from './welcome-storage'
 
 const steps = [
   { title: 'Материалы по курсам', text: 'Откройте Каталог, выберите курс и перейдите к нужной папке с материалами.', Icon: LibraryBig },
   { title: 'Быстрый поиск', text: 'Ищите предмет или преподавателя с первых букв запроса.', Icon: Search },
   { title: 'Расписание под рукой', text: 'Выберите учебную группу и смотрите пары на сегодня или неделю. Избранное ждёт вас в Профиле.', Icon: CalendarDays },
+  { title: 'Нужна помощь?', text: 'Вернитесь в чат с ботом и напишите сообщение — администраторы получат его и ответят там же.', Icon: MessageCircle },
 ] as const
 
 export default function Welcome({ onFinish }: { onFinish: () => void }) {

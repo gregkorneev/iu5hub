@@ -2,6 +2,7 @@
 
 ## 2026-10-06 — Telegram support
 
+- Add a first-run Welcome step explaining how to message the bot in chat for material requests or help and receive a reply there. Full `npm run qa` passed (262 Playwright cases; two host-specific WebKit keyboard skips); the mobile regression verifies all four steps, accessible contrast and safe-area fit.
 - Release Student IU5 v1.0.0 from the QA-verified `main` snapshot. Release notes: `wiki/releases/student-iu5-v1.md`.
 - Final UX release regression: Linux CI exposed a compact 295×667 Home overflow with Favorites; compact useful-link spacing now keeps the support hint visible. Also fixed keyboard focus loss after Profile favorites Retry. Full local `npm run qa` passed (262 Playwright passed, two host-specific WebKit keyboard skips); [GitHub Actions 37459651166](https://github.com/gregkorneev/iu5hub/actions/runs/37459651166) passed all 330 Chromium, mobile Chromium, Firefox, WebKit and WebKit desktop cases. Production in-app Chromium smoke found no horizontal overflow at 295×667 and 16 widths from 320–1920px; Russian Search «физика» returned expected suggestions. Physical iOS/Android/iPad/Windows and Telegram WebView checks remain open; see `testing.md`.
 - Add anonymous support relay through the existing Telegram bot, Worker and D1 with `copyMessage`, encrypted chat routing, deduplication, rate limiting and 30-day cleanup. See `support.md`.
