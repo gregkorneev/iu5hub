@@ -12,6 +12,12 @@ type SortDirection = 'asc' | 'desc'
 type UserSort = { by: SortKey; direction: SortDirection }
 const usersPageSize = 50
 const periods: Array<[Period, string]> = [['today', 'Сегодня'], ['7d', '7 дней'], ['30d', '30 дней'], ['all', 'Всё время']]
+const periodUserMetric: Record<Period, { label: string; value: (users: Summary['users']) => number }> = {
+  today: { label: 'Сегодня', value: (users) => users.today },
+  '7d': { label: '7 дней', value: (users) => users.days7 },
+  '30d': { label: '30 дней', value: (users) => users.days30 },
+  all: { label: 'Всё время', value: (users) => users.total },
+}
 
 function Metric({ label, value }: { label: string; value: number }) { return <div className="stats-card"><small>{label}</small><strong>{value.toLocaleString('ru-RU')}</strong></div> }
 function Ranking({ title, entries, names }: { title: string; entries: Ranked['items']; names: Map<string, string> }) { return <section className="stats-section"><h2>{title}</h2>{entries.length ? <ol className="stats-ranking">{entries.map(({ id, count }) => <li key={id}><span title={names.get(id) ?? id}>{names.get(id) ?? id}</span><b>{count.toLocaleString('ru-RU')}</b></li>)}</ol> : <p className="lead">За выбранный период пока нет данных.</p>}</section> }
@@ -134,10 +140,11 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
   if (state === 'forbidden') return <section className="stats-page"><h1>Статистика недоступна</h1><p className="lead" role="alert">Эта страница доступна только администраторам.</p></section>
   if (state === 'error' || !data) return <section className="stats-page"><h1>Статистика</h1><p className="lead" role="alert">Не удалось загрузить статистику. Попробуйте обновить страницу позже.</p></section>
   const max = Math.max(1, ...data.activity.days.flatMap((day) => [day.users, day.launches]))
+  const periodMetric = periodUserMetric[period]
   return <section className="stats-page">
     <p className="eyebrow">Только для администратора</p><h1>Статистика</h1>
     <div className="stats-periods" aria-label="Период статистики">{periods.map(([value, label]) => <button key={value} className={period === value ? 'active' : ''} onClick={() => selectPeriod(value)}>{label}</button>)}</div>
-    <div className="stats-grid"><Metric label="Всего" value={data.summary.users.total} /><Metric label="Сегодня" value={data.summary.users.today} /><Metric label="7 дней" value={data.summary.users.days7} /><Metric label="30 дней" value={data.summary.users.days30} /></div>
+    <div className="stats-grid"><Metric label="Всего" value={data.summary.users.total} /><Metric label={periodMetric.label} value={periodMetric.value(data.summary.users)} /></div>
     <details className="stats-section stats-users-disclosure" open>
       <summary><h2>Список пользователей</h2><span className="stats-users-toggle">Нажмите, чтобы скрыть или показать</span></summary>
       <p className="stats-users-privacy">Username виден только администратору и обновляется при запуске Mini App. Telegram ID и имя не сохраняются.</p>

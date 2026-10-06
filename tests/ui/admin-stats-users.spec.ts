@@ -1,10 +1,18 @@
 import { expect, test } from './fixtures'
 
-const summary = { users: { total: 2, today: 1, days7: 2, days30: 2 }, launches: 5, activity: { searches: 0, materialOpens: 0, yandexDiskOpens: 0 } }
+const summaries = {
+  today: { users: { total: 100, today: 11, days7: 21, days30: 31 }, launches: 5, activity: { searches: 1, materialOpens: 2, yandexDiskOpens: 3 } },
+  '7d': { users: { total: 100, today: 12, days7: 22, days30: 32 }, launches: 6, activity: { searches: 2, materialOpens: 3, yandexDiskOpens: 4 } },
+  '30d': { users: { total: 100, today: 13, days7: 23, days30: 33 }, launches: 7, activity: { searches: 3, materialOpens: 4, yandexDiskOpens: 5 } },
+  all: { users: { total: 100, today: 14, days7: 24, days30: 34 }, launches: 8, activity: { searches: 4, materialOpens: 5, yandexDiskOpens: 6 } },
+}
 
 async function mockDashboard(page: import('@playwright/test').Page) {
   await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: true } }))
-  await page.route('**/api/admin/stats/summary?period=*', (route) => route.fulfill({ json: summary }))
+  await page.route('**/api/admin/stats/summary?period=*', (route) => {
+    const period = new URL(route.request().url()).searchParams.get('period') as keyof typeof summaries | null
+    return route.fulfill({ json: summaries[period ?? '30d'] })
+  })
   await page.route('**/api/admin/stats/activity?period=*', (route) => route.fulfill({ json: { days: [] } }))
   await page.route('**/api/admin/stats/subjects?period=*', (route) => route.fulfill({ json: { items: [] } }))
   await page.route('**/api/admin/stats/materials?period=*', (route) => route.fulfill({ json: { items: [] } }))
@@ -20,6 +28,9 @@ test.describe('admin analytics users', () => {
     await page.setViewportSize({ width: 320, height: 760 })
     await page.goto('/#/admin/stats')
     await expect(page.getByRole('table', { name: 'Пользователи в статистике' })).toBeVisible()
+    const metrics = page.locator('.stats-page > .stats-grid .stats-card')
+    await expect(metrics).toHaveCount(2)
+    await expect(metrics).toHaveText(['Всего100', '30 дней33'])
     const measurements: Array<{ theme: string; width: number; overflow: number; overlap: boolean; launchHeaderLines: number; headerOverflow: string[] }> = []
     for (const theme of ['light', 'dark'] as const) {
       await page.evaluate((colorScheme) => {
@@ -133,15 +144,15 @@ test.describe('admin analytics users', () => {
     expect(nextPage?.searchParams.get('period')).toBe('30d')
   })
 
-  test('collapses the user list while keeping its four summary metrics visible', async ({ page }) => {
+  test('collapses the user list while keeping both summary metrics visible', async ({ page }) => {
     await mockDashboard(page)
     await page.route('**/api/admin/stats/users?*', (route) => route.fulfill({ json: { items: [{ username: 'ivanov', firstSeenAt: 1791262800, lastSeenAt: 1791262800, launchCount: 2 }], nextOffset: null } }))
     await page.goto('/#/admin/stats')
     const section = page.locator('details.stats-users-disclosure')
     const disclosure = section.getByText('Список пользователей', { exact: true })
     const metrics = page.locator('.stats-page > .stats-grid .stats-card')
-    await expect(metrics).toHaveCount(4)
-    await expect(metrics).toHaveText(['Всего2', 'Сегодня1', '7 дней2', '30 дней2'])
+    await expect(metrics).toHaveCount(2)
+    await expect(metrics).toHaveText(['Всего100', '30 дней33'])
     expect(await section.locator('summary').evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44)
     await expect(section).toHaveAttribute('open', '')
     await expect(section.getByRole('table')).toBeVisible()
@@ -150,7 +161,7 @@ test.describe('admin analytics users', () => {
     await expect(section).not.toHaveAttribute('open', '')
     await expect(section.getByRole('table')).toBeHidden()
     await expect(section.getByLabel('Поиск по username')).toBeHidden()
-    await expect(metrics).toHaveText(['Всего2', 'Сегодня1', '7 дней2', '30 дней2'])
+    await expect(metrics).toHaveText(['Всего100', '30 дней33'])
     await disclosure.click()
     await expect(section).toHaveAttribute('open', '')
     await expect(section.getByRole('table')).toBeVisible()
@@ -168,6 +179,31 @@ test.describe('admin analytics users', () => {
     await expect(page.getByText('@period_user')).toBeVisible()
     await page.getByRole('button', { name: '7 дней' }).click()
     await expect.poll(() => requests).toContain('7d:0')
+  })
+
+  test('shows the period-specific user metric for all four periods', async ({ page }) => {
+    await mockDashboard(page)
+    await page.route('**/api/admin/stats/users?*', (route) => route.fulfill({ json: { items: [], nextOffset: null } }))
+    const summaryPeriods: string[] = []
+    page.on('request', (request) => {
+      const url = new URL(request.url())
+      if (url.pathname === '/api/admin/stats/summary') summaryPeriods.push(url.searchParams.get('period') ?? '')
+    })
+    await page.goto('/#/admin/stats')
+    const cards = page.locator('.stats-page > .stats-grid .stats-card')
+    await expect(cards).toHaveCount(2)
+    const expected = [
+      ['Сегодня', 'Всего100', 'Сегодня11'],
+      ['7 дней', 'Всего100', '7 дней22'],
+      ['30 дней', 'Всего100', '30 дней33'],
+      ['Всё время', 'Всего100', 'Всё время100'],
+    ] as const
+    for (const [periodLabel, totalText, periodText] of expected) {
+      await page.getByRole('button', { name: periodLabel, exact: true }).click()
+      const expectedPeriod = ({ Сегодня: 'today', '7 дней': '7d', '30 дней': '30d', 'Всё время': 'all' } as const)[periodLabel]
+      await expect.poll(() => summaryPeriods).toContain(expectedPeriod)
+      await expect(cards).toHaveText([totalText, periodText])
+    }
   })
 
   test('keeps dashboard visible when the users endpoint fails', async ({ page }) => {
