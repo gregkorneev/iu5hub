@@ -157,9 +157,9 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
   return <section className="stats-page">
     <p className="eyebrow">Только для администратора</p><h1>Статистика</h1>
     <div className="stats-periods" aria-label="Период статистики">{periods.map(([value, label]) => <button key={value} className={period === value ? 'active' : ''} onClick={() => selectPeriod(value)}>{label}</button>)}</div>
+    <div className="stats-grid"><Metric label="Всего" value={data.summary.users.total} /><Metric label="Сегодня" value={data.summary.users.today} /><Metric label="7 дней" value={data.summary.users.days7} /><Metric label="30 дней" value={data.summary.users.days30} /></div>
     <details className="stats-section stats-users-disclosure" open>
-      <summary><h2>Пользователи</h2><span className="stats-users-toggle">Нажмите, чтобы скрыть или показать</span></summary>
-      <div className="stats-grid"><Metric label="Всего" value={data.summary.users.total} /><Metric label="Сегодня" value={data.summary.users.today} /><Metric label="7 дней" value={data.summary.users.days7} /><Metric label="30 дней" value={data.summary.users.days30} /></div>
+      <summary><h2>Список пользователей</h2><span className="stats-users-toggle">Нажмите, чтобы скрыть или показать</span></summary>
       <p className="stats-users-privacy">Username виден только администратору и обновляется при запуске Mini App. Telegram ID и имя не сохраняются.</p>
       {usersState === 'loading' ? <p className="lead" aria-busy="true">Загружаем список пользователей…</p> : usersState === 'error' ? <p className="lead" role="alert">Не удалось загрузить список пользователей. Попробуйте ещё раз позже.</p> : <><UserList page={usersPage} onMore={() => void loadMoreUsers()} loadingMore={loadingMore} filters={appliedFilters} activeFilter={activeFilter} draftValue={draftFilterValue} onToggleFilter={toggleUserFilter} onDraftChange={setDraftFilterValue} onApplyFilter={applyActiveFilter} onClearFilter={clearActiveFilter} />{usersMoreError && <p className="lead" role="alert">Не удалось загрузить следующую страницу. Попробуйте ещё раз.</p>}</>}
     </details>
