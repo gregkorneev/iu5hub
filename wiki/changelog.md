@@ -2,7 +2,7 @@
 
 ## 2026-10-06 — Telegram support
 
-- Final UX regression pass: full local `npm run qa` passed (262 Playwright passed, two host-specific WebKit keyboard skips). Fixed keyboard focus loss when retrying Profile favorites; regression covers retry failure and success. Production browser viewport smoke found no horizontal overflow at 320×568 through 1920×1080. Physical mobile/tablet/Windows and Telegram WebView checks remain open; see `testing.md`.
+- Final UX release regression: Linux CI exposed a compact 295×667 Home overflow with Favorites; compact useful-link spacing now keeps the support hint visible. Also fixed keyboard focus loss after Profile favorites Retry. Full local `npm run qa` passed (262 Playwright passed, two host-specific WebKit keyboard skips); [GitHub Actions 37459651166](https://github.com/gregkorneev/iu5hub/actions/runs/37459651166) passed all 330 Chromium, mobile Chromium, Firefox, WebKit and WebKit desktop cases. Production in-app Chromium smoke found no horizontal overflow at 295×667 and 16 widths from 320–1920px; Russian Search «физика» returned expected suggestions. Physical iOS/Android/iPad/Windows and Telegram WebView checks remain open; see `testing.md`.
 - Add anonymous support relay through the existing Telegram bot, Worker and D1 with `copyMessage`, encrypted chat routing, deduplication, rate limiting and 30-day cleanup. See `support.md`.
 - Admin-facing support headers may show the valid incoming Telegram username next to the unchanged pseudonymous support code. The value is transient and is not stored.
 - Deployed the admin-header update to the existing Worker; no D1 migration was required.
