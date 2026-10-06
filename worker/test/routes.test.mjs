@@ -47,36 +47,54 @@ class FakeDb {
     if (!this.events.some((event) => event.userHash === userHash && event.type === type && event.subjectId === subjectId && event.materialId === materialId && event.minute === minute)) this.events.push({ userHash, type, subjectId, materialId, minute, createdAt })
   }
 
-  first(sql, [start]) {
+  first(sql, [start, excludedUsername]) {
     if (sql === 'SELECT COUNT(*) AS count FROM users') return { count: this.users.size }
     if (sql.includes('COUNT(DISTINCT user_hash)')) return { count: new Set(this.events.filter((event) => event.createdAt >= start).map((event) => event.userHash)).size }
     const type = sql.match(/event_type = '([^']+)'/)?.[1]
-    return { count: this.events.filter((event) => event.type === type && event.createdAt >= start).length }
+    return { count: this.events.filter((event) => event.type === type && event.createdAt >= start &&
+      (!sql.includes('analytics_user_labels') || (this.labels.get(event.userHash)?.username ?? '').toLowerCase() !== String(excludedUsername).toLowerCase())).length }
   }
 
   all(sql, values) {
+    if (sql.includes('FROM events e LEFT JOIN analytics_user_labels')) {
+      const [excludedUsername, start] = values
+      const grouped = new Map()
+      for (const event of this.events.filter((item) => item.createdAt >= start)) {
+        const date = new Date(event.createdAt * 1000).toISOString().slice(0, 10)
+        const row = grouped.get(date) ?? { date, users: new Set(), launches: 0 }
+        row.users.add(event.userHash)
+        if (event.type === 'app_open' && (this.labels.get(event.userHash)?.username ?? '').toLowerCase() !== excludedUsername.toLowerCase()) row.launches++
+        grouped.set(date, row)
+      }
+      return [...grouped.values()].map(({ date, users, launches }) => ({ date, users: users.size, launches }))
+    }
     if (!sql.includes('FROM users u LEFT JOIN analytics_user_labels')) return []
     this.statements.push({ sql, values })
-    let index = 1
+    let index = 2
     const username = sql.includes('instr(lower(COALESCE(l.username') ? values[index++] : null
-    const minLaunchCount = sql.includes('u.launch_count >= ?') ? values[index++] : null
+    const hasMinLaunchCount = sql.includes('u.launch_count >= ?')
+    if (hasMinLaunchCount) index++
+    const minLaunchCount = hasMinLaunchCount ? values[index++] : null
     const firstSeenOn = sql.includes("date(u.first_seen_at, 'unixepoch') = ?") ? values[index++] : null
     const lastSeenOn = sql.includes("date(u.last_seen_at, 'unixepoch') = ?") ? values[index++] : null
-    const limit = values.at(-2), offset = values.at(-1), start = values[0]
-    const sortMatch = sql.match(/ORDER BY (l\.username COLLATE NOCASE|u\.launch_count|u\.first_seen_at|u\.last_seen_at) (ASC|DESC)/)
+    const limit = values.at(-2), offset = values.at(-1), start = values[1]
+    const sortMatch = sql.match(/ORDER BY (?:CASE WHEN launchCount IS NULL THEN 1 ELSE 0 END ASC, )?(launchCount|l\.username COLLATE NOCASE|u\.first_seen_at|u\.last_seen_at) (ASC|DESC)/)
     const sortColumn = sortMatch?.[1] ?? 'u.last_seen_at'
     const sortDirection = sortMatch?.[2] ?? 'DESC'
-    const sortValue = (row) => sortColumn === 'l.username COLLATE NOCASE' ? row.username : sortColumn === 'u.launch_count' ? row.launchCount : sortColumn === 'u.first_seen_at' ? row.firstSeenAt : row.lastSeenAt
+    const sortValue = (row) => sortColumn === 'l.username COLLATE NOCASE' ? row.username : sortColumn === 'launchCount' ? row.launchCount : sortColumn === 'u.first_seen_at' ? row.firstSeenAt : row.lastSeenAt
+    const launchExcluded = values[0]
     return [...this.users.entries()].map(([userHash, user]) => ({
       userHash, username: this.labels.get(userHash)?.username ?? null,
-      firstSeenAt: user.firstSeen, lastSeenAt: user.lastSeen, launchCount: user.launches,
+      firstSeenAt: user.firstSeen, lastSeenAt: user.lastSeen,
+      launchCount: (this.labels.get(userHash)?.username ?? '').toLowerCase() === String(launchExcluded).toLowerCase() ? null : user.launches,
     })).filter((row) => row.lastSeenAt >= start &&
       (!username || (row.username ?? 'Без username').toLowerCase().includes(username.toLowerCase())) &&
-      (minLaunchCount === null || row.launchCount >= minLaunchCount) &&
+      (minLaunchCount === null || row.launchCount === null || row.launchCount >= minLaunchCount) &&
       (!firstSeenOn || new Date(row.firstSeenAt * 1000).toISOString().slice(0, 10) === firstSeenOn) &&
       (!lastSeenOn || new Date(row.lastSeenAt * 1000).toISOString().slice(0, 10) === lastSeenOn))
       .sort((a, b) => {
         const aValue = sortValue(a), bValue = sortValue(b)
+        if (sortColumn === 'launchCount' && (aValue === null || bValue === null)) return (aValue === null ? (bValue === null ? 0 : 1) : -1) || a.userHash.localeCompare(b.userHash)
         const primary = aValue === null ? (bValue === null ? 0 : -1) : bValue === null ? 1 : typeof aValue === 'string' ? aValue.localeCompare(bValue, 'en', { sensitivity: 'base' }) : aValue - bValue
         return (sortDirection === 'ASC' ? primary : -primary) || a.userHash.localeCompare(b.userHash)
       })
@@ -176,7 +194,7 @@ test('admin users list filters by period, sorts recent first, paginates, caps li
   body = await response.json()
   assert.equal(body.items.length, 3)
   assert.equal(body.items.length <= 100, true)
-  assert.equal(db.statements.filter(({ sql }) => sql.includes('LEFT JOIN analytics_user_labels')).at(-1).values[1], 101)
+  assert.equal(db.statements.filter(({ sql }) => sql.includes('LEFT JOIN analytics_user_labels')).at(-1).values[2], 101)
   assert.equal((await get('?period=30d&limit=0')).status, 400)
   const alice = db.users.get('a')
   const filtered = await get(`?period=all&username=%40ali&minLaunchCount=3&firstSeenOn=${new Date(alice.firstSeen * 1000).toISOString().slice(0, 10)}&lastSeenOn=${new Date(alice.lastSeen * 1000).toISOString().slice(0, 10)}`)
@@ -222,6 +240,43 @@ test('admin users sort allowlist orders the full result before pagination', asyn
   assert.deepEqual(await sortedNames('firstSeenAt', 'desc'), ['beta', 'alice', 'zeta'])
   assert.deepEqual(await sortedNames('lastSeenAt', 'asc'), ['beta', 'zeta', 'alice'])
   assert.deepEqual(await sortedNames('lastSeenAt', 'desc'), ['alice', 'zeta', 'beta'])
+})
+
+test('gregkor launch counts are hidden from users and excluded from aggregate launches only', async () => {
+  const db = new FakeDb()
+  const adminFirst = now - 4_000, adminLast = now - 20
+  const ordinaryFirst = now - 5_000, ordinaryLast = now - 10
+  db.users.set('greg-hash', { firstSeen: adminFirst, lastSeen: adminLast, launches: 37 })
+  db.users.set('regular-hash', { firstSeen: ordinaryFirst, lastSeen: ordinaryLast, launches: 4 })
+  db.labels.set('greg-hash', { username: 'GrEgKoR', updatedAt: now })
+  db.labels.set('regular-hash', { username: 'alice', updatedAt: now })
+  db.events.push(
+    { userHash: 'greg-hash', type: 'app_open', createdAt: adminLast },
+    { userHash: 'greg-hash', type: 'search', createdAt: adminLast },
+    { userHash: 'regular-hash', type: 'app_open', createdAt: ordinaryLast },
+  )
+  const headers = { 'X-Telegram-Init-Data': signedInitData(1) }
+  const get = (path) => worker.fetch(new Request(`https://worker.example${path}`, { headers }), { ...env, ANALYTICS_DB: db })
+
+  const summary = await (await get('/api/admin/stats/summary?period=all')).json()
+  assert.deepEqual(summary.users, { total: 2, today: 2, days7: 2, days30: 2 })
+  assert.equal(summary.launches, 1)
+
+  const activity = await (await get('/api/admin/stats/activity?period=all')).json()
+  const today = activity.days.find((day) => day.date === new Date(now * 1000).toISOString().slice(0, 10))
+  assert.deepEqual(today, { date: new Date(now * 1000).toISOString().slice(0, 10), users: 2, launches: 1 })
+
+  const users = await (await get('/api/admin/stats/users?period=all&sortBy=launchCount&sortDirection=desc&limit=1')).json()
+  assert.deepEqual(users.items[0], { username: 'alice', firstSeenAt: ordinaryFirst, lastSeenAt: ordinaryLast, launchCount: 4 })
+  assert.equal(users.nextOffset, 1)
+  const secondPage = await (await get('/api/admin/stats/users?period=all&sortBy=launchCount&sortDirection=desc&limit=1&offset=1')).json()
+  assert.deepEqual(secondPage.items[0], { username: 'GrEgKoR', firstSeenAt: adminFirst, lastSeenAt: adminLast, launchCount: null })
+  assert.equal(secondPage.nextOffset, null)
+  const ascending = await (await get('/api/admin/stats/users?period=all&sortBy=launchCount&sortDirection=asc')).json()
+  assert.equal(ascending.items.find((item) => item.username === 'GrEgKoR').launchCount, null)
+  assert.deepEqual(ascending.items.find((item) => item.username === 'alice'), { username: 'alice', firstSeenAt: ordinaryFirst, lastSeenAt: ordinaryLast, launchCount: 4 })
+  const minFiltered = await (await get('/api/admin/stats/users?period=all&minLaunchCount=5')).json()
+  assert.deepEqual(minFiltered.items.map((item) => item.username), ['GrEgKoR'])
 })
 
 test('an event arriving before app open creates its user without inflating launches', async () => {

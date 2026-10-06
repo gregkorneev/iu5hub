@@ -4,6 +4,7 @@ import { handleSupportMessage } from './support.mjs'
 const eventTypes = new Set(['search', 'subject_open', 'material_open', 'yandex_disk_open'])
 const periods = { today: 1, '7d': 7, '30d': 30, all: null }
 const idPattern = /^(?!.*:\/\/)[\p{L}\p{N}_./:-]{1,128}$/u
+const launchesExcludedUsername = 'gregkor'
 
 function json(body, status = 200) {
   return Response.json(body, { status, headers: { 'cache-control': 'no-store' } })
@@ -147,7 +148,10 @@ async function trackEvent(db, userHash, event, now) {
 async function queryOne(db, sql, ...bindings) { return db.prepare(sql).bind(...bindings).first() }
 async function queryAll(db, sql, ...bindings) { return (await db.prepare(sql).bind(...bindings).all()).results }
 async function activity(db, now, start) {
-  const rows = await queryAll(db, `SELECT strftime('%Y-%m-%d', created_at, 'unixepoch') AS date, COUNT(DISTINCT user_hash) AS users, SUM(event_type = 'app_open') AS launches FROM events WHERE created_at >= ? GROUP BY date ORDER BY date`, Math.max(start, startOfUtcDay(now) - 29 * 86_400))
+  const rows = await queryAll(db, `SELECT strftime('%Y-%m-%d', e.created_at, 'unixepoch') AS date, COUNT(DISTINCT e.user_hash) AS users,
+    SUM(CASE WHEN e.event_type = 'app_open' AND lower(COALESCE(l.username, '')) != lower(?) THEN 1 ELSE 0 END) AS launches
+    FROM events e LEFT JOIN analytics_user_labels l ON l.user_hash = e.user_hash
+    WHERE e.created_at >= ? GROUP BY date ORDER BY date`, launchesExcludedUsername, Math.max(start, startOfUtcDay(now) - 29 * 86_400))
   const byDate = new Map(rows.map((row) => [row.date, row]))
   return Array.from({ length: 30 }, (_, index) => {
     const date = new Date((startOfUtcDay(now) - (29 - index) * 86_400) * 1000).toISOString().slice(0, 10)
@@ -163,7 +167,8 @@ async function summary(db, now, period) {
     queryOne(db, 'SELECT COUNT(DISTINCT user_hash) AS count FROM events WHERE created_at >= ?', today),
     queryOne(db, 'SELECT COUNT(DISTINCT user_hash) AS count FROM events WHERE created_at >= ?', now - 7 * 86_400),
     queryOne(db, 'SELECT COUNT(DISTINCT user_hash) AS count FROM events WHERE created_at >= ?', now - 30 * 86_400),
-    queryOne(db, "SELECT COUNT(*) AS count FROM events WHERE event_type = 'app_open' AND created_at >= ?", start),
+    queryOne(db, `SELECT COUNT(*) AS count FROM events e LEFT JOIN analytics_user_labels l ON l.user_hash = e.user_hash
+      WHERE e.event_type = 'app_open' AND e.created_at >= ? AND lower(COALESCE(l.username, '')) != lower(?)`, start, launchesExcludedUsername),
     queryOne(db, "SELECT COUNT(*) AS count FROM events WHERE event_type = 'search' AND created_at >= ?", start),
     queryOne(db, "SELECT COUNT(*) AS count FROM events WHERE event_type = 'material_open' AND created_at >= ?", start),
     queryOne(db, "SELECT COUNT(*) AS count FROM events WHERE event_type = 'yandex_disk_open' AND created_at >= ?", start),
@@ -229,7 +234,7 @@ async function handle(request, env) {
       const lastSeenOn = url.searchParams.get('lastSeenOn') ?? ''
       const sortBy = url.searchParams.get('sortBy') ?? 'lastSeenAt'
       const sortDirection = url.searchParams.get('sortDirection') ?? 'desc'
-      const sortColumns = { username: 'l.username COLLATE NOCASE', launchCount: 'u.launch_count', firstSeenAt: 'u.first_seen_at', lastSeenAt: 'u.last_seen_at' }
+      const sortColumns = { username: 'l.username COLLATE NOCASE', launchCount: 'launchCount', firstSeenAt: 'u.first_seen_at', lastSeenAt: 'u.last_seen_at' }
       const sortColumn = Object.hasOwn(sortColumns, sortBy) ? sortColumns[sortBy] : null
       if (username.length > 64 || /[\u0000-\u001f\u007f-\u009f]/.test(username) ||
           (minLaunchCount !== null && (!Number.isSafeInteger(minLaunchCount) || minLaunchCount < 0)) ||
@@ -237,15 +242,19 @@ async function handle(request, env) {
           !sortColumn || !['asc', 'desc'].includes(sortDirection)) return json({ error: 'Invalid filter' }, 400)
       const limit = Math.min(rawLimit, 100)
       const where = ['u.last_seen_at >= ?']
-      const bindings = [start]
+      const bindings = [launchesExcludedUsername, start]
       if (username) { where.push("instr(lower(COALESCE(l.username, 'Без username')), lower(?)) > 0"); bindings.push(username) }
-      if (minLaunchCount !== null) { where.push('u.launch_count >= ?'); bindings.push(minLaunchCount) }
+      if (minLaunchCount !== null) { where.push('(lower(COALESCE(l.username, \'\')) = lower(?) OR u.launch_count >= ?)'); bindings.push(launchesExcludedUsername, minLaunchCount) }
       if (firstSeenOn) { where.push("date(u.first_seen_at, 'unixepoch') = ?"); bindings.push(firstSeenOn) }
       if (lastSeenOn) { where.push("date(u.last_seen_at, 'unixepoch') = ?"); bindings.push(lastSeenOn) }
+      const orderBy = sortBy === 'launchCount'
+        ? `CASE WHEN launchCount IS NULL THEN 1 ELSE 0 END ASC, launchCount ${sortDirection.toUpperCase()}`
+        : `${sortColumn} ${sortDirection.toUpperCase()}`
       const rows = await queryAll(env.ANALYTICS_DB, `SELECT l.username, u.first_seen_at AS firstSeenAt,
-        u.last_seen_at AS lastSeenAt, u.launch_count AS launchCount
+        u.last_seen_at AS lastSeenAt,
+        CASE WHEN lower(COALESCE(l.username, '')) = lower(?) THEN NULL ELSE u.launch_count END AS launchCount
         FROM users u LEFT JOIN analytics_user_labels l ON l.user_hash = u.user_hash
-        WHERE ${where.join(' AND ')} ORDER BY ${sortColumn} ${sortDirection.toUpperCase()}, u.user_hash ASC LIMIT ? OFFSET ?`, ...bindings, limit + 1, offset)
+        WHERE ${where.join(' AND ')} ORDER BY ${orderBy}, u.user_hash ASC LIMIT ? OFFSET ?`, ...bindings, limit + 1, offset)
       return json({ period, items: rows.slice(0, limit), nextOffset: rows.length > limit ? offset + limit : null })
     }
     const field = request.method === 'GET' && url.pathname === '/api/admin/stats/subjects' ? 'subject_id' : request.method === 'GET' && url.pathname === '/api/admin/stats/materials' ? 'material_id' : null

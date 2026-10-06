@@ -99,6 +99,25 @@ test.describe('admin analytics users', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy()
   })
 
+  test('shows @gregkor dates with a dash while ordinary users keep their launch count', async ({ page }) => {
+    await mockDashboard(page)
+    const now = Math.floor(Date.now() / 1000)
+    await page.route('**/api/admin/stats/users?*', (route) => route.fulfill({ json: { items: [
+      { username: 'gregkor', firstSeenAt: now - 3 * 86400, lastSeenAt: now, launchCount: null },
+      { username: 'ivanov', firstSeenAt: now - 86400, lastSeenAt: now, launchCount: 18 },
+    ], nextOffset: null } }))
+    await page.goto('/#/admin/stats')
+    const table = page.getByRole('table', { name: 'Пользователи в статистике' })
+    const adminRow = table.getByRole('row').filter({ hasText: '@gregkor' })
+    await expect(adminRow).toContainText('—')
+    await expect(adminRow.getByRole('cell').nth(2)).toHaveText(/\d{2}\.\d{2}\.\d{4}/)
+    await expect(adminRow.getByRole('cell').nth(3)).toContainText('Сегодня')
+    const regularRow = table.getByRole('row').filter({ hasText: '@ivanov' })
+    await expect(regularRow.getByRole('cell').nth(1)).toHaveText('18')
+    await expect(regularRow.getByRole('cell').nth(2)).toContainText('Вчера')
+    await expect(regularRow.getByRole('cell').nth(3)).toContainText('Сегодня')
+  })
+
   test('sorts each column both ways on the server and preserves search/sort through pagination', async ({ page }) => {
     await mockDashboard(page)
     const requests: URL[] = []

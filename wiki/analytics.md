@@ -42,11 +42,15 @@ All boundaries are UTC unless an explicitly labelled dashboard view says otherwi
 | DAU / Today | distinct event `user_hash` since current UTC midnight |
 | WAU / 7 days | distinct event `user_hash` in trailing 7 × 24 hours |
 | MAU / 30 days | distinct event `user_hash` in trailing 30 × 24 hours |
-| Launches | recorded `app_open` events in the selected period |
+| Launches | recorded `app_open` events in the selected period, excluding events whose existing `analytics_user_labels.username` is `gregkor` case-insensitively |
 | Searches/material opens/Disk opens | count of their respective events in the selected period |
 | Popular subjects/materials | descending allowed event count grouped by internal ID; UI resolves current labels via the repository |
 
 The 30-day activity view includes zero-event UTC days and distinguishes daily distinct active users from launch count. Empty D1 is a valid zero state.
+
+### Development-account launch suppression
+
+The verified analytics username `gregkor` is an internal development account. Its `users` row remains in the admin users list with its real `firstSeenAt` and `lastSeenAt`, but the endpoint returns `launchCount: null`, which the UI renders as a dash. Its `app_open` events are excluded from the dashboard's total launch metric and daily launch chart. Active-user totals, first/last-seen values, non-launch events and stored `users.launch_count` remain unchanged. Matching uses the current username in `analytics_user_labels`, case-insensitively; if that verified username changes, suppression follows the current label. This rule adds no identifier or stored data and does not modify events. Worker and UI regression coverage verifies the row remains visible, its launch count is hidden, case-insensitive matching works, and the aggregate/chart counts omit its opens.
 
 ## Administration and `/stats`
 

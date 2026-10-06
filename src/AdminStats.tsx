@@ -5,7 +5,7 @@ type Period = 'today' | '7d' | '30d' | 'all'
 type Summary = { users: { total: number; today: number; days7: number; days30: number }; launches: number; activity: { searches: number; materialOpens: number; yandexDiskOpens: number } }
 type Activity = { days: Array<{ date: string; users: number; launches: number }> }
 type Ranked = { items: Array<{ id: string; count: number }> }
-type AnalyticsUser = { username: string | null; firstSeenAt: number; lastSeenAt: number; launchCount: number }
+type AnalyticsUser = { username: string | null; firstSeenAt: number; lastSeenAt: number; launchCount: number | null }
 type UsersPage = { items: AnalyticsUser[]; nextOffset: number | null }
 type SortKey = 'username' | 'launchCount' | 'firstSeenAt' | 'lastSeenAt'
 type SortDirection = 'asc' | 'desc'
@@ -49,7 +49,7 @@ function UserList({ page, onMore, loadingMore, sort, onSort }: {
     </th>)}</tr></thead><tbody>
       {page.items.length ? page.items.map((user, index) => <tr key={`${user.firstSeenAt}-${index}`}>
         <td data-label="Пользователь"><strong>{user.username ? `@${user.username}` : 'Без username'}</strong></td>
-        <td data-label="Запуски">{user.launchCount.toLocaleString('ru-RU')}</td>
+        <td data-label="Запуски">{user.launchCount === null ? '—' : user.launchCount.toLocaleString('ru-RU')}</td>
         <td data-label="Первый вход">{formatUserDate(user.firstSeenAt)}</td>
         <td data-label="Последняя активность">{formatUserDate(user.lastSeenAt)}</td>
       </tr>) : <tr><td colSpan={4}><p className="lead">Пока нет пользователей с доступными данными. Username появится после следующего запуска Mini App.</p></td></tr>}

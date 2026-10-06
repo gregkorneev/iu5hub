@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-07 — Development account launch suppression
+
+- The current verified username `gregkor` remains in the admin users list with first/last seen, but its launch count is masked and its launches are excluded from the aggregate launch metric and daily launch chart. Matching is case-insensitive against the existing username label. No identifier, event or stored counter changed. Worker route tests (18/18), focused UI tests (8/8), lint and typecheck passed.
+
 ## 2026-10-06 — Telegram support
 
 - Add a first-run Welcome step explaining how to message the bot in chat for material requests or help and receive a reply there. Full `npm run qa` passed (262 Playwright cases; two host-specific WebKit keyboard skips); the mobile regression verifies all four steps, accessible contrast and safe-area fit.
