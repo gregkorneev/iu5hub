@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
-import { CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, Search, UserRound } from 'lucide-react'
+import { CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, MessageCircle, Search, UserRound } from 'lucide-react'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
@@ -128,6 +128,13 @@ function Home() {
         <li><a aria-label="GitHub Ю. Е. Гапанюк" href="https://ugapanyuk.github.io" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span className="home-links__label"><span>GitHub</span><span>Ю. Е. Гапанюк</span></span></a></li>
         <li className="home-links__item--freshmen"><a className="home-links__link--freshmen" aria-label="Будущим первокурсникам" href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><HardDrive aria-hidden="true" focusable="false" /><span className="home-links__label"><span>Будущим</span><span>первокурсникам</span></span></a></li>
       </ul>
+    </section>
+    <section className="home-support" aria-labelledby="home-support-title">
+      <MessageCircle aria-hidden="true" focusable="false" />
+      <div className="home-support__copy">
+        <h2 id="home-support-title">Нужен материал или помощь?</h2>
+        <p>Напишите боту в чат.</p>
+      </div>
     </section>
   </>
 }

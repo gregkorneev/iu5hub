@@ -148,12 +148,14 @@ test('keeps home controls usable and scrolls without clipping at short viewports
       const footer = document.querySelector('footer')!.getBoundingClientRect()
       const nav = document.querySelector('.bottom-nav')!.getBoundingClientRect()
       const firstLink = document.querySelector('.home-links__list a')!.getBoundingClientRect()
-      return { mainScrollTop: document.querySelector('main')!.scrollTop, footerVisible: footer.top >= 0 && footer.bottom <= window.innerHeight, navVisible: nav.bottom <= window.innerHeight && nav.top >= 0, linkNotClipped: firstLink.width > 0 && firstLink.height >= 44 }
+      const support = document.querySelector('.home-support')!.getBoundingClientRect()
+      return { mainScrollTop: document.querySelector('main')!.scrollTop, footerVisible: footer.top >= 0 && footer.bottom <= window.innerHeight, navVisible: nav.bottom <= window.innerHeight && nav.top >= 0, linkNotClipped: firstLink.width > 0 && firstLink.height >= 44, supportVisible: support.top >= 0 && support.bottom <= footer.top }
     })
     if (needsScroll) expect(reachedFooter.mainScrollTop).toBeGreaterThan(0)
     expect(reachedFooter.footerVisible).toBeTruthy()
     expect(reachedFooter.navVisible).toBeTruthy()
     expect(reachedFooter.linkNotClipped).toBeTruthy()
+    expect(reachedFooter.supportVisible).toBeTruthy()
   }
 })
 
@@ -191,8 +193,11 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
 
   const courses = page.locator('.home-courses')
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
+  const support = page.getByRole('region', { name: 'Нужен материал или помощь?' })
   await expect(courses).toBeVisible()
   await expect(usefulLinks).toBeVisible()
+  await expect(support).toContainText('Напишите боту в чат.')
+  await expect(support.getByRole('link')).toHaveCount(0)
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
   const freshmenLink = usefulLinks.getByRole('link', { name: 'Будущим первокурсникам' })
@@ -219,8 +224,13 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
 
   const coursesBounds = await courses.boundingBox()
   const linksBounds = await usefulLinks.boundingBox()
-  expect(coursesBounds && linksBounds).toBeTruthy()
+  const supportBounds = await support.boundingBox()
+  const footerBounds = await page.locator('footer').boundingBox()
+  expect(coursesBounds && linksBounds && supportBounds && footerBounds).toBeTruthy()
   expect(linksBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
+  expect(supportBounds!.y).toBeGreaterThanOrEqual(linksBounds!.y + linksBounds!.height)
+  expect(footerBounds!.y - (supportBounds!.y + supportBounds!.height)).toBeGreaterThanOrEqual(8)
+  expect(footerBounds!.y - (supportBounds!.y + supportBounds!.height)).toBeLessThanOrEqual(100)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   await page.screenshot({ path: testInfo.outputPath('home-useful-links.png') })
   await page.evaluate(() => {

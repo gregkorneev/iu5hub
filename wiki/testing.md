@@ -62,6 +62,10 @@ No P0/P1 or unresolved product P2 was found in the exercised flows. Manual keybo
 
 Schedule CI is network-independent: `npm run schedule:validate` checks the generated 70-group dataset; `scripts/schedule/*.node-test.mjs` covers discovery/filtering, stable slug, parser/recurrence/timezone/exceptions, no-op comparison and atomic rollback. Playwright `schedule.spec.ts` covers group onboarding/search, Today/Week/day switching, current/next lesson, group change/profile, navigation, preferences and 320/390/428 px. Networked `schedule:inspect`/`schedule:sync` are release/operator commands, never CI.
 
+## Home support guidance — 2026-10-06
+
+The Home screen now shows a compact informational block after Useful Links: students can propose missing material or ask for help by writing to the bot in chat. It is intentionally not presented as a button because the app does not expose a dedicated support destination. `home-links.spec.ts` checks the Russian copy, its position before the footer, and that the block adds no misleading link. Browser emulation does not replace verification in the real Telegram WebView.
+
 ## Required release gate
 
 До commit/push должны пройти `lint`, `typecheck`, `test`, `build` и `test:ui`.
