@@ -11,6 +11,7 @@ class Db {
   requests = []
   routes = []
   events = []
+  bindings = []
   prepare(sql) {
     return { bind: (...values) => ({
       run: async () => this.run(sql, values),
@@ -20,6 +21,7 @@ class Db {
   }
   async batch(statements) { for (const item of statements) await item.run() }
   async run(sql, v) {
+    this.bindings.push({ sql, values: v })
     if (sql.includes('INSERT OR IGNORE INTO support_requests')) {
       if (!this.requests.some((r) => r.userHash === v[0] && r.userMessageId === v[2])) this.requests.push({ id: this.requests.length + 1, userHash: v[0], cipher: v[1], userMessageId: v[2], createdAt: v[3] })
     } else if (sql.includes('INSERT OR IGNORE INTO support_routes')) {
@@ -30,6 +32,7 @@ class Db {
     return { meta: { changes: 1 } }
   }
   async first(sql, v) {
+    this.bindings.push({ sql, values: v })
     if (sql.includes('SELECT id FROM support_requests WHERE')) return this.requests.find((r) => r.userHash === v[0] && r.userMessageId === v[1]) ? { id: this.requests.find((r) => r.userHash === v[0] && r.userMessageId === v[1]).id } : null
     if (sql.includes('SELECT COUNT(*) AS count FROM support_requests')) return { count: this.requests.filter((r) => r.userHash === v[0] && r.createdAt > v[1]).length }
     if (sql.includes('SELECT COUNT(*) AS count FROM support_routes')) return { count: this.routes.filter((r) => r.requestId === v[0] && r.adminId === v[1]).length }
@@ -46,8 +49,8 @@ class StatsDb extends Db {
   async first() { return { count: 0 } }
 }
 
-function msg({ id = 1, sender = 5001, chat = sender, type = 'private', ...content } = {}) {
-  return { message_id: id, from: { id: sender, first_name: 'Private', username: 'operator' }, chat: { id: chat, type }, ...content }
+function msg({ id = 1, sender = 5001, chat = sender, type = 'private', username = 'operator', ...content } = {}) {
+  return { message_id: id, from: { id: sender, first_name: 'Private', username }, chat: { id: chat, type }, ...content }
 }
 
 function botMock(handler) {
@@ -82,6 +85,46 @@ test('student text is copied to all admins; D1 contains no message or raw studen
     assert.doesNotMatch(JSON.stringify(db.requests), /5001|private student message/)
     assert.equal(db.routes.length, 4)
     assert.equal(mock.calls.some((c) => c.method === 'forwardMessage'), false)
+  } finally { mock.restore() }
+})
+
+test('admin header appends only a trimmed valid username; username stays transient and out of student-facing data', async () => {
+  const db = new Db()
+  const mock = botMock((method, payload, call) => ({ ok: true, result: { message_id: 12000 + call } }))
+  const cases = [
+    { username: '  alice_123  ', expected: ' · @alice_123' },
+    { username: undefined, expected: '' },
+    { username: '', expected: '' },
+    { username: 12345, expected: '' },
+    { username: 'bad\u0000name', expected: '' },
+    { username: '<b>alice</b>', expected: '' },
+    { username: '*alice*', expected: '' },
+    { username: '[alice](https://example.test)', expected: '' },
+  ]
+  try {
+    for (const [index, item] of cases.entries()) {
+      const message = msg({ id: 100 + index, sender: 5200 + index, username: item.username, text: 'hello' })
+      if (item.username === undefined) delete message.from.username
+      await handleSupportMessage(message, env, db)
+    }
+    const headers = mock.calls.filter((call) => call.method === 'sendMessage' && call.payload.text.startsWith('💬'))
+    assert.equal(headers.length, cases.length * 2)
+    for (const [index, item] of cases.entries()) {
+      const expected = /^💬 Обращение #[A-F0-9]{4}/
+      const pair = headers.slice(index * 2, index * 2 + 2)
+      assert.ok(pair.every((call) => expected.test(call.payload.text)))
+      assert.ok(pair.every((call) => call.payload.text.endsWith(item.expected) && !Object.hasOwn(call.payload, 'parse_mode')))
+      if (!item.expected) assert.ok(pair.every((call) => /^💬 Обращение #[A-F0-9]{4}$/.test(call.payload.text)))
+    }
+    await handleSupportMessage(msg({ id: 200, sender: 7001, username: 'admin_markdown', text: 'answer', reply_to_message: { message_id: 12001 } }), env, db)
+    const userCopy = mock.calls.find((call) => call.method === 'copyMessage' && call.payload.chat_id === 5200)
+    assert.ok(userCopy)
+    assert.doesNotMatch(JSON.stringify(userCopy.payload), /alice_123|admin_markdown/)
+    assert.doesNotMatch(JSON.stringify(db.bindings), /alice_123|bad|admin_markdown/)
+    assert.doesNotMatch(JSON.stringify(db.requests), /alice_123|operator|first_name|username/)
+    assert.doesNotMatch(JSON.stringify(db.routes), /alice_123|admin_markdown|username/)
+    assert.deepEqual(db.events, [])
+    assert.equal(db.requests.length, cases.length)
   } finally { mock.restore() }
 })
 

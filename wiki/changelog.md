@@ -3,6 +3,8 @@
 ## 2026-10-06 — Telegram support
 
 - Add anonymous support relay through the existing Telegram bot, Worker and D1 with `copyMessage`, encrypted chat routing, deduplication, rate limiting and 30-day cleanup. See `support.md`.
+- Admin-facing support headers may show the valid incoming Telegram username next to the unchanged pseudonymous support code. The value is transient and is not stored.
+- Deployed the admin-header update to the existing Worker; no D1 migration was required.
 
 ## 2026-10-05
 

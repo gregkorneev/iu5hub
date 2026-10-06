@@ -8,6 +8,11 @@ function admins(env) {
   return [...new Set((env.ADMIN_TELEGRAM_IDS ?? '').split(',').map((id) => id.trim()).filter((id) => /^\d+$/.test(id) && Number.isSafeInteger(Number(id))))]
 }
 
+function usernameSuffix(value) {
+  const username = typeof value === 'string' ? value.trim() : ''
+  return /^[A-Za-z0-9_]{5,32}$/.test(username) ? ` · @${username}` : ''
+}
+
 async function keyFor(secret) {
   if (typeof secret !== 'string' || secret.length < 32) throw new TypeError('Invalid support key')
   const digest = await crypto.subtle.digest('SHA-256', encoder.encode(secret))
@@ -75,7 +80,7 @@ async function relayToAdmins(message, env, db, userHash, requestId, now) {
     const numericAdminId = Number(adminId)
     if (await count(db, `SELECT COUNT(*) AS count FROM support_routes WHERE request_id = ? AND admin_chat_id = ?`, requestId, numericAdminId)) { delivered += 1; continue }
     const code = (userHash.slice(0, 4)).toUpperCase()
-    const header = await callBot(env, 'sendMessage', { chat_id: numericAdminId, text: `💬 Обращение #${code}` })
+    const header = await callBot(env, 'sendMessage', { chat_id: numericAdminId, text: `💬 Обращение #${code}${usernameSuffix(message.from?.username)}` })
     const copied = await callBot(env, 'copyMessage', { chat_id: Number(adminId), from_chat_id: message.chat.id, message_id: message.message_id })
     if (!copied?.message_id) continue
     await saveAdminRoute(db, numericAdminId, copied.message_id, requestId, now)

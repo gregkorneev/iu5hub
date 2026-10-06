@@ -15,6 +15,8 @@ admin Reply → Worker route lookup → Telegram bot → student's private chat
 
 An ordinary administrator message without Reply is never sent to a student. The bot gives the administrator a short hint to reply to an incoming request.
 
+The admin-facing header appends the student's `message.from.username` from the current webhook when it is valid, for example `💬 Обращение #A82F · @username`. This value is used transiently for that admin message only. The stable pseudonymous support code remains the identifier; if username is absent or invalid, the header contains only the code.
+
 ## Identity, privacy and routing
 
 The Worker authenticates webhook deliveries with `TELEGRAM_WEBHOOK_SECRET`. Only private chats are eligible. Commands are handled before support; `/start` is never treated as a ticket and `/stats` remains restricted to `ADMIN_TELEGRAM_IDS`. This repository has no bot-chat `/start` response handler; the Mini App's first-run welcome flow is separate.
@@ -22,6 +24,8 @@ The Worker authenticates webhook deliveries with `TELEGRAM_WEBHOOK_SECRET`. Only
 The support code is a short prefix of a keyed HMAC using `USER_ID_HMAC_SECRET`, stable for a student and not reversible to a Telegram ID. The Worker copies accepted messages with Telegram `copyMessage` in both directions, never `forwardMessage`.
 
 D1 stores the HMAC user hash, AES-GCM encrypted student chat routing value, allowlisted admin chat ID used as a route key, Telegram message IDs, and timestamps. It never stores message text/caption, media/file IDs, username/name/avatar, or the raw student Telegram ID. `SUPPORT_ENCRYPTION_KEY` is a separate Worker secret; AES-GCM uses a fresh random IV. A decrypted student chat ID exists only in Worker memory while calling Telegram. Admin reply routing is scoped to both the allowlisted admin's private chat and that admin's copied message ID.
+
+If the sender has a valid non-empty `message.from.username`, the Worker includes it in the admin-facing header for the current webhook. It trims whitespace and accepts only 5–32 ASCII letters, digits or underscores; it performs no profile lookup and does not add a parse mode. Username is neither bound to SQL nor stored in support/analytics D1, logs or other persistent storage; it is not included in student-facing replies. First/last names and raw student IDs are not used as fallback.
 
 ## Limits and retention
 
@@ -36,4 +40,4 @@ D1 stores the HMAC user hash, AES-GCM encrypted student chat routing value, allo
 
 Use the existing Worker `iu5hub-analytics`, D1 `iu5hub-analytics`, Telegram webhook and free Cloudflare architecture. Existing `ADMIN_TELEGRAM_IDS` is the support-admin allowlist; no new admin configuration is required. Keep `SUPPORT_ENCRYPTION_KEY` set as a strong random Worker secret. Keep `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `USER_ID_HMAC_SECRET` and all other credentials out of Git, Wiki, logs and frontend bundles.
 
-Production migration `0004_support.sql` and `SUPPORT_ENCRYPTION_KEY` are applied; Worker `iu5hub-analytics` was deployed on 2026-10-06. Unauthorized production webhook requests were rejected. Automated delivery tests use mocked Telegram API calls. A live student → admin → Reply → student check still requires a second Telegram account. For later releases, apply pending migrations, retain the Worker-only secret, and redeploy; see `deployment.md`, `security.md` and `testing.md`.
+Production migration `0004_support.sql` and `SUPPORT_ENCRYPTION_KEY` are applied; Worker `iu5hub-analytics` was deployed with the transient-username header update on 2026-10-06. No new migration was needed. Production webhook requests with missing/wrong secrets were rejected. Automated delivery tests use mocked Telegram API calls. The username-present header was not verified against a live incoming student message. For later releases, apply pending migrations, retain the Worker-only secret, and redeploy; see `deployment.md`, `security.md` and `testing.md`.
