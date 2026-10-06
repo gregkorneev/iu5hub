@@ -7,8 +7,8 @@ type Activity = { days: Array<{ date: string; users: number; launches: number }>
 type Ranked = { items: Array<{ id: string; count: number }> }
 type AnalyticsUser = { username: string | null; firstSeenAt: number; lastSeenAt: number; launchCount: number }
 type UsersPage = { items: AnalyticsUser[]; nextOffset: number | null }
-type UserFilters = { username: string; minLaunchCount: string; firstSeenOn: string; lastSeenOn: string }
-const emptyFilters: UserFilters = { username: '', minLaunchCount: '', firstSeenOn: '', lastSeenOn: '' }
+type UserFilters = { username: string }
+const emptyFilters: UserFilters = { username: '' }
 const usersPageSize = 50
 const periods: Array<[Period, string]> = [['today', 'Сегодня'], ['7d', '7 дней'], ['30d', '30 дней'], ['all', 'Всё время']]
 
@@ -42,19 +42,14 @@ function UserList({ page, onMore, loadingMore }: { page: UsersPage; onMore: () =
 function usersUrl(period: Period, filters: UserFilters, offset: number) {
   const params = new URLSearchParams({ period, limit: String(usersPageSize), offset: String(offset) })
   if (filters.username.trim()) params.set('username', filters.username.trim())
-  if (filters.minLaunchCount) params.set('minLaunchCount', filters.minLaunchCount)
-  if (filters.firstSeenOn) params.set('firstSeenOn', filters.firstSeenOn)
-  if (filters.lastSeenOn) params.set('lastSeenOn', filters.lastSeenOn)
   return `/api/admin/stats/users?${params}`
 }
 
 function UserFiltersForm({ filters, onSubmit, onChange }: { filters: UserFilters; onSubmit: (filters: UserFilters) => void; onChange: (filters: UserFilters) => void }) {
   return <form className="stats-user-filters" onSubmit={(event) => { event.preventDefault(); onSubmit(filters) }}>
-    <label>Пользователь<input type="search" value={filters.username} placeholder="Username" onChange={(event) => onChange({ ...filters, username: event.target.value })} /></label>
-    <label>Запуски от<input type="number" min="0" step="1" value={filters.minLaunchCount} onChange={(event) => onChange({ ...filters, minLaunchCount: event.target.value })} /></label>
-    <label>Первый вход<input type="date" value={filters.firstSeenOn} onChange={(event) => onChange({ ...filters, firstSeenOn: event.target.value })} /></label>
-    <label>Последняя активность<input type="date" value={filters.lastSeenOn} onChange={(event) => onChange({ ...filters, lastSeenOn: event.target.value })} /></label>
-    <div className="stats-user-filter-actions"><button type="submit">Применить</button><button type="button" onClick={() => { onChange(emptyFilters); onSubmit(emptyFilters) }}>Сбросить</button></div>
+    <label htmlFor="stats-username-search">Поиск по username</label>
+    <input id="stats-username-search" type="search" value={filters.username} placeholder="Например, ivanov" onChange={(event) => onChange({ username: event.target.value })} />
+    <div className="stats-user-filter-actions"><button type="submit">Найти</button><button type="button" onClick={() => { onChange(emptyFilters); onSubmit(emptyFilters) }}>Сбросить</button></div>
   </form>
 }
 
@@ -128,7 +123,7 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
     <p className="eyebrow">Только для администратора</p><h1>Статистика</h1>
     <div className="stats-periods" aria-label="Период статистики">{periods.map(([value, label]) => <button key={value} className={period === value ? 'active' : ''} onClick={() => selectPeriod(value)}>{label}</button>)}</div>
     <details className="stats-section stats-users-disclosure" open>
-      <summary><h2>Пользователи</h2></summary>
+      <summary><h2>Пользователи</h2><span className="stats-users-toggle">Нажмите, чтобы скрыть или показать</span></summary>
       <div className="stats-grid"><Metric label="Всего" value={data.summary.users.total} /><Metric label="Сегодня" value={data.summary.users.today} /><Metric label="7 дней" value={data.summary.users.days7} /><Metric label="30 дней" value={data.summary.users.days30} /></div>
       <p className="stats-users-privacy">Username виден только администратору и обновляется при запуске Mini App. Telegram ID и имя не сохраняются.</p>
       <UserFiltersForm filters={draftFilters} onChange={setDraftFilters} onSubmit={applyUserFilters} />
