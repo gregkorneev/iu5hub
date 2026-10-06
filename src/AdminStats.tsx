@@ -7,9 +7,9 @@ type Activity = { days: Array<{ date: string; users: number; launches: number }>
 type Ranked = { items: Array<{ id: string; count: number }> }
 type AnalyticsUser = { username: string | null; firstSeenAt: number; lastSeenAt: number; launchCount: number }
 type UsersPage = { items: AnalyticsUser[]; nextOffset: number | null }
-type FilterKey = 'username' | 'minLaunchCount' | 'firstSeenOn' | 'lastSeenOn'
-type UserFilters = Record<FilterKey, string>
-const emptyFilters: UserFilters = { username: '', minLaunchCount: '', firstSeenOn: '', lastSeenOn: '' }
+type SortKey = 'username' | 'launchCount' | 'firstSeenAt' | 'lastSeenAt'
+type SortDirection = 'asc' | 'desc'
+type UserSort = { by: SortKey; direction: SortDirection }
 const usersPageSize = 50
 const periods: Array<[Period, string]> = [['today', 'Сегодня'], ['7d', '7 дней'], ['30d', '30 дней'], ['all', 'Всё время']]
 
@@ -28,29 +28,19 @@ function formatUserDate(timestamp: number) {
   return day(date)
 }
 
-const userFilterLabels: Record<FilterKey, string> = { username: 'Пользователь', minLaunchCount: 'Запуски', firstSeenOn: 'Первый вход', lastSeenOn: 'Последняя активность' }
+const userSortLabels: Record<SortKey, string> = { username: 'Пользователь', launchCount: 'Запуски', firstSeenAt: 'Первый вход', lastSeenAt: 'Последняя активность' }
 
-function UserList({ page, onMore, loadingMore, filters, activeFilter, draftValue, onToggleFilter, onDraftChange, onApplyFilter, onClearFilter }: {
+function UserList({ page, onMore, loadingMore, sort, onSort }: {
   page: UsersPage
   onMore: () => void
   loadingMore: boolean
-  filters: UserFilters
-  activeFilter: FilterKey | null
-  draftValue: string
-  onToggleFilter: (key: FilterKey) => void
-  onDraftChange: (value: string) => void
-  onApplyFilter: () => void
-  onClearFilter: () => void
+  sort: UserSort
+  onSort: (key: SortKey) => void
 }) {
   return <>
-    <table className="stats-users-table" aria-label="Пользователи в статистике"><thead><tr>{(Object.keys(userFilterLabels) as FilterKey[]).map((key) => <th scope="col" key={key}>
-      <button type="button" aria-label={`Фильтр: ${userFilterLabels[key]}`} aria-expanded={activeFilter === key} className={filters[key] ? 'filtered' : ''} onClick={() => onToggleFilter(key)}>{userFilterLabels[key]}<span aria-hidden="true">{filters[key] ? '⌕' : '⌄'}</span></button>
+    <table className="stats-users-table" aria-label="Пользователи в статистике"><thead><tr>{(Object.keys(userSortLabels) as SortKey[]).map((key) => <th scope="col" key={key} aria-sort={sort.by === key ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <button type="button" aria-label={`Сортировать: ${userSortLabels[key]}`} onClick={() => onSort(key)}>{userSortLabels[key]}<span aria-hidden="true">{sort.by === key ? sort.direction === 'asc' ? '↑' : '↓' : '↕'}</span></button>
     </th>)}</tr></thead><tbody>
-      {activeFilter && <tr className="stats-users-filter-row"><td colSpan={4}><form onSubmit={(event) => { event.preventDefault(); onApplyFilter() }}>
-        <label htmlFor="stats-user-column-filter">Фильтр: {userFilterLabels[activeFilter]}</label>
-        <input id="stats-user-column-filter" autoFocus type={activeFilter === 'username' ? 'search' : activeFilter === 'minLaunchCount' ? 'number' : 'date'} min={activeFilter === 'minLaunchCount' ? '0' : undefined} step={activeFilter === 'minLaunchCount' ? '1' : undefined} value={draftValue} onChange={(event) => onDraftChange(event.target.value)} />
-        <button type="submit">Применить</button><button type="button" onClick={onClearFilter}>Сбросить</button>
-      </form></td></tr>}
       {page.items.length ? page.items.map((user, index) => <tr key={`${user.firstSeenAt}-${index}`}>
         <td data-label="Пользователь"><strong>{user.username ? `@${user.username}` : 'Без username'}</strong></td>
         <td data-label="Запуски">{user.launchCount.toLocaleString('ru-RU')}</td>
@@ -62,12 +52,11 @@ function UserList({ page, onMore, loadingMore, filters, activeFilter, draftValue
   </>
 }
 
-function usersUrl(period: Period, filters: UserFilters, offset: number) {
+function usersUrl(period: Period, username: string, sort: UserSort, offset: number) {
   const params = new URLSearchParams({ period, limit: String(usersPageSize), offset: String(offset) })
-  if (filters.username.trim()) params.set('username', filters.username.trim())
-  if (filters.minLaunchCount) params.set('minLaunchCount', filters.minLaunchCount)
-  if (filters.firstSeenOn) params.set('firstSeenOn', filters.firstSeenOn)
-  if (filters.lastSeenOn) params.set('lastSeenOn', filters.lastSeenOn)
+  if (username.trim()) params.set('username', username.trim())
+  params.set('sortBy', sort.by)
+  params.set('sortDirection', sort.direction)
   return `/api/admin/stats/users?${params}`
 }
 
@@ -78,9 +67,9 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
   const [usersPage, setUsersPage] = useState<UsersPage>({ items: [], nextOffset: null })
   const [usersState, setUsersState] = useState<'loading' | 'error' | 'ready'>('loading')
   const [adminConfirmed, setAdminConfirmed] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<UserFilters>(emptyFilters)
-  const [activeFilter, setActiveFilter] = useState<FilterKey | null>(null)
-  const [draftFilterValue, setDraftFilterValue] = useState('')
+  const [username, setUsername] = useState('')
+  const [draftUsername, setDraftUsername] = useState('')
+  const [sort, setSort] = useState<UserSort>({ by: 'lastSeenAt', direction: 'desc' })
   const [loadingMore, setLoadingMore] = useState(false)
   const [usersMoreError, setUsersMoreError] = useState(false)
   const selectPeriod = (value: Period) => {
@@ -106,40 +95,31 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
   useEffect(() => {
     if (!adminConfirmed) return
     let active = true
-    void adminFetch(usersUrl(period, appliedFilters, 0)).then(async (response) => {
+    void adminFetch(usersUrl(period, username, sort, 0)).then(async (response) => {
       if (!response.ok) throw new Error('users')
       return response.json() as Promise<UsersPage>
     }).then((page) => { if (active) { setUsersPage(page); setUsersState('ready') } }).catch(() => { if (active) setUsersState('error') })
     return () => { active = false }
-  }, [adminConfirmed, appliedFilters, period])
-  const applyUserFilters = (filters: UserFilters) => {
+  }, [adminConfirmed, period, sort, username])
+  const applyUsernameSearch = (value: string) => {
     setUsersPage({ items: [], nextOffset: null })
     setUsersState('loading')
     setUsersMoreError(false)
     setLoadingMore(false)
-    setAppliedFilters(filters)
+    setUsername(value)
   }
-  const toggleUserFilter = (key: FilterKey) => {
-    if (activeFilter === key) { setActiveFilter(null); return }
-    setDraftFilterValue(appliedFilters[key])
-    setActiveFilter(key)
-  }
-  const applyActiveFilter = () => {
-    if (!activeFilter) return
-    applyUserFilters({ ...appliedFilters, [activeFilter]: draftFilterValue })
-    setActiveFilter(null)
-  }
-  const clearActiveFilter = () => {
-    if (!activeFilter) return
-    applyUserFilters({ ...appliedFilters, [activeFilter]: '' })
-    setDraftFilterValue('')
-    setActiveFilter(null)
+  const toggleSort = (key: SortKey) => {
+    setUsersPage({ items: [], nextOffset: null })
+    setUsersState('loading')
+    setUsersMoreError(false)
+    setLoadingMore(false)
+    setSort((current) => ({ by: key, direction: current.by === key ? (current.direction === 'asc' ? 'desc' : 'asc') : (key === 'lastSeenAt' ? 'desc' : 'asc') }))
   }
   const loadMoreUsers = async () => {
     if (usersPage.nextOffset === null || loadingMore) return
     setLoadingMore(true)
     try {
-      const response = await adminFetch(usersUrl(period, appliedFilters, usersPage.nextOffset))
+      const response = await adminFetch(usersUrl(period, username, sort, usersPage.nextOffset))
       if (!response.ok) throw new Error('users')
       const nextPage = await response.json() as UsersPage
       setUsersPage((current) => ({ items: [...current.items, ...nextPage.items], nextOffset: nextPage.nextOffset }))
@@ -161,7 +141,13 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
     <details className="stats-section stats-users-disclosure" open>
       <summary><h2>Список пользователей</h2><span className="stats-users-toggle">Нажмите, чтобы скрыть или показать</span></summary>
       <p className="stats-users-privacy">Username виден только администратору и обновляется при запуске Mini App. Telegram ID и имя не сохраняются.</p>
-      {usersState === 'loading' ? <p className="lead" aria-busy="true">Загружаем список пользователей…</p> : usersState === 'error' ? <p className="lead" role="alert">Не удалось загрузить список пользователей. Попробуйте ещё раз позже.</p> : <><UserList page={usersPage} onMore={() => void loadMoreUsers()} loadingMore={loadingMore} filters={appliedFilters} activeFilter={activeFilter} draftValue={draftFilterValue} onToggleFilter={toggleUserFilter} onDraftChange={setDraftFilterValue} onApplyFilter={applyActiveFilter} onClearFilter={clearActiveFilter} />{usersMoreError && <p className="lead" role="alert">Не удалось загрузить следующую страницу. Попробуйте ещё раз.</p>}</>}
+      <form className="stats-users-search" onSubmit={(event) => { event.preventDefault(); applyUsernameSearch(draftUsername) }}>
+        <label htmlFor="stats-username-search">Поиск по username</label>
+        <input id="stats-username-search" type="search" value={draftUsername} placeholder="Например, ivanov" onChange={(event) => setDraftUsername(event.target.value)} />
+        <button type="submit">Найти</button>
+        <button type="button" onClick={() => { setDraftUsername(''); applyUsernameSearch('') }}>Сбросить</button>
+      </form>
+      {usersState === 'loading' ? <p className="lead" aria-busy="true">Загружаем список пользователей…</p> : usersState === 'error' ? <p className="lead" role="alert">Не удалось загрузить список пользователей. Попробуйте ещё раз позже.</p> : <><UserList page={usersPage} onMore={() => void loadMoreUsers()} loadingMore={loadingMore} sort={sort} onSort={toggleSort} />{usersMoreError && <p className="lead" role="alert">Не удалось загрузить следующую страницу. Попробуйте ещё раз.</p>}</>}
     </details>
     <section className="stats-section"><h2>Запуски и активность</h2><div className="stats-grid"><Metric label="Запуски" value={data.summary.launches} /><Metric label="Поиски" value={data.summary.activity.searches} /><Metric label="Открытия материалов" value={data.summary.activity.materialOpens} /><Metric label="Переходы на Яндекс.Диск" value={data.summary.activity.yandexDiskOpens} /></div></section>
     <section className="stats-section"><h2>Активность по дням</h2><div className="stats-chart" role="img" aria-label="График пользователей и запусков по дням">{data.activity.days.map((day) => <div className="stats-day" key={day.date} title={`${day.date}: ${day.users} пользователей, ${day.launches} запусков`}><i className="stats-bar stats-bar--users" style={{ height: `${(day.users / max) * 100}%` }} /><i className="stats-bar stats-bar--launches" style={{ height: `${(day.launches / max) * 100}%` }} /></div>)}</div></section>

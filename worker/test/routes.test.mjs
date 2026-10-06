@@ -63,6 +63,10 @@ class FakeDb {
     const firstSeenOn = sql.includes("date(u.first_seen_at, 'unixepoch') = ?") ? values[index++] : null
     const lastSeenOn = sql.includes("date(u.last_seen_at, 'unixepoch') = ?") ? values[index++] : null
     const limit = values.at(-2), offset = values.at(-1), start = values[0]
+    const sortMatch = sql.match(/ORDER BY (l\.username COLLATE NOCASE|u\.launch_count|u\.first_seen_at|u\.last_seen_at) (ASC|DESC)/)
+    const sortColumn = sortMatch?.[1] ?? 'u.last_seen_at'
+    const sortDirection = sortMatch?.[2] ?? 'DESC'
+    const sortValue = (row) => sortColumn === 'l.username COLLATE NOCASE' ? row.username : sortColumn === 'u.launch_count' ? row.launchCount : sortColumn === 'u.first_seen_at' ? row.firstSeenAt : row.lastSeenAt
     return [...this.users.entries()].map(([userHash, user]) => ({
       userHash, username: this.labels.get(userHash)?.username ?? null,
       firstSeenAt: user.firstSeen, lastSeenAt: user.lastSeen, launchCount: user.launches,
@@ -71,7 +75,11 @@ class FakeDb {
       (minLaunchCount === null || row.launchCount >= minLaunchCount) &&
       (!firstSeenOn || new Date(row.firstSeenAt * 1000).toISOString().slice(0, 10) === firstSeenOn) &&
       (!lastSeenOn || new Date(row.lastSeenAt * 1000).toISOString().slice(0, 10) === lastSeenOn))
-      .sort((a, b) => b.lastSeenAt - a.lastSeenAt || a.userHash.localeCompare(b.userHash))
+      .sort((a, b) => {
+        const aValue = sortValue(a), bValue = sortValue(b)
+        const primary = aValue === null ? (bValue === null ? 0 : -1) : bValue === null ? 1 : typeof aValue === 'string' ? aValue.localeCompare(bValue, 'en', { sensitivity: 'base' }) : aValue - bValue
+        return (sortDirection === 'ASC' ? primary : -primary) || a.userHash.localeCompare(b.userHash)
+      })
       .slice(offset, offset + limit)
       .map(({ userHash: _hash, ...item }) => item)
   }
@@ -158,6 +166,7 @@ test('admin users list filters by period, sorts recent first, paginates, caps li
   assert.equal(body.items[0].username, null)
   assert.equal(body.items[0].launchCount, 3)
   assert.equal(body.nextOffset, 1)
+  assert.match(db.statements.at(-1).sql, /ORDER BY u\.last_seen_at DESC/)
   assert.equal(Object.hasOwn(body.items[0], 'user_hash'), false)
   response = await get('?period=30d&limit=1&offset=1')
   body = await response.json()
@@ -181,6 +190,38 @@ test('admin users list filters by period, sorts recent first, paginates, caps li
   for (const query of ['?firstSeenOn=2026-02-31', '?lastSeenOn=not-a-date', '?minLaunchCount=-1', `?username=${'x'.repeat(65)}`]) {
     assert.equal((await get(query)).status, 400)
   }
+  for (const query of ['?sortBy=telegramId', '?sortBy=constructor', '?sortBy=__proto__', '?sortBy=toString', '?sortDirection=sideways']) assert.equal((await get(query)).status, 400)
+})
+
+test('admin users sort allowlist orders the full result before pagination', async () => {
+  const db = new FakeDb()
+  const headers = { 'X-Telegram-Init-Data': signedInitData(1) }
+  for (const [id, username, launches, firstSeen, lastSeen] of [
+    ['a', 'zeta', 5, now - 60, now - 20],
+    ['b', 'alice', 2, now - 30, now - 15],
+    ['c', 'beta', 10, now - 20, now - 30],
+  ]) {
+    db.users.set(id, { firstSeen, lastSeen, launches })
+    db.labels.set(id, { username, updatedAt: now })
+  }
+  const sortedNames = async (sortBy, sortDirection) => {
+    const names = []
+    for (let offset = 0; offset < 3; offset++) {
+      const query = `?period=all&limit=1&offset=${offset}&sortBy=${sortBy}&sortDirection=${sortDirection}`
+      const response = await worker.fetch(new Request(`https://worker.example/api/admin/stats/users${query}`, { headers }), { ...env, ANALYTICS_DB: db })
+      assert.equal(response.status, 200)
+      names.push((await response.json()).items[0].username)
+    }
+    return names
+  }
+  assert.deepEqual(await sortedNames('username', 'asc'), ['alice', 'beta', 'zeta'])
+  assert.deepEqual(await sortedNames('username', 'desc'), ['zeta', 'beta', 'alice'])
+  assert.deepEqual(await sortedNames('launchCount', 'asc'), ['alice', 'zeta', 'beta'])
+  assert.deepEqual(await sortedNames('launchCount', 'desc'), ['beta', 'zeta', 'alice'])
+  assert.deepEqual(await sortedNames('firstSeenAt', 'asc'), ['zeta', 'alice', 'beta'])
+  assert.deepEqual(await sortedNames('firstSeenAt', 'desc'), ['beta', 'alice', 'zeta'])
+  assert.deepEqual(await sortedNames('lastSeenAt', 'asc'), ['beta', 'zeta', 'alice'])
+  assert.deepEqual(await sortedNames('lastSeenAt', 'desc'), ['alice', 'zeta', 'beta'])
 })
 
 test('an event arriving before app open creates its user without inflating launches', async () => {

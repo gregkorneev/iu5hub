@@ -227,9 +227,14 @@ async function handle(request, env) {
       const minLaunchCount = url.searchParams.has('minLaunchCount') ? Number(url.searchParams.get('minLaunchCount')) : null
       const firstSeenOn = url.searchParams.get('firstSeenOn') ?? ''
       const lastSeenOn = url.searchParams.get('lastSeenOn') ?? ''
+      const sortBy = url.searchParams.get('sortBy') ?? 'lastSeenAt'
+      const sortDirection = url.searchParams.get('sortDirection') ?? 'desc'
+      const sortColumns = { username: 'l.username COLLATE NOCASE', launchCount: 'u.launch_count', firstSeenAt: 'u.first_seen_at', lastSeenAt: 'u.last_seen_at' }
+      const sortColumn = Object.hasOwn(sortColumns, sortBy) ? sortColumns[sortBy] : null
       if (username.length > 64 || /[\u0000-\u001f\u007f-\u009f]/.test(username) ||
           (minLaunchCount !== null && (!Number.isSafeInteger(minLaunchCount) || minLaunchCount < 0)) ||
-          (firstSeenOn && !validIsoDate(firstSeenOn)) || (lastSeenOn && !validIsoDate(lastSeenOn))) return json({ error: 'Invalid filter' }, 400)
+          (firstSeenOn && !validIsoDate(firstSeenOn)) || (lastSeenOn && !validIsoDate(lastSeenOn)) ||
+          !sortColumn || !['asc', 'desc'].includes(sortDirection)) return json({ error: 'Invalid filter' }, 400)
       const limit = Math.min(rawLimit, 100)
       const where = ['u.last_seen_at >= ?']
       const bindings = [start]
@@ -240,7 +245,7 @@ async function handle(request, env) {
       const rows = await queryAll(env.ANALYTICS_DB, `SELECT l.username, u.first_seen_at AS firstSeenAt,
         u.last_seen_at AS lastSeenAt, u.launch_count AS launchCount
         FROM users u LEFT JOIN analytics_user_labels l ON l.user_hash = u.user_hash
-        WHERE ${where.join(' AND ')} ORDER BY u.last_seen_at DESC, u.user_hash LIMIT ? OFFSET ?`, ...bindings, limit + 1, offset)
+        WHERE ${where.join(' AND ')} ORDER BY ${sortColumn} ${sortDirection.toUpperCase()}, u.user_hash ASC LIMIT ? OFFSET ?`, ...bindings, limit + 1, offset)
       return json({ period, items: rows.slice(0, limit), nextOffset: rows.length > limit ? offset + limit : null })
     }
     const field = request.method === 'GET' && url.pathname === '/api/admin/stats/subjects' ? 'subject_id' : request.method === 'GET' && url.pathname === '/api/admin/stats/materials' ? 'material_id' : null
