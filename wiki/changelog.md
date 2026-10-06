@@ -180,4 +180,4 @@
 - Migration `0005_analytics_user_labels.sql` adds a separate table for the current Telegram username keyed by existing analytics `user_hash`; `users` and `events` schemas remain unchanged.
 - Protected, paginated admin endpoint and AdminStats section show username, first/last seen and existing launch count. Username is sourced only from Worker-verified `initData`; raw Telegram ID and other profile fields are not stored.
 - Existing daily cleanup removes labels after 90 days without verified activity. No historical username backfill is possible.
-- Full QA passed; production D1 migration and Worker deployed. Pages deployment follows the `main` push. Production anonymous endpoint smoke passed; valid-admin and physical Telegram checks remain unavailable.
+- Full QA passed; production D1 migration and Worker deployed. Cloudflare Pages deployment `2d999e03` is active on `main`. Production anonymous endpoint smoke passed; valid-admin and physical Telegram checks remain unavailable.
