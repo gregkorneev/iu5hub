@@ -53,6 +53,6 @@
 
 ## Admin analytics username labels
 
-**Open (2026-10-06):** no valid-admin production Telegram session or physical Mini App was available for end-to-end verification. Production currently has no labels; historic and existing accounts gain one on their next verified Mini App launch. See `deployment.md`.
+**Open (2026-10-06):** no valid-admin production Telegram session or physical Mini App was available for end-to-end verification. Production currently has no labels; historic and existing accounts gain one on their next verified Mini App launch. The next `main` push publishes the table, per-column filters and collapse control to Pages. See `deployment.md`.
 
 Поиск рекурсивно обходит публичные папки Яндекс.Диска, углубляясь в совпавшую папку для поиска подходящего файла. Внешний API может быть медленным или недоступным, поэтому поиск ограничен общим дедлайном в 10 секунд и затем показывает пользователю ошибку. Это намеренная деградация: каталог и другие действия Mini App остаются доступными.

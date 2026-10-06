@@ -29,6 +29,12 @@ function analyticsUsername(value) {
   return username && username.length <= 64 && !/[\u0000-\u001f\u007f-\u009f]/.test(username) ? username : null
 }
 
+function validIsoDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value ?? '')) return false
+  const date = new Date(`${value}T00:00:00.000Z`)
+  return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value
+}
+
 function validOptionalId(value) { return value === undefined || (typeof value === 'string' && idPattern.test(value)) }
 
 async function readBody(request, limit) {
@@ -217,11 +223,24 @@ async function handle(request, env) {
       const rawLimit = Number(url.searchParams.get('limit') ?? 50)
       const offset = Number(url.searchParams.get('offset') ?? 0)
       if (!Number.isSafeInteger(rawLimit) || rawLimit < 1 || !Number.isSafeInteger(offset) || offset < 0) return json({ error: 'Invalid pagination' }, 400)
+      const username = url.searchParams.get('username')?.trim().replace(/^@+/, '') ?? ''
+      const minLaunchCount = url.searchParams.has('minLaunchCount') ? Number(url.searchParams.get('minLaunchCount')) : null
+      const firstSeenOn = url.searchParams.get('firstSeenOn') ?? ''
+      const lastSeenOn = url.searchParams.get('lastSeenOn') ?? ''
+      if (username.length > 64 || /[\u0000-\u001f\u007f-\u009f]/.test(username) ||
+          (minLaunchCount !== null && (!Number.isSafeInteger(minLaunchCount) || minLaunchCount < 0)) ||
+          (firstSeenOn && !validIsoDate(firstSeenOn)) || (lastSeenOn && !validIsoDate(lastSeenOn))) return json({ error: 'Invalid filter' }, 400)
       const limit = Math.min(rawLimit, 100)
+      const where = ['u.last_seen_at >= ?']
+      const bindings = [start]
+      if (username) { where.push("instr(lower(COALESCE(l.username, 'Без username')), lower(?)) > 0"); bindings.push(username) }
+      if (minLaunchCount !== null) { where.push('u.launch_count >= ?'); bindings.push(minLaunchCount) }
+      if (firstSeenOn) { where.push("date(u.first_seen_at, 'unixepoch') = ?"); bindings.push(firstSeenOn) }
+      if (lastSeenOn) { where.push("date(u.last_seen_at, 'unixepoch') = ?"); bindings.push(lastSeenOn) }
       const rows = await queryAll(env.ANALYTICS_DB, `SELECT l.username, u.first_seen_at AS firstSeenAt,
         u.last_seen_at AS lastSeenAt, u.launch_count AS launchCount
         FROM users u LEFT JOIN analytics_user_labels l ON l.user_hash = u.user_hash
-        WHERE u.last_seen_at >= ? ORDER BY u.last_seen_at DESC, u.user_hash LIMIT ? OFFSET ?`, start, limit + 1, offset)
+        WHERE ${where.join(' AND ')} ORDER BY u.last_seen_at DESC, u.user_hash LIMIT ? OFFSET ?`, ...bindings, limit + 1, offset)
       return json({ period, items: rows.slice(0, limit), nextOffset: rows.length > limit ? offset + limit : null })
     }
     const field = request.method === 'GET' && url.pathname === '/api/admin/stats/subjects' ? 'subject_id' : request.method === 'GET' && url.pathname === '/api/admin/stats/materials' ? 'material_id' : null

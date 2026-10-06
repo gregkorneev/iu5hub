@@ -181,3 +181,4 @@
 - Protected, paginated admin endpoint and AdminStats section show username, first/last seen and existing launch count. Username is sourced only from Worker-verified `initData`; raw Telegram ID and other profile fields are not stored.
 - Existing daily cleanup removes labels after 90 days without verified activity. No historical username backfill is possible.
 - Full QA passed; production D1 migration and Worker deployed. Cloudflare Pages deployment `2d999e03` is active on `main`. Production anonymous endpoint smoke passed; valid-admin and physical Telegram checks remain unavailable.
+- The admin users list is now a compact responsive table with server-side filters for username, launch minimum, first seen and last activity. Applied filters carry across pages; the whole section can be collapsed. `npm run qa` passed with 282 Playwright passes and two existing host-specific skips. The filter-capable Worker was deployed; the `main` push publishes the updated Pages UI.
