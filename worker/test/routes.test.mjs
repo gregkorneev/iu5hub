@@ -7,8 +7,10 @@ import worker from '../src/index.mjs'
 const token = '123456:token-for-test-only'
 const now = Math.floor(Date.now() / 1000)
 
-function signedInitData(userId) {
-  const params = new URLSearchParams({ auth_date: String(now), user: JSON.stringify({ id: userId }) })
+function signedInitData(userId, username) {
+  const user = { id: userId, first_name: 'Private', last_name: 'Name', photo_url: 'private-photo' }
+  if (username !== undefined) user.username = username
+  const params = new URLSearchParams({ auth_date: String(now), user: JSON.stringify(user) })
   const check = [...params].sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0)).map(([key, value]) => `${key}=${value}`).join('\n')
   const secret = createHmac('sha256', 'WebAppData').update(token).digest()
   params.set('hash', createHmac('sha256', secret).update(check).digest('hex'))
@@ -20,14 +22,18 @@ const env = { ANALYTICS_HMAC_SECRET: 'server-only-secret', TELEGRAM_BOT_TOKEN: t
 class FakeDb {
   users = new Map()
   events = []
+  labels = new Map()
+  statements = []
 
   prepare(sql) {
-    return { bind: (...values) => ({ run: async () => this.execute(sql, values), first: async () => this.first(sql, values), all: async () => ({ results: [] }) }) }
+    return { bind: (...values) => ({ run: async () => this.execute(sql, values), first: async () => this.first(sql, values), all: async () => ({ results: this.all(sql, values) }) }) }
   }
 
   async batch(statements) { for (const statement of statements) await statement.run() }
 
   execute(sql, values) {
+    this.statements.push({ sql, values })
+    if (sql.includes('INSERT INTO analytics_user_labels')) { this.labels.set(values[0], { username: values[1], updatedAt: values[2] }); return }
     if (sql.includes('INSERT INTO users')) {
       const [hash, firstSeen, lastSeen, duplicateHash, minute] = values
       const appOpen = sql.includes('VALUES (?, ?, ?, 1)')
@@ -46,6 +52,18 @@ class FakeDb {
     if (sql.includes('COUNT(DISTINCT user_hash)')) return { count: new Set(this.events.filter((event) => event.createdAt >= start).map((event) => event.userHash)).size }
     const type = sql.match(/event_type = '([^']+)'/)?.[1]
     return { count: this.events.filter((event) => event.type === type && event.createdAt >= start).length }
+  }
+
+  all(sql, [start, limit, offset]) {
+    if (!sql.includes('FROM users u LEFT JOIN analytics_user_labels')) return []
+    this.statements.push({ sql, values: [start, limit, offset] })
+    return [...this.users.entries()].map(([userHash, user]) => ({
+      userHash, username: this.labels.get(userHash)?.username ?? null,
+      firstSeenAt: user.firstSeen, lastSeenAt: user.lastSeen, launchCount: user.launches,
+    })).filter((row) => row.lastSeenAt >= start)
+      .sort((a, b) => b.lastSeenAt - a.lastSeenAt || a.userHash.localeCompare(b.userHash))
+      .slice(offset, offset + limit)
+      .map(({ userHash: _hash, ...item }) => item)
   }
 }
 
@@ -84,6 +102,63 @@ test('D1 flow keeps one launch and search per minute but keeps distinct material
   await request('/api/analytics/event', JSON.stringify({ type: 'material_open', subjectId: 'math', materialId: '/Математика/2.pdf' }))
   const response = await worker.fetch(new Request('https://worker.example/api/admin/stats/summary?period=today', { headers }), { ...env, ANALYTICS_DB: db })
   assert.deepEqual(await response.json(), { period: 'today', users: { total: 1, today: 1, days7: 1, days30: 1 }, launches: 1, activity: { searches: 1, materialOpens: 2, yandexDiskOpens: 0 } })
+})
+
+test('verified launch stores only the current username label, refreshes changes, clears missing names and keeps labels out of events', async () => {
+  const db = new FakeDb()
+  const open = async (username) => worker.fetch(new Request('https://worker.example/api/analytics/open', {
+    method: 'POST', headers: { 'X-Telegram-Init-Data': signedInitData(77, username) },
+  }), { ...env, ANALYTICS_DB: db })
+  await open(' @@alice ')
+  const hash = [...db.users.keys()][0]
+  assert.match(hash, /^[a-f0-9]{64}$/)
+  assert.equal(db.labels.get(hash).username, 'alice')
+  assert.equal(typeof db.labels.get(hash).updatedAt, 'number')
+  assert.doesNotMatch(JSON.stringify({ events: db.events, statements: db.statements.map(({ sql, values }) => ({ sql, values })) }), /77|Private|Name|private-photo/)
+  await open('new_name')
+  assert.equal(db.labels.get(hash).username, 'new_name')
+  await open(`${'x'.repeat(64)}\u0000`)
+  assert.equal(db.labels.get(hash).username, null)
+  await open('x'.repeat(65))
+  assert.equal(db.labels.get(hash).username, null)
+  await open(undefined)
+  assert.equal(db.labels.get(hash).username, null)
+  assert.equal(db.events.every((event) => !Object.hasOwn(event, 'username')), true)
+  assert.equal(db.statements.some(({ sql }) => /username|first_name|last_name|photo_url/.test(sql) && sql.includes('INSERT INTO events')), false)
+})
+
+test('admin users endpoint requires valid initData and admin allowlist', async () => {
+  assert.equal((await worker.fetch(new Request('https://worker.example/api/admin/stats/users'),
+    { ...env, ANALYTICS_DB: new FakeDb() })).status, 401)
+  const nonAdmin = await worker.fetch(new Request('https://worker.example/api/admin/stats/users', { headers: { 'X-Telegram-Init-Data': signedInitData(2) } }), { ...env, ANALYTICS_DB: new FakeDb() })
+  assert.equal(nonAdmin.status, 403)
+})
+
+test('admin users list filters by period, sorts recent first, paginates, caps limit and omits hashes', async () => {
+  const db = new FakeDb()
+  const headers = { 'X-Telegram-Init-Data': signedInitData(1) }
+  for (const [id, seen, username] of [['a', now - 20, 'alice'], ['b', now - 10, null], ['c', now - 40 * 86_400, 'older']]) {
+    db.users.set(id, { firstSeen: seen - 100, lastSeen: seen, launches: 3 })
+    if (username) db.labels.set(id, { username, updatedAt: seen })
+  }
+  const get = (query) => worker.fetch(new Request(`https://worker.example/api/admin/stats/users${query}`, { headers }), { ...env, ANALYTICS_DB: db })
+  let response = await get('?period=30d&limit=1')
+  let body = await response.json()
+  assert.equal(response.status, 200)
+  assert.equal(body.items[0].username, null)
+  assert.equal(body.items[0].launchCount, 3)
+  assert.equal(body.nextOffset, 1)
+  assert.equal(Object.hasOwn(body.items[0], 'user_hash'), false)
+  response = await get('?period=30d&limit=1&offset=1')
+  body = await response.json()
+  assert.equal(body.items[0].username, 'alice')
+  assert.equal(body.nextOffset, null)
+  response = await get('?period=all&limit=999')
+  body = await response.json()
+  assert.equal(body.items.length, 3)
+  assert.equal(body.items.length <= 100, true)
+  assert.equal(db.statements.filter(({ sql }) => sql.includes('LEFT JOIN analytics_user_labels')).at(-1).values[1], 101)
+  assert.equal((await get('?period=30d&limit=0')).status, 400)
 })
 
 test('an event arriving before app open creates its user without inflating launches', async () => {
@@ -165,4 +240,12 @@ test('7-day and 30-day metrics use trailing hours', async () => {
 test('migration deduplicates only exact events in a minute', async () => {
   const migration = await readFile(new URL('../migrations/0001_analytics.sql', import.meta.url), 'utf8')
   assert.match(migration, /UNIQUE \(user_hash, event_type, subject_id, material_id, event_minute\)/)
+})
+
+test('username labels migration is additive and stores no direct identity fields', async () => {
+  const migration = await readFile(new URL('../migrations/0005_analytics_user_labels.sql', import.meta.url), 'utf8')
+  assert.match(migration, /CREATE TABLE analytics_user_labels/)
+  assert.match(migration, /user_hash TEXT PRIMARY KEY/)
+  assert.match(migration, /username TEXT/)
+  assert.doesNotMatch(migration, /telegram_id|first_name|last_name|photo|phone|bio|event/i)
 })

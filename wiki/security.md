@@ -4,7 +4,11 @@
 
 The Worker validates Telegram `initData` server-side, rejects missing/malformed/tampered/expired input, and only then reads `user.id`. Client `initDataUnsafe`, client-supplied Telegram IDs, and React route visibility never authorize access or determine stored identity.
 
-The Worker stores only `HMAC-SHA-256(verified user.id, ANALYTICS_HMAC_SECRET)`. Raw IDs, initData, names, usernames, avatar/photo, phone, bio, search text, Disk URLs and material titles are prohibited from analytics storage and logs. Every `/api/admin/*` request repeats validation and checks `ADMIN_TELEGRAM_IDS`; webhook requests also require Telegram's configured secret-token header.
+The Worker derives analytics identity only as `HMAC-SHA-256(verified user.id, ANALYTICS_HMAC_SECRET)`. A narrow, admin-only analytics exception is being added: migration `0005_analytics_user_labels.sql` stores the current Telegram `username` separately from events, keyed by the existing pseudonymous `user_hash`. The username comes only from server-verified `initData`, is refreshed/cleared on verified launch, and is exposed only through authenticated `/api/admin/stats/users` after the existing `ADMIN_TELEGRAM_IDS` check. Activity event rows and frontend event payloads never contain a username.
+
+Analytics must not store raw Telegram IDs, names/first/last names, avatar/photo, phone, bio, `initData`, search text, Disk URLs or material titles. The username label must not enter logs, public frontend configuration, events or support DB. `analytics_user_labels` is retained only while a verified launch refreshes it within 90 days; the existing scheduled handler performs cleanup. Users without a current username have a null label. Historical users are not backfilled. This exception is for operational statistics and understanding the active audience; it does not join analytics to profile or support data.
+
+Every `/api/admin/*` request repeats validation and checks `ADMIN_TELEGRAM_IDS`; webhook requests also require Telegram's configured secret-token header.
 
 ## Secret and binding policy
 

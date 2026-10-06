@@ -1,5 +1,9 @@
 # Testing
 
+## Admin analytics username labels — 2026-10-06
+
+Worker tests cover verified `initData` username extraction, tampered/expired/malformed/missing user and numeric-ID rejection, write/update/clear only on `/api/analytics/open`, absence of raw Telegram IDs/profile fields in events, additive migration, bounded admin pagination, period filter, missing labels, existing `launch_count`, and retention alongside existing event/support cleanup. They also cover support and `/stats`. AdminStats browser tests verify `@username`, «Без username», counts/dates, pagination, period reload, local endpoint error, and narrow-screen overflow. The full `npm run qa` passed on 2026-10-06: lint, typecheck, 30 Vitest, Worker/search/schedule Node checks, production build, and 274 Playwright passes with two existing host-specific keyboard skips. Production D1 migration and Worker deploy succeeded; anonymous production smoke returned 401 for protected routes and for webhook without the secret. Pages publication follows the `main` push. A live allowlisted Telegram session and physical Mini App check were unavailable.
+
 ## Final UX regression pass — 2026-10-06
 
 The candidate release changes passed `npm run qa`: lint, typecheck, 30 Vitest, 68 Node/Worker tests, search/tagging/schedule validations, production build, and **262/264 Playwright cases** (two existing host-specific WebKit keyboard-only skips). The retry-focus regression checks the failed-retry and successful-retry recovery paths in Chromium and WebKit. A11Y-04 P3 was fixed: when keyboard activation of Profile «Повторить» causes the error button to unmount, focus returns to that button if the retry fails, or to the persistent «Избранное» heading if it succeeds. Focus is restored only when the browser document is still focused and the user has not moved focus elsewhere.

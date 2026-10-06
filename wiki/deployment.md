@@ -1,5 +1,11 @@
 # Deployment
 
+## Admin analytics username labels — 2026-10-06
+
+Migration `0005_analytics_user_labels.sql` follows `0004_support.sql`. It is additive and creates `analytics_user_labels(user_hash, username, updated_at)` keyed to existing `users(user_hash)`, plus a `last_seen_at` index for the bounded recent-first query. It did not alter `users`, `events`, profile or support tables. There is no backfill. Production migration was applied successfully; production D1 still reports 38 users and 440 events, while the new label table is empty pending future verified launches.
+
+The complete QA pipeline passed: `npm run qa` finished lint, typecheck, unit/Worker tests, search and schedule validation, production build and Playwright (274 passed; two existing host-specific skips). Worker `iu5hub-analytics` was deployed as version `f387a086-66a5-44ac-952b-4ac9630acaec`; it retains the existing `17 3 * * *` schedule. Production anonymous smoke returned 401 for the protected users and summary routes and for a webhook request without Telegram's secret header. The public Pages origin returned HTTP 200 before this commit; pushing `main` will publish the new AdminStats bundle through the existing Cloudflare Pages integration, after which verify its deployment. No valid admin Telegram session was available for live list access or physical Mini App verification. No new service or Cron Trigger is needed; the existing daily Worker schedule handles 90-day label cleanup. Details: `analytics.md`, `security.md`, `testing.md`.
+
 ## Current target and public entry
 
 Production frontend is a static React + TypeScript + Vite build on **Cloudflare Pages**. The current public project is [`iu5hub`](https://iu5hub.pages.dev), deployed from `dist/`: `index.html`, compiled JS/CSS assets, `logo-iu5.jpeg` and other small static assets. The current catalog is bundled into the frontend; PDFs, presentations, archives, video and other study files stay on Yandex Disk.

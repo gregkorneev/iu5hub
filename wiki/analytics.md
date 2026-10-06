@@ -10,7 +10,9 @@ Ordinary users have no statistics navigation. A server-authorized administrator 
 
 The system stores only a keyed pseudonymous `user_hash`; first/last activity timestamps and launch aggregate; event type, timestamp, and applicable internal subject/material IDs.
 
-«Студент ИУ5» **does not collect photos/avatars, names, usernames, phone numbers, bios, or other Telegram profile data for analytics.** It also does not store raw Telegram IDs, `initData`, search phrases, material titles, or Yandex Disk URLs. `ANALYTICS_HMAC_SECRET` is Worker-only, is never a `VITE_*` value, and must not appear in Git, logs, test fixtures, output or Wiki values.
+Activity events remain pseudonymous and do not contain Telegram profile fields. A deliberate, narrow policy exception is being introduced for the **current Telegram username only**, stored separately from events for administrator-only operational statistics and understanding the active audience. The planned `analytics_user_labels` row uses the existing analytics `user_hash` and stores `username` (without `@`, nullable) plus `updated_at`; it contains no Telegram ID, name, surname, avatar/photo, phone or bio. The label is sourced only from cryptographically validated Telegram `initData` at the Worker and is returned only by the authenticated, allowlisted admin users endpoint. It is refreshed or cleared on a verified Mini App open and expires after 90 days without a verified launch. No historical backfill is possible or planned.
+
+Analytics must never store raw Telegram IDs, `initData`, search phrases, material titles, Yandex Disk URLs, names, surnames, photos/avatars, phone numbers or bios. Usernames are prohibited in `events`, support storage, logs, public frontend configuration and analytics event payloads. `ANALYTICS_HMAC_SECRET` is Worker-only, is never a `VITE_*` value, and must not appear in Git, logs, test fixtures, output or Wiki values.
 
 ## Events
 
@@ -28,7 +30,7 @@ Schedule routes do not emit group selection or schedule access analytics. Group 
 
 ## Retention
 
-The approved retention policy is **90 days for raw `events`**. The Worker has an idempotent daily cleanup trigger which deletes only older events; include its execution in release verification. Pseudonymous `users` aggregate rows remain while the service operates for all-time unique users and launches. Reassess retention before collecting any additional dimension; a future erasure policy must delete the corresponding events with a user row.
+The approved retention policy is **90 days for raw `events`**. The existing daily Worker scheduled handler deletes older events and username labels whose `updated_at` is older than 90 days. A verified launch refreshes the timestamp even when the username is absent, and an absent username clears the current label. Pseudonymous `users` aggregate rows remain while the service operates for all-time unique users and launches. No additional Cron Trigger is introduced.
 
 ## Metric definitions
 
@@ -49,6 +51,8 @@ The 30-day activity view includes zero-event UTC days and distinguishes daily di
 ## Administration and `/stats`
 
 Every `/api/admin/*` request validates fresh Telegram `initData`, extracts its verified user ID, and checks server-only `ADMIN_TELEGRAM_IDS` before D1 access. Malformed, expired or non-admin requests get an authentication failure/`403` and no data. A hidden React link is not authorization.
+
+The `GET /api/admin/stats/users?period=…&limit=…&offset=…` endpoint shares this boundary. It returns only username, first/last seen timestamps and existing `users.launch_count`, ordered by recent activity; page size is bounded to 100. The period selector filters users by `last_seen_at` in the chosen period (including all-time when selected). It never returns a Telegram ID, `user_hash`, support route, favorites or schedule preference. Migration `0005` and the Worker are deployed; see `deployment.md` for Pages publication and smoke status.
 
 `/telegram/webhook` accepts updates only if Telegram's secret-token header matches Worker-only `TELEGRAM_WEBHOOK_SECRET`. It handles only the `/stats` command in a private chat with the authorized sender, and replies using Worker-only `TELEGRAM_BOT_TOKEN` with an aggregate report plus dashboard deep link.
 

@@ -41,3 +41,7 @@ The identity block separates the eyebrow, display name, Telegram username, and g
 Production migration `0003_profile_preferences.sql` is applied and the Worker deployment is complete. Production unauthenticated and CORS checks passed; reading/writing a real user's preference still needs a valid Telegram Mini App session.
 
 # The same Worker/D1 also provides Telegram support routing. Support rows are separate from favorites and schedule preferences and store only HMAC identity, encrypted chat routing, message IDs and timestamps; see `support.md`.
+
+## Analytics username boundary
+
+The Profile's client-side Telegram identity display is separate from the admin analytics username label. Profile data does not populate analytics: only the Worker may read the username from verified Telegram `initData` on `/api/analytics/open`, and the value is stored in the separate admin-only analytics label table. Favorites and schedule-group rows are not joined into the analytics users list. See `analytics.md` and `security.md`.

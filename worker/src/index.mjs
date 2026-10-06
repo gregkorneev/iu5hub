@@ -1,4 +1,4 @@
-import { hashTelegramUserId, validateInitData } from './telegram.mjs'
+import { hashTelegramUserId, validateInitDataUser } from './telegram.mjs'
 import { handleSupportMessage } from './support.mjs'
 
 const eventTypes = new Set(['search', 'subject_open', 'material_open', 'yandex_disk_open'])
@@ -18,9 +18,15 @@ function adminIds(env) {
 }
 
 async function identity(request, env) {
-  const telegramUserId = await validateInitData(request.headers.get('X-Telegram-Init-Data'), env.TELEGRAM_BOT_TOKEN)
-  if (!telegramUserId) return null
-  return { telegramUserId, isAdmin: adminIds(env).has(telegramUserId) }
+  const telegramUser = await validateInitDataUser(request.headers.get('X-Telegram-Init-Data'), env.TELEGRAM_BOT_TOKEN)
+  if (!telegramUser) return null
+  return { telegramUserId: telegramUser.id, username: telegramUser.username, isAdmin: adminIds(env).has(telegramUser.id) }
+}
+
+function analyticsUsername(value) {
+  if (typeof value !== 'string') return null
+  const username = value.trim().replace(/^@+/, '')
+  return username && username.length <= 64 && !/[\u0000-\u001f\u007f-\u009f]/.test(username) ? username : null
 }
 
 function validOptionalId(value) { return value === undefined || (typeof value === 'string' && idPattern.test(value)) }
@@ -105,7 +111,7 @@ async function scheduleGroupPreference(request, env, telegramUserId) {
   return json({ groupId: preference.groupId, updatedAt })
 }
 
-async function trackOpen(db, userHash, now) {
+async function trackOpen(db, userHash, username, now) {
   const minute = Math.floor(now / 60)
   await db.batch([
     db.prepare(`INSERT INTO users (user_hash, first_seen_at, last_seen_at, launch_count)
@@ -115,6 +121,9 @@ async function trackOpen(db, userHash, now) {
         SELECT 1 FROM events WHERE user_hash = ? AND event_type = 'app_open' AND event_minute = ?
       ) THEN 1 ELSE 0 END`).bind(userHash, now, now, userHash, minute),
     db.prepare('INSERT OR IGNORE INTO events (user_hash, event_type, event_minute, created_at) VALUES (?, \'app_open\', ?, ?)').bind(userHash, minute, now),
+    db.prepare(`INSERT INTO analytics_user_labels (user_hash, username, updated_at) VALUES (?, ?, ?)
+      ON CONFLICT(user_hash) DO UPDATE SET username = excluded.username, updated_at = excluded.updated_at`)
+      .bind(userHash, analyticsUsername(username), now),
   ])
 }
 
@@ -187,7 +196,7 @@ async function handle(request, env) {
     if (url.pathname === '/api/admin/me' && request.method === 'GET') return json({ isAdmin: user.isAdmin })
     if (url.pathname === '/api/profile/favorites') return favorites(request, env, user.telegramUserId)
     if (url.pathname === '/api/profile/schedule-group') return scheduleGroupPreference(request, env, user.telegramUserId)
-    if (url.pathname === '/api/analytics/open' && request.method === 'POST') { await trackOpen(env.ANALYTICS_DB, await hashTelegramUserId(user.telegramUserId, env.ANALYTICS_HMAC_SECRET), unixNow()); return new Response(null, { status: 204 }) }
+    if (url.pathname === '/api/analytics/open' && request.method === 'POST') { await trackOpen(env.ANALYTICS_DB, await hashTelegramUserId(user.telegramUserId, env.ANALYTICS_HMAC_SECRET), user.username, unixNow()); return new Response(null, { status: 204 }) }
     if (url.pathname === '/api/analytics/event' && request.method === 'POST') {
       const raw = await readBody(request, 1024)
       if (raw === null) return json({ error: 'Payload too large' }, 413)
@@ -204,6 +213,17 @@ async function handle(request, env) {
     const now = unixNow(), start = periodStart(period, now)
     if (url.pathname === '/api/admin/stats/summary' && request.method === 'GET') return json(await summary(env.ANALYTICS_DB, now, period))
     if (url.pathname === '/api/admin/stats/activity' && request.method === 'GET') return json({ period, days: await activity(env.ANALYTICS_DB, now, start) })
+    if (url.pathname === '/api/admin/stats/users' && request.method === 'GET') {
+      const rawLimit = Number(url.searchParams.get('limit') ?? 50)
+      const offset = Number(url.searchParams.get('offset') ?? 0)
+      if (!Number.isSafeInteger(rawLimit) || rawLimit < 1 || !Number.isSafeInteger(offset) || offset < 0) return json({ error: 'Invalid pagination' }, 400)
+      const limit = Math.min(rawLimit, 100)
+      const rows = await queryAll(env.ANALYTICS_DB, `SELECT l.username, u.first_seen_at AS firstSeenAt,
+        u.last_seen_at AS lastSeenAt, u.launch_count AS launchCount
+        FROM users u LEFT JOIN analytics_user_labels l ON l.user_hash = u.user_hash
+        WHERE u.last_seen_at >= ? ORDER BY u.last_seen_at DESC, u.user_hash LIMIT ? OFFSET ?`, start, limit + 1, offset)
+      return json({ period, items: rows.slice(0, limit), nextOffset: rows.length > limit ? offset + limit : null })
+    }
     const field = request.method === 'GET' && url.pathname === '/api/admin/stats/subjects' ? 'subject_id' : request.method === 'GET' && url.pathname === '/api/admin/stats/materials' ? 'material_id' : null
     if (field) return json({ period, items: await queryAll(env.ANALYTICS_DB, `SELECT ${field} AS id, COUNT(*) AS count FROM events WHERE ${field} != '' AND created_at >= ? GROUP BY ${field} ORDER BY count DESC, id LIMIT 10`, start) })
     return new Response('Not found', { status: 404 })
@@ -235,6 +255,7 @@ export default {
     const now = unixNow()
     await env.ANALYTICS_DB.batch([
       env.ANALYTICS_DB.prepare('DELETE FROM events WHERE created_at < ?').bind(now - 90 * 86_400),
+      env.ANALYTICS_DB.prepare('DELETE FROM analytics_user_labels WHERE updated_at < ?').bind(now - 90 * 86_400),
       env.ANALYTICS_DB.prepare('DELETE FROM support_routes WHERE created_at < ?').bind(now - 30 * 86_400),
       env.ANALYTICS_DB.prepare('DELETE FROM support_requests WHERE created_at < ?').bind(now - 30 * 86_400),
     ])

@@ -27,6 +27,8 @@ D1 stores the HMAC user hash, AES-GCM encrypted student chat routing value, allo
 
 If the sender has a valid non-empty `message.from.username`, the Worker includes it in the admin-facing header for the current webhook. It trims whitespace and accepts only 5–32 ASCII letters, digits or underscores; it performs no profile lookup and does not add a parse mode. Username is neither bound to SQL nor stored in support/analytics D1, logs or other persistent storage; it is not included in student-facing replies. First/last names and raw student IDs are not used as fallback.
 
+This transient webhook display is independent of the planned analytics username label: the analytics label is sourced from verified Mini App `initData`, stored separately in `analytics_user_labels`, and returned only to the authenticated admin statistics UI. Support tables and routing are never queried to build the analytics users list.
+
 ## Limits and retention
 
 - Text, photo, document, voice, audio, video, animation and sticker messages are copied. Contacts, location/live location, Telegram Passport data, and unsupported types receive a safe text explanation.

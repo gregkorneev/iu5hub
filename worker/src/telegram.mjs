@@ -16,8 +16,8 @@ function equalHex(left, right) {
   return difference === 0
 }
 
-/** Validates Telegram Mini App initData and returns only the trusted numeric ID. */
-export async function validateInitData(initData, botToken, now = Date.now(), maxAgeSeconds = 86_400) {
+/** Validates Telegram Mini App initData and returns the trusted user fields used by the Worker. */
+export async function validateInitDataUser(initData, botToken, now = Date.now(), maxAgeSeconds = 86_400) {
   if (typeof initData !== 'string' || initData.length === 0 || initData.length > 8192 || !botToken) return null
 
   const params = new URLSearchParams(initData)
@@ -39,10 +39,16 @@ export async function validateInitData(initData, botToken, now = Date.now(), max
 
   try {
     const parsed = JSON.parse(user)
-    return typeof parsed.id === 'number' && Number.isSafeInteger(parsed.id) && parsed.id > 0 ? String(parsed.id) : null
+    if (typeof parsed.id !== 'number' || !Number.isSafeInteger(parsed.id) || parsed.id <= 0) return null
+    return { id: String(parsed.id), username: typeof parsed.username === 'string' ? parsed.username : null }
   } catch {
     return null
   }
+}
+
+/** Backward-compatible validated Telegram ID helper. */
+export async function validateInitData(initData, botToken, now = Date.now(), maxAgeSeconds = 86_400) {
+  return (await validateInitDataUser(initData, botToken, now, maxAgeSeconds))?.id ?? null
 }
 
 export async function hashTelegramUserId(telegramUserId, secret) {

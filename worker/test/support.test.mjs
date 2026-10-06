@@ -11,6 +11,7 @@ class Db {
   requests = []
   routes = []
   events = []
+  labels = []
   bindings = []
   prepare(sql) {
     return { bind: (...values) => ({
@@ -29,6 +30,7 @@ class Db {
     } else if (sql.includes('DELETE FROM support_routes')) this.routes = this.routes.filter((r) => r.createdAt >= v[0])
     else if (sql.includes('DELETE FROM support_requests')) this.requests = this.requests.filter((r) => r.createdAt >= v[0])
     else if (sql.includes('DELETE FROM events')) this.events = this.events.filter((e) => e.createdAt >= v[0])
+    else if (sql.includes('DELETE FROM analytics_user_labels')) this.labels = this.labels.filter((label) => label.updatedAt >= v[0])
     return { meta: { changes: 1 } }
   }
   async first(sql, v) {
@@ -289,10 +291,12 @@ test('scheduled cleanup removes old routes, requests and analytics events while 
   db.requests = [{ id: 1, createdAt: now - 31 * 86_400 }, { id: 2, createdAt: now }]
   db.routes = [{ adminId: 1, adminMessageId: 1, requestId: 1, createdAt: now - 31 * 86_400 }, { adminId: 1, adminMessageId: 2, requestId: 2, createdAt: now }]
   db.events = [{ createdAt: now - 91 * 86_400 }, { createdAt: now }]
+  db.labels = [{ updatedAt: now - 91 * 86_400 }, { updatedAt: now }]
   await worker.scheduled({}, { ANALYTICS_DB: db })
   assert.deepEqual(db.requests.map((r) => r.id), [2])
   assert.deepEqual(db.routes.map((r) => r.adminMessageId), [2])
   assert.deepEqual(db.events, [{ createdAt: now }])
+  assert.deepEqual(db.labels, [{ updatedAt: now }])
 })
 
 test('support schema has no message-body or raw-user-id columns', async () => {

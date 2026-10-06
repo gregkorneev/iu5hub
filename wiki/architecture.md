@@ -37,6 +37,10 @@ Telegram Bot API → Worker /telegram/webhook → protected /stats response
 - Each `/api/admin/*` request separately validates `initData` and checks the trusted ID against a server-side allowlist. Page visibility in React is UX only.
 - `/api/profile/favorites` validates the same `initData` but derives a separate, stable HMAC using `USER_ID_HMAC_SECRET`. Its D1 rows are independent of analytics retention; see `profile.md`.
 
+### Admin analytics username labels
+
+The existing analytics identity remains `HMAC-SHA-256(verified Telegram user.id, ANALYTICS_HMAC_SECRET)`. Additive migration `0005_analytics_user_labels.sql` stores the latest verified Telegram `username` in a separate `analytics_user_labels` row keyed by that existing `user_hash`; it does not alter `users` or `events`. Only the verified `/api/analytics/open` request updates the label. The authenticated, allowlisted `/api/admin/stats/users` endpoint exposes bounded pages of username (or no-username), first/last seen and launch count; its period filter follows the selected dashboard period by filtering on `users.last_seen_at`. The existing scheduled Worker cleanup removes labels after 90 days without a verified launch, with no new Cron Trigger. See `analytics.md` and `deployment.md` for release status.
+
 - UI не обращается к `window.Telegram` и не знает детали загрузки данных; Telegram API инкапсулирован в едином integration layer (`init`, user, theme, navigation, links или эквивалентная структура).
 - Repository возвращает доменные сущности; статическая JSON-реализация заменяема API-реализацией.
 - Корневой каталог состоит из конфигурируемых `Course` (сейчас их три). UI рендерит их постоянными точками входа, а repository сопоставляет вложенные папки Яндекс.Диска с каталогами и файлы — с материалами. Компонентам неизвестны URL, public keys и способ обхода дерева.

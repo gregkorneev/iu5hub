@@ -175,3 +175,9 @@
 - Added an empty «Полезные ссылки» section below courses on the home screen so links can be added later without changing catalog navigation.
 - 2026-09-25: Schedule/Home/Profile viewport regression pass — Home and Profile fit in standard mobile portrait without page scrolling; Schedule Today and Week/day selection keep two lessons visible on portrait screens, while additional lessons scroll inside the schedule list. Landscape keeps day controls on screen and confines vertical scrolling to lessons. Browser suite passed; actual Telegram WebView remains to be checked on device.
 - 2026-09-25: bottom Liquid Glass tab bar now uses four consistent Lucide SVG symbols above the existing labels. The tab list is centralized; active icon tint and the original moving glass indicator show selection. SF Symbols informed semantics, but Apple assets are not bundled in the web app. Admin Statistics remains in the header. 320px geometry and the 46px tab height were checked against Schedule/Profile compact viewport regressions.
+# 2026-10-06 — Admin analytics username labels
+
+- Migration `0005_analytics_user_labels.sql` adds a separate table for the current Telegram username keyed by existing analytics `user_hash`; `users` and `events` schemas remain unchanged.
+- Protected, paginated admin endpoint and AdminStats section show username, first/last seen and existing launch count. Username is sourced only from Worker-verified `initData`; raw Telegram ID and other profile fields are not stored.
+- Existing daily cleanup removes labels after 90 days without verified activity. No historical username backfill is possible.
+- Full QA passed; production D1 migration and Worker deployed. Pages deployment follows the `main` push. Production anonymous endpoint smoke passed; valid-admin and physical Telegram checks remain unavailable.

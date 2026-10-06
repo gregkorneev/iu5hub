@@ -19,6 +19,7 @@
 | выпуске, проверках | `deployment.md`, `testing.md` |
 | релизных заметках | `releases/student-iu5-v1.md` |
 | приватной аналитике и метриках | `analytics.md`, `security.md` |
+| admin-only usernames в аналитике | `analytics.md`, `security.md`, `deployment.md` |
 | поддержке в личном чате бота | `support.md` |
 | личном профиле и избранном | `profile.md`, `decisions/ADR-0004-telegram-profile-favorites.md` |
 | расписании учебных групп ИУ5 | `schedule.md` |
