@@ -7,8 +7,9 @@ type Activity = { days: Array<{ date: string; users: number; launches: number }>
 type Ranked = { items: Array<{ id: string; count: number }> }
 type AnalyticsUser = { username: string | null; firstSeenAt: number; lastSeenAt: number; launchCount: number }
 type UsersPage = { items: AnalyticsUser[]; nextOffset: number | null }
-type UserFilters = { username: string }
-const emptyFilters: UserFilters = { username: '' }
+type FilterKey = 'username' | 'minLaunchCount' | 'firstSeenOn' | 'lastSeenOn'
+type UserFilters = Record<FilterKey, string>
+const emptyFilters: UserFilters = { username: '', minLaunchCount: '', firstSeenOn: '', lastSeenOn: '' }
 const usersPageSize = 50
 const periods: Array<[Period, string]> = [['today', 'Сегодня'], ['7d', '7 дней'], ['30d', '30 дней'], ['all', 'Всё время']]
 
@@ -27,14 +28,36 @@ function formatUserDate(timestamp: number) {
   return day(date)
 }
 
-function UserList({ page, onMore, loadingMore }: { page: UsersPage; onMore: () => void; loadingMore: boolean }) {
+const userFilterLabels: Record<FilterKey, string> = { username: 'Пользователь', minLaunchCount: 'Запуски', firstSeenOn: 'Первый вход', lastSeenOn: 'Последняя активность' }
+
+function UserList({ page, onMore, loadingMore, filters, activeFilter, draftValue, onToggleFilter, onDraftChange, onApplyFilter, onClearFilter }: {
+  page: UsersPage
+  onMore: () => void
+  loadingMore: boolean
+  filters: UserFilters
+  activeFilter: FilterKey | null
+  draftValue: string
+  onToggleFilter: (key: FilterKey) => void
+  onDraftChange: (value: string) => void
+  onApplyFilter: () => void
+  onClearFilter: () => void
+}) {
   return <>
-    {page.items.length ? <table className="stats-users-table" aria-label="Пользователи в статистике"><thead><tr><th scope="col">Пользователь</th><th scope="col">Запуски</th><th scope="col">Первый вход</th><th scope="col">Последняя активность</th></tr></thead><tbody>{page.items.map((user, index) => <tr key={`${user.firstSeenAt}-${index}`}>
-      <td data-label="Пользователь"><strong>{user.username ? `@${user.username}` : 'Без username'}</strong></td>
-      <td data-label="Запуски">{user.launchCount.toLocaleString('ru-RU')}</td>
-      <td data-label="Первый вход">{formatUserDate(user.firstSeenAt)}</td>
-      <td data-label="Последняя активность">{formatUserDate(user.lastSeenAt)}</td>
-    </tr>)}</tbody></table> : <p className="lead">Пока нет пользователей с доступными данными. Username появится после следующего запуска Mini App.</p>}
+    <table className="stats-users-table" aria-label="Пользователи в статистике"><thead><tr>{(Object.keys(userFilterLabels) as FilterKey[]).map((key) => <th scope="col" key={key}>
+      <button type="button" aria-label={`Фильтр: ${userFilterLabels[key]}`} aria-expanded={activeFilter === key} className={filters[key] ? 'filtered' : ''} onClick={() => onToggleFilter(key)}>{userFilterLabels[key]}<span aria-hidden="true">{filters[key] ? '⌕' : '⌄'}</span></button>
+    </th>)}</tr></thead><tbody>
+      {activeFilter && <tr className="stats-users-filter-row"><td colSpan={4}><form onSubmit={(event) => { event.preventDefault(); onApplyFilter() }}>
+        <label htmlFor="stats-user-column-filter">Фильтр: {userFilterLabels[activeFilter]}</label>
+        <input id="stats-user-column-filter" autoFocus type={activeFilter === 'username' ? 'search' : activeFilter === 'minLaunchCount' ? 'number' : 'date'} min={activeFilter === 'minLaunchCount' ? '0' : undefined} step={activeFilter === 'minLaunchCount' ? '1' : undefined} value={draftValue} onChange={(event) => onDraftChange(event.target.value)} />
+        <button type="submit">Применить</button><button type="button" onClick={onClearFilter}>Сбросить</button>
+      </form></td></tr>}
+      {page.items.length ? page.items.map((user, index) => <tr key={`${user.firstSeenAt}-${index}`}>
+        <td data-label="Пользователь"><strong>{user.username ? `@${user.username}` : 'Без username'}</strong></td>
+        <td data-label="Запуски">{user.launchCount.toLocaleString('ru-RU')}</td>
+        <td data-label="Первый вход">{formatUserDate(user.firstSeenAt)}</td>
+        <td data-label="Последняя активность">{formatUserDate(user.lastSeenAt)}</td>
+      </tr>) : <tr><td colSpan={4}><p className="lead">Пока нет пользователей с доступными данными. Username появится после следующего запуска Mini App.</p></td></tr>}
+    </tbody></table>
     {page.nextOffset !== null && <button className="stats-users-more" type="button" onClick={onMore} disabled={loadingMore}>{loadingMore ? 'Загружаем…' : 'Показать ещё'}</button>}
   </>
 }
@@ -42,15 +65,10 @@ function UserList({ page, onMore, loadingMore }: { page: UsersPage; onMore: () =
 function usersUrl(period: Period, filters: UserFilters, offset: number) {
   const params = new URLSearchParams({ period, limit: String(usersPageSize), offset: String(offset) })
   if (filters.username.trim()) params.set('username', filters.username.trim())
+  if (filters.minLaunchCount) params.set('minLaunchCount', filters.minLaunchCount)
+  if (filters.firstSeenOn) params.set('firstSeenOn', filters.firstSeenOn)
+  if (filters.lastSeenOn) params.set('lastSeenOn', filters.lastSeenOn)
   return `/api/admin/stats/users?${params}`
-}
-
-function UserFiltersForm({ filters, onSubmit, onChange }: { filters: UserFilters; onSubmit: (filters: UserFilters) => void; onChange: (filters: UserFilters) => void }) {
-  return <form className="stats-user-filters" onSubmit={(event) => { event.preventDefault(); onSubmit(filters) }}>
-    <label htmlFor="stats-username-search">Поиск по username</label>
-    <input id="stats-username-search" type="search" value={filters.username} placeholder="Например, ivanov" onChange={(event) => onChange({ username: event.target.value })} />
-    <div className="stats-user-filter-actions"><button type="submit">Найти</button><button type="button" onClick={() => { onChange(emptyFilters); onSubmit(emptyFilters) }}>Сбросить</button></div>
-  </form>
 }
 
 export function AdminStats({ names = new Map<string, string>() }: { names?: Map<string, string> }) {
@@ -60,8 +78,9 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
   const [usersPage, setUsersPage] = useState<UsersPage>({ items: [], nextOffset: null })
   const [usersState, setUsersState] = useState<'loading' | 'error' | 'ready'>('loading')
   const [adminConfirmed, setAdminConfirmed] = useState(false)
-  const [draftFilters, setDraftFilters] = useState<UserFilters>(emptyFilters)
   const [appliedFilters, setAppliedFilters] = useState<UserFilters>(emptyFilters)
+  const [activeFilter, setActiveFilter] = useState<FilterKey | null>(null)
+  const [draftFilterValue, setDraftFilterValue] = useState('')
   const [loadingMore, setLoadingMore] = useState(false)
   const [usersMoreError, setUsersMoreError] = useState(false)
   const selectPeriod = (value: Period) => {
@@ -100,6 +119,22 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
     setLoadingMore(false)
     setAppliedFilters(filters)
   }
+  const toggleUserFilter = (key: FilterKey) => {
+    if (activeFilter === key) { setActiveFilter(null); return }
+    setDraftFilterValue(appliedFilters[key])
+    setActiveFilter(key)
+  }
+  const applyActiveFilter = () => {
+    if (!activeFilter) return
+    applyUserFilters({ ...appliedFilters, [activeFilter]: draftFilterValue })
+    setActiveFilter(null)
+  }
+  const clearActiveFilter = () => {
+    if (!activeFilter) return
+    applyUserFilters({ ...appliedFilters, [activeFilter]: '' })
+    setDraftFilterValue('')
+    setActiveFilter(null)
+  }
   const loadMoreUsers = async () => {
     if (usersPage.nextOffset === null || loadingMore) return
     setLoadingMore(true)
@@ -126,8 +161,7 @@ export function AdminStats({ names = new Map<string, string>() }: { names?: Map<
       <summary><h2>Пользователи</h2><span className="stats-users-toggle">Нажмите, чтобы скрыть или показать</span></summary>
       <div className="stats-grid"><Metric label="Всего" value={data.summary.users.total} /><Metric label="Сегодня" value={data.summary.users.today} /><Metric label="7 дней" value={data.summary.users.days7} /><Metric label="30 дней" value={data.summary.users.days30} /></div>
       <p className="stats-users-privacy">Username виден только администратору и обновляется при запуске Mini App. Telegram ID и имя не сохраняются.</p>
-      <UserFiltersForm filters={draftFilters} onChange={setDraftFilters} onSubmit={applyUserFilters} />
-      {usersState === 'loading' ? <p className="lead" aria-busy="true">Загружаем список пользователей…</p> : usersState === 'error' ? <p className="lead" role="alert">Не удалось загрузить список пользователей. Попробуйте ещё раз позже.</p> : <><UserList page={usersPage} onMore={() => void loadMoreUsers()} loadingMore={loadingMore} />{usersMoreError && <p className="lead" role="alert">Не удалось загрузить следующую страницу. Попробуйте ещё раз.</p>}</>}
+      {usersState === 'loading' ? <p className="lead" aria-busy="true">Загружаем список пользователей…</p> : usersState === 'error' ? <p className="lead" role="alert">Не удалось загрузить список пользователей. Попробуйте ещё раз позже.</p> : <><UserList page={usersPage} onMore={() => void loadMoreUsers()} loadingMore={loadingMore} filters={appliedFilters} activeFilter={activeFilter} draftValue={draftFilterValue} onToggleFilter={toggleUserFilter} onDraftChange={setDraftFilterValue} onApplyFilter={applyActiveFilter} onClearFilter={clearActiveFilter} />{usersMoreError && <p className="lead" role="alert">Не удалось загрузить следующую страницу. Попробуйте ещё раз.</p>}</>}
     </details>
     <section className="stats-section"><h2>Запуски и активность</h2><div className="stats-grid"><Metric label="Запуски" value={data.summary.launches} /><Metric label="Поиски" value={data.summary.activity.searches} /><Metric label="Открытия материалов" value={data.summary.activity.materialOpens} /><Metric label="Переходы на Яндекс.Диск" value={data.summary.activity.yandexDiskOpens} /></div></section>
     <section className="stats-section"><h2>Активность по дням</h2><div className="stats-chart" role="img" aria-label="График пользователей и запусков по дням">{data.activity.days.map((day) => <div className="stats-day" key={day.date} title={`${day.date}: ${day.users} пользователей, ${day.launches} запусков`}><i className="stats-bar stats-bar--users" style={{ height: `${(day.users / max) * 100}%` }} /><i className="stats-bar stats-bar--launches" style={{ height: `${(day.launches / max) * 100}%` }} /></div>)}</div></section>

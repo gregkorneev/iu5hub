@@ -71,11 +71,15 @@
 .stats-users-disclosure > summary h2 { flex:0 0 auto; margin:0; font-size:1.2rem }
 .stats-users-toggle { margin-left:auto; color:var(--muted); font-size:.78rem; text-align:right }
 .stats-users-privacy { margin:12px 0; color:var(--muted); font-size:.88rem }
-.stats-user-filters { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:8px; margin:14px 0 }
-.stats-user-filters label { grid-column:1 / -1; color:var(--muted); font-size:.82rem; font-weight:700 }
-.stats-user-filters input { box-sizing:border-box; width:100%; min-width:0; min-height:40px; padding:6px 9px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink) }
-.stats-user-filter-actions { display:flex; gap:8px }
-.stats-user-filter-actions button { min-height:36px; padding:0 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--accent-dark); font-weight:700 }
+.stats-users-table th { padding:0 2px; color:var(--muted); font-size:.8rem; text-align:left; overflow-wrap:anywhere }
+.stats-users-table th button { display:flex; align-items:center; justify-content:space-between; gap:2px; width:100%; min-width:0; min-height:42px; padding:4px; border:0; border-radius:6px; background:transparent; color:var(--muted); font:inherit; line-height:1.2; text-align:left; overflow-wrap:anywhere }
+.stats-users-table th button:hover,.stats-users-table th button:focus-visible,.stats-users-table th button.filtered { background:var(--soft); color:var(--accent-dark) }
+.stats-users-table th button span { flex:0 0 auto; color:var(--accent-dark); font-size:.9rem }
+.stats-users-filter-row td { padding:8px; background:var(--soft); border:1px solid var(--line); border-radius:9px }
+.stats-users-filter-row form { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:end; gap:8px }
+.stats-users-filter-row label { grid-column:1 / -1; color:var(--muted); font-size:.82rem; font-weight:700 }
+.stats-users-filter-row input { box-sizing:border-box; width:100%; min-width:0; min-height:40px; padding:6px 9px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink) }
+.stats-users-filter-row button { min-height:40px; padding:0 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--accent-dark); font-weight:700 }
 .stats-users-table { width:100%; border-collapse:separate; border-spacing:0 6px; table-layout:fixed; font-size:.9rem }
 .stats-users-table th { padding:3px 6px; color:var(--muted); font-size:.8rem; text-align:left; overflow-wrap:anywhere }
 .stats-users-table th:nth-child(1) { width:25% }.stats-users-table th:nth-child(2) { width:14% }.stats-users-table th:nth-child(3) { width:25% }.stats-users-table th:nth-child(4) { width:36% }
@@ -86,5 +90,5 @@
 .stats-users-more { display:block; min-height:40px; margin:12px auto 0; padding:0 16px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--accent-dark); font-weight:700 }
 .stats-users-more:disabled { opacity:.65 }
 @media (max-width:620px) { .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)) } }
-@media (max-width:620px) { .stats-users-disclosure > summary { align-items:flex-start; gap:5px; padding:8px 7px } .stats-users-disclosure > summary h2 { font-size:1.05rem } .stats-users-toggle { max-width:112px; font-size:.72rem } .stats-user-filters { grid-template-columns:minmax(0,1fr); align-items:stretch } .stats-user-filters label { grid-column:auto } .stats-user-filter-actions { flex-wrap:wrap } .stats-users-table { font-size:.72rem } .stats-users-table th { padding:3px 3px; font-size:.69rem; line-height:1.2 } .stats-users-table th:nth-child(1) { width:27% }.stats-users-table th:nth-child(2) { width:14% }.stats-users-table th:nth-child(3) { width:25% }.stats-users-table th:nth-child(4) { width:34% } .stats-users-table td { padding:7px 3px; line-height:1.25 } }
+@media (max-width:620px) { .stats-users-disclosure > summary { align-items:flex-start; gap:5px; padding:8px 7px } .stats-users-disclosure > summary h2 { font-size:1.05rem } .stats-users-toggle { max-width:112px; font-size:.72rem } .stats-users-table { font-size:.72rem } .stats-users-table th { font-size:.69rem; line-height:1.2 } .stats-users-table th:nth-child(1) { width:27% }.stats-users-table th:nth-child(2) { width:14% }.stats-users-table th:nth-child(3) { width:25% }.stats-users-table th:nth-child(4) { width:34% } .stats-users-table th button { min-height:44px; padding:3px 2px } .stats-users-table td { padding:7px 3px; line-height:1.25 } .stats-users-filter-row form { grid-template-columns:minmax(0,1fr); align-items:stretch } .stats-users-filter-row label { grid-column:auto } }
 @media (max-width:620px) { .semester-button-grid { grid-template-columns:1fr } }
