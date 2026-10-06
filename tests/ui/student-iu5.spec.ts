@@ -234,10 +234,13 @@ test.describe('Студент ИУ5 critical UI', () => {
     await page.getByRole('searchbox', { name: 'Поиск по предметам и преподавателям' }).fill('м')
     const suggestion = page.getByLabel('Подсказки поиска').getByRole('button', { name: /Математичес/ })
     await expect(suggestion).toBeVisible()
+    expect(await page.locator('.search-suggestions').evaluate((element) => getComputedStyle(element).getPropertyValue('--search-suggestions-fill').trim())).toBe('90%')
     expect(await suggestion.evaluate((element) => {
       const box = element.getBoundingClientRect()
       return element.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
     })).toBeTruthy()
+    await page.locator('html').evaluate((element) => element.setAttribute('data-telegram-theme', 'dark'))
+    expect(await page.locator('.search-suggestions').evaluate((element) => getComputedStyle(element).getPropertyValue('--search-suggestions-fill').trim())).toBe('92%')
   })
 
   test('keeps Useful Links accessible without horizontal overflow in the Telegram viewport', async ({ page }) => {

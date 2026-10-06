@@ -241,6 +241,10 @@ Worker tests mock Telegram Bot API calls. They cover private student text/photo/
 
 At 295×667, the Home support card and useful-link cards use tighter spacing and smaller type so the complete support hint remains visible without overflowing `main`; larger Home layouts retain their regular styling. The Playwright regression seeds Favorites, verifies the guidance text is in view, checks the title stays on one line, and asserts Home `main` fits. Focused regression and complete-phone Home viewport tests passed across Chromium and WebKit projects.
 
+## Search suggestion surface — 2026-10-06
+
+Search suggestions use a denser glass fill (90% light, 92% dark) so underlying page text does not compete with suggestions while the keyboard is open. The mobile Search regression checks visibility, center-point tappability, and the expected fill in both Telegram themes. Search matching and input surface are unchanged.
+
 ## Final UX release gate — 2026-10-06
 
 - CI run [37459651166](https://github.com/gregkorneev/iu5hub/actions/runs/37459651166) passed the pushed release candidate: 330/330 Playwright cases on Ubuntu across Chromium, mobile Chromium, Firefox, WebKit and WebKit desktop. Its predecessor caught the compact Home/Favorites overflow noted above; the fix on `main` passes the same cross-engine check.
