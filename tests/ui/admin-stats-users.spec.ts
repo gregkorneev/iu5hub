@@ -11,6 +11,61 @@ async function mockDashboard(page: import('@playwright/test').Page) {
 }
 
 test.describe('admin analytics users', () => {
+  test('AdminStats has a clean viewport matrix in both themes', async ({ page }, testInfo) => {
+    await mockDashboard(page)
+    await page.route('**/api/admin/stats/users?*', (route) => route.fulfill({ json: { items: [
+      { username: 'abcdefghijklmnopqrstuvwx12345678', firstSeenAt: 1791262800, lastSeenAt: 1791262800, launchCount: 18 },
+      { username: null, firstSeenAt: 1791176400, lastSeenAt: 1791176400, launchCount: 3 },
+    ], nextOffset: null } }))
+    await page.setViewportSize({ width: 320, height: 760 })
+    await page.goto('/#/admin/stats')
+    await expect(page.getByRole('table', { name: 'Пользователи в статистике' })).toBeVisible()
+    const measurements: Array<{ theme: string; width: number; overflow: number; overlap: boolean; launchHeaderLines: number; headerOverflow: string[] }> = []
+    for (const theme of ['light', 'dark'] as const) {
+      await page.evaluate((colorScheme) => {
+        const app = (window as Window & { Telegram: { WebApp: { colorScheme: string; themeParams: Record<string, string> } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+        app.colorScheme = colorScheme
+        app.themeParams = colorScheme === 'dark'
+          ? { bg_color: '#101820', text_color: '#f4f7fa', secondary_bg_color: '#182633', button_color: '#78b4ff', button_text_color: '#102333' }
+          : { bg_color: '#f6faff', text_color: '#1a1a19', secondary_bg_color: '#e1effb', button_color: '#006cdc', button_text_color: '#ffffff' }
+        ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('themeChanged')
+      }, theme)
+      for (const width of [320, 360, 375, 390, 428, 768, 1024, 1280]) {
+        await page.setViewportSize({ width, height: width < 600 ? 760 : 900 })
+        await page.waitForTimeout(20)
+        const result = await page.evaluate(() => {
+          const rect = (selector: string) => {
+            const element = document.querySelector(selector)
+            return element ? element.getBoundingClientRect() : null
+          }
+          const blocks = [...document.querySelectorAll('.stats-page > *')].filter((element) => getComputedStyle(element).display !== 'none')
+          const boxes = blocks.map((element) => element.getBoundingClientRect())
+          const overlap = boxes.slice(1).some((box, index) => box.top < boxes[index].bottom - 1)
+          const table = document.querySelector('.stats-users-table')!
+          const headers = [...table.querySelectorAll('thead th')]
+          const launchLabel = headers[1].querySelector('.stats-sort-label')!
+          const range = document.createRange()
+          range.selectNodeContents(launchLabel)
+          const launchHeaderLines = range.getClientRects().length
+          const headerOverflow = headers.flatMap((header) => {
+            const button = header.querySelector('button')!
+            const label = header.querySelector('.stats-sort-label')!
+            const bounds = label.getBoundingClientRect(), column = header.getBoundingClientRect()
+            return button.scrollWidth > button.clientWidth + 1 || bounds.right > column.right + 1 || bounds.left < column.left - 1
+              ? [`${label.textContent}: button=${button.clientWidth}/${button.scrollWidth}, label=${bounds.left.toFixed(1)}..${bounds.right.toFixed(1)}, column=${column.left.toFixed(1)}..${column.right.toFixed(1)}`]
+              : []
+          })
+          const period = rect('.stats-periods')!, metrics = rect('.stats-page > .stats-grid')!
+          const periodCardOverlap = period.bottom > metrics.top + 1
+          return { overflow: document.documentElement.scrollWidth - innerWidth, overlap: overlap || periodCardOverlap, launchHeaderLines, headerOverflow }
+        })
+        measurements.push({ theme, width, ...result })
+        if (width === 320) await page.screenshot({ path: testInfo.outputPath(`admin-stats-${theme}-320.png`), fullPage: true })
+      }
+    }
+    expect(measurements.filter(({ overflow, overlap, launchHeaderLines, headerOverflow }) => overflow > 0 || overlap || launchHeaderLines !== 1 || headerOverflow.length), JSON.stringify(measurements)).toEqual([])
+  })
+
   test('shows a semantic table with labels, counts and dates without mobile overflow', async ({ page }) => {
     await mockDashboard(page)
     await page.route('**/api/admin/stats/users?*', (route) => route.fulfill({ json: { items: [
@@ -22,7 +77,7 @@ test.describe('admin analytics users', () => {
     await page.goto('/#/admin/stats')
     const table = page.getByRole('table', { name: 'Пользователи в статистике' })
     expect(await table.evaluate((element) => getComputedStyle(element).display)).toBe('table')
-    expect(await table.getByRole('columnheader').evaluateAll((headers) => headers.map((header) => header.querySelector('button')?.textContent?.replace(/[↕↑↓]/g, '').trim()))).toEqual(['Пользователь', 'Запуски', 'Первый вход', 'Последняя активность'])
+    expect(await table.getByRole('columnheader').evaluateAll((headers) => headers.map((header) => header.querySelector('.stats-sort-label')?.textContent?.trim()))).toEqual(['Пользователь', 'Запуски', 'Первый вход', 'Последняя активность'])
     await expect(table.getByText('@ivanov')).toBeVisible()
     await expect(table.getByText('Без username')).toBeVisible()
     await expect(table.locator('tbody tr').first()).toContainText('18')

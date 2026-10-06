@@ -39,7 +39,7 @@ function UserList({ page, onMore, loadingMore, sort, onSort }: {
 }) {
   return <>
     <table className="stats-users-table" aria-label="Пользователи в статистике"><thead><tr>{(Object.keys(userSortLabels) as SortKey[]).map((key) => <th scope="col" key={key} aria-sort={sort.by === key ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
-      <button type="button" aria-label={`Сортировать: ${userSortLabels[key]}`} onClick={() => onSort(key)}>{userSortLabels[key]}<span aria-hidden="true">{sort.by === key ? sort.direction === 'asc' ? '↑' : '↓' : '↕'}</span></button>
+      <button type="button" aria-label={`Сортировать: ${userSortLabels[key]}`} onClick={() => onSort(key)}><span className="stats-sort-label">{userSortLabels[key]}</span><span className={`stats-sort-indicator${sort.by === key ? ` is-${sort.direction}` : ''}`} aria-hidden="true"><span className="stats-sort-chevron stats-sort-chevron--up" /><span className="stats-sort-chevron stats-sort-chevron--down" /></span></button>
     </th>)}</tr></thead><tbody>
       {page.items.length ? page.items.map((user, index) => <tr key={`${user.firstSeenAt}-${index}`}>
         <td data-label="Пользователь"><strong>{user.username ? `@${user.username}` : 'Без username'}</strong></td>
