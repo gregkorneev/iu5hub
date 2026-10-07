@@ -190,3 +190,7 @@
 - Existing daily cleanup removes labels after 90 days without verified activity. No historical username backfill is possible.
 - Full QA passed; production D1 migration and Worker deployed. Cloudflare Pages deployment `2d999e03` is active on `main`. Production anonymous endpoint smoke passed; valid-admin and physical Telegram checks remain unavailable.
 - The admin users list is now a compact responsive table with server-side filters for username, launch minimum, first seen and last activity. Applied filters carry across pages; the whole section can be collapsed. `npm run qa` passed with 282 Playwright passes and two existing host-specific skips. The filter-capable Worker was deployed; the `main` push publishes the updated Pages UI.
+
+# 2026-10-07
+
+- Added the «ТерВер 2026» Yandex Disk link at the top of the Probability Theory and Mathematical Statistics folder; its card spans both catalog columns and opens through the existing Telegram external-link handler.

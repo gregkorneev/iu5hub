@@ -33,6 +33,7 @@
 .download-button { width:40px; height:40px; align-self:center; justify-self:center; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--accent-dark); font-size:1.25rem; font-weight:800 }
 .semester-subject-grid { grid-template-columns:repeat(2,minmax(0,1fr)) }
 .semester-subject-grid .disk-item { min-height:112px; align-content:center }
+.semester-subject-grid .disk-item--pinned { grid-column:1 / -1 }
 .semester-subject-grid .disk-file { grid-column:1 / -1; min-height:0 }
 .semester-button-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:28px }
 .semester-button { display:grid; gap:3px; min-height:180px; align-content:center; padding:24px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(135deg,#fff,#eaf5ff); color:var(--accent-dark) }
