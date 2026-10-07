@@ -1,5 +1,9 @@
 # Testing
 
+## Branch and environment checks
+
+Ordinary feature QA runs on `beta`; a production release additionally requires the full checks and production smoke documented in `development-workflow.md`. Verify that beta's build points to the beta Worker, the beta Worker binding names the beta D1, the beta Worker name differs from production, and the beta bot token/webhook bindings are separate. Do not log or compare secret values. Confirm that beta analytics, favorites, schedule preferences and support routes appear only in beta D1. The scheduled data sync may modify only `public/data/schedule/` on beta and must preserve the beta source-code diff.
+
 ## One-time legacy anonymous cohort snapshot — 2026-10-07
 
 Worker regressions verify that a frozen cohort is emitted once with summed launches and date bounds, while a newly created username-less user remains a separate row across pagination. The UI regression checks the cohort-size label and total launch count. Migration coverage verifies the snapshot query uses only rows without a username and stores no direct Telegram profile fields. Production D1 confirms 36 users, 74 launches and 36 marked members after migration. Full `npm run qa` passed: lint, typecheck, unit/Worker tests, data validation, build and 298 Playwright cases (two host-specific WebKit keyboard skips). Protected production API smoke without Telegram `initData` remains expected to return 401.

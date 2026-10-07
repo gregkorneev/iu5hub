@@ -1,5 +1,9 @@
 # Known issues
 
+## Beta environment manual checks
+
+Until the Beta Telegram bot is created in BotFather and its token/menu button are configured, a physical Telegram Mini App smoke is unavailable. Complete that manual step after the actual stable Beta Pages URL is known. A second Telegram account is needed to verify the complete student → admin → student support relay. Do not claim these checks passed based only on browser fixtures.
+
 | Status | Issue | Impact / resolution |
 | --- | --- | --- |
 | Resolved · 2026-10-06 · Home P2 | Support hint clipped on a compact 295×667 phone when Favorites were present | Linux CI found Home `main` was 23px taller than its safe-area viewport. Useful-link cards now compact only at ≤340×700 portrait and retain labels; support hint stays in view. Regression seeds Favorites and checks complete fit in Chromium, mobile Chromium, WebKit and WebKit desktop. |

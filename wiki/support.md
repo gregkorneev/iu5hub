@@ -1,5 +1,9 @@
 # Telegram support
 
+## Production and Beta separation
+
+Production continues to use bot «Студент ИУ5», its production webhook, Worker and D1. Beta support uses a separately created «Студент ИУ5 Beta» bot, Beta Worker webhook and Beta D1. Never point Beta at the production bot or webhook, and never copy support routes or users from production. The Beta bot token and webhook secret are Worker-only secrets. BotFather creation/menu-button setup is an external manual step; record completion and the actual Beta Pages URL here after provisioning.
+
 Student support uses the existing Telegram bot, webhook Worker and `ANALYTICS_DB` D1 database. No Mini App support screen or separate service is involved.
 
 ```text

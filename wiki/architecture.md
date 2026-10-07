@@ -60,3 +60,7 @@ Cloudflare Pages хранит только `dist/`: HTML, JS/CSS bundles, icons,
 Публичный website, landing page, Taplink, собственный домен как обязательная пользовательская точка входа, роли, Docker и сложное глобальное состояние не создаются без подтверждённой необходимости. Существующий Worker обслуживает приватную статистику, `/stats` и персональное избранное; он не является защищённым каталогом Диска. Backend для non-public/authorized каталога остаётся отдельным scope.
 
 # Telegram support uses the existing Worker webhook and D1 binding. Private student messages are copied to allowlisted admins; an authenticated admin Reply is routed back through the bot. D1 is routing-only with AES-GCM chat IDs and HMAC identities; see `support.md`. The support relay is deployed in production since 2026-10-06.
+
+## Production and beta environments
+
+The permanent Git branches are `main` (production) and `beta` (development/staging). Both build the same frontend and Worker source. Beta uses a separate Pages branch deployment, Worker environment, D1 database, API origin and Telegram bot. Frontend API calls remain centralized in `src/api`; no route/component hardcodes environment endpoints. Public static course/schedule data may be shared, while user profile, favorites, analytics, support routing and secrets remain environment-local. See `development-workflow.md`.

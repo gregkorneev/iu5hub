@@ -53,3 +53,39 @@ jobs:
           git add public/data/schedule
           git commit -m "chore: sync IU5 schedules"
           git push origin HEAD:main
+
+      - name: Save the generated schedule dataset
+        if: github.event_name == 'workflow_dispatch' || steps.cycle.outputs.due == 'true'
+        run: tar -C public/data -czf "$RUNNER_TEMP/iu5-schedule.tar.gz" schedule
+
+      - name: Copy only schedule data to beta
+        if: github.event_name == 'workflow_dispatch' || steps.cycle.outputs.due == 'true'
+        run: |
+          if ! git ls-remote --exit-code --heads origin beta >/dev/null 2>&1; then
+            echo "beta does not exist yet; the next scheduled sync will include its schedule data."
+            exit 0
+          fi
+
+          for attempt in 1 2 3; do
+            git fetch origin beta
+            git switch --detach FETCH_HEAD
+            rm -rf public/data/schedule
+            tar -C public/data -xzf "$RUNNER_TEMP/iu5-schedule.tar.gz"
+            npm run schedule:validate
+            git add public/data/schedule
+            if git diff --cached --quiet; then
+              echo "Beta schedule data is already current."
+              exit 0
+            fi
+
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: sync IU5 schedules"
+            if git push origin HEAD:beta; then
+              exit 0
+            fi
+            git reset --hard
+          done
+
+          echo "Could not update beta schedule data after three non-fast-forward retries."
+          exit 1

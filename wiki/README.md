@@ -17,6 +17,7 @@
 | дизайн-системе и Liquid Glass | `design-system.md` |
 | локальном Telegram development через Quick Tunnel | `local-telegram-development.md` |
 | выпуске, проверках | `deployment.md`, `testing.md` |
+| branch policy, beta development and production releases | `development-workflow.md`, `deployment.md` |
 | релизных заметках | `releases/student-iu5-v1.md` |
 | приватной аналитике и метриках | `analytics.md`, `security.md` |
 | admin-only usernames в аналитике | `analytics.md`, `security.md`, `deployment.md` |

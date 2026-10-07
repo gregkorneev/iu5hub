@@ -1,5 +1,9 @@
 # Private analytics
 
+## Environment isolation
+
+Production analytics remain in the production Worker/D1. Beta builds must use the Beta Worker origin and its separate D1. Never seed Beta by cloning production D1 or copy user hashes, labels, events, support routing, favorites or profile preferences. Test events and username labels created in Beta must stay in Beta. Ordinary migrations apply to Beta first; production migrations require an explicitly approved release. See `development-workflow.md` and `security.md`.
+
 ## Purpose
 
 «Студент ИУ5» uses first-party, minimal analytics so administrators can understand catalogue usage. The source of truth for a unique user is a Telegram `initData` signature validated by the Cloudflare Worker, followed by a keyed HMAC pseudonym in D1. Cloudflare Web Analytics may still serve page performance/visit analysis, but is not authoritative for Telegram users.

@@ -1,5 +1,23 @@
 # Deployment
 
+## Permanent main/beta environments
+
+`main` is the production branch and remains the GitHub default. The existing Cloudflare Pages project `iu5hub` is connected to GitHub; production is served from `main` at https://iu5hub.pages.dev. The disabled `deploy-cloudflare-pages` Actions job must remain disabled while the native Git integration is active, to avoid duplicate Pages deployments. The Pages project list confirmed one Git-connected project; its latest deployment was Production from `main` at `618791b`.
+
+Ordinary development uses `beta`. Its Pages branch deployment must use the same Pages project and an actual Cloudflare-provisioned stable branch URL; do not assume the alias until a deployment verifies it. Production build variables must target the production Worker; the Preview build variable `VITE_ANALYTICS_API_BASE` must target the beta Worker, and `VITE_APP_ENV` must distinguish production and beta. The beta UI displays its environment badge only in Beta.
+
+Worker source remains `worker/src/*`. Production Worker `iu5hub-analytics` keeps production D1 `iu5hub-analytics` (`62098e84-7f66-4c6d-9460-5c76a65e2b8f`). Beta uses Wrangler `[env.beta]`, Worker `iu5hub-analytics-beta`, and a new D1 `iu5hub-beta`; the binding name may remain `ANALYTICS_DB`, but its database ID must differ. Apply every migration in `worker/migrations/` to the empty Beta D1 with `wrangler d1 migrations apply iu5hub-beta --remote --env beta`. Never copy production rows.
+
+Beta Worker vars use the actual Beta Pages origin for `ANALYTICS_ALLOWED_ORIGIN` and `<beta-url>/#/admin/stats` for `ADMIN_DASHBOARD_URL`. Its separate secrets are `ANALYTICS_HMAC_SECRET`, `USER_ID_HMAC_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `SUPPORT_ENCRYPTION_KEY` and `ADMIN_TELEGRAM_IDS`. Generate independent cryptographically strong values for HMAC, webhook and encryption secrets; configure an independently scoped admin allowlist without reading production secret values. Production secrets, bindings, CORS and bot webhook stay unchanged.
+
+Use the connected Pages Git integration for Beta branch deployments. Beta pushes must never enable or invoke production deployment jobs. Worker deployment for Beta may be done with `wrangler deploy --env beta` after Beta secrets and D1 are ready; production Worker deployment and production D1 migrations are release-only. The CI verify job already runs on pushes and pull requests for all branches.
+
+## Explicit production release
+
+Only explicit user approval such as «делаем релиз», «выпускаем релиз», «релизим» or «переноси beta в main» authorizes production release. Follow [development-workflow.md](development-workflow.md): fetch both branches, merge current main into beta, run full QA and release checks on beta, merge beta to main only after the approval, apply reviewed migrations to production D1, deploy production Worker, allow the Pages Git integration to publish main, smoke test production, then synchronize beta with the resulting main.
+
+For rollback, redeploy the last known-good Pages deployment/commit and Worker version. Do not assume a destructive D1 migration can be rolled back; prefer additive, backward-compatible migrations and prepare a separate data recovery plan when destructive changes are unavoidable.
+
 ## One-time legacy anonymous cohort snapshot — 2026-10-07
 
 Migration `0006_legacy_anonymous_users_summary.sql` was applied once. It captured 36 users without a username label as a frozen aggregate of 74 launches, their earliest first-seen and latest last-seen timestamps; member rows are flagged so the admin endpoint replaces them with a single row. It did not delete or alter per-user launch/event history. The marker defaults off, so users created after migration remain individual even without usernames. Worker `iu5hub-analytics` is deployed as version `01f69553-0eaf-4968-8c8e-c0c217ffa49d`; Pages UI publication follows the next `main` push. No later deployment recalculates the snapshot.

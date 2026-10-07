@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-07 — Production and beta workflow
+
+- Audited all local and remote branches against `main`: no unique commits or branch-only diff remained; superseded Codex branches were removed.
+- Set `main` as production-only and `beta` as the default branch for ordinary development; release requires explicit user approval.
+- Preserved the Pages Git integration as production deployment mechanism and updated schedule sync to copy only generated schedule data to beta when it exists.
+- Recorded environment separation, migration, secrets, release and rollback policies in `development-workflow.md` and related Wiki pages.
+
 ## 2026-10-07 — One-time anonymous legacy audience aggregation
 
 - Freeze the currently unlabeled historical cohort into one admin-list row with summed launches, earliest first-seen, latest last-seen and cohort size. Users created after migration remain separate, including users whose Telegram account has no username. Existing user rows/events and overall audience counts are preserved. Production migration `0006` applied: 36 users and 74 launches; Worker deployed as `01f69553-0eaf-4968-8c8e-c0c217ffa49d`. Full `npm run qa` passed (298 browser cases; 2 host-specific skips).
