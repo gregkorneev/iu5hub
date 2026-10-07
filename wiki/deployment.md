@@ -12,6 +12,8 @@ Beta Worker vars use the actual Beta Pages origin for `ANALYTICS_ALLOWED_ORIGIN`
 
 Use the connected Pages Git integration for Beta branch deployments. Beta pushes must never enable or invoke production deployment jobs. Worker deployment for Beta may be done with `wrangler deploy --env beta` after Beta secrets and D1 are ready; production Worker deployment and production D1 migrations are release-only. The CI verify job already runs on pushes and pull requests for all branches.
 
+Cloudflare's native Git preview is triggered directly by a `beta` push and is not gated on the GitHub CI result; CI and preview deployment run independently. This is the only configured Pages deployment mechanism, so no duplicate Actions Pages deploy is enabled. Beta Worker pushes are not auto-deployed: use `wrangler deploy --env beta` after QA because no GitHub deploy credentials are configured. To enforce green-before-preview deployment later, switch Beta to a single CI-triggered Pages deployment and disable its native branch preview; do not enable both mechanisms together.
+
 ## Explicit production release
 
 Only explicit user approval such as «делаем релиз», «выпускаем релиз», «релизим» or «переноси beta в main» authorizes production release. Follow [development-workflow.md](development-workflow.md): fetch both branches, merge current main into beta, run full QA and release checks on beta, merge beta to main only after the approval, apply reviewed migrations to production D1, deploy production Worker, allow the Pages Git integration to publish main, smoke test production, then synchronize beta with the resulting main.
