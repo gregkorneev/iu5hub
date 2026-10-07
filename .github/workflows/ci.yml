@@ -31,6 +31,11 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:ui
+      - name: Verify the beta marker in Beta mode
+        env:
+          VITE_APP_ENV: beta
+          VITE_ANALYTICS_API_BASE: https://iu5hub-analytics-beta.gregory-korneev.workers.dev
+        run: npm run test:ui -- --grep "shows the beta marker"
 
       - name: Upload Playwright report on failure
         if: failure()
