@@ -9,7 +9,7 @@ ADMIN_DASHBOARD_URL = "https://iu5hub.pages.dev/#/admin/stats"
 
 # Provision the D1 database and replace this binding through `wrangler d1 create` before deployment.
 # Secrets are never declared here: ANALYTICS_HMAC_SECRET, USER_ID_HMAC_SECRET, TELEGRAM_BOT_TOKEN,
-# TELEGRAM_WEBHOOK_SECRET and ADMIN_TELEGRAM_IDS must be set with `wrangler secret put`.
+# TELEGRAM_WEBHOOK_SECRET, SUPPORT_ENCRYPTION_KEY and ADMIN_TELEGRAM_IDS must be set with `wrangler secret put`.
 [[d1_databases]]
 binding = "ANALYTICS_DB"
 database_name = "iu5hub-analytics"
@@ -17,4 +17,21 @@ database_id = "62098e84-7f66-4c6d-9460-5c76a65e2b8f"
 migrations_dir = "worker/migrations"
 
 [triggers]
+crons = ["17 3 * * *"]
+
+[env.beta]
+name = "iu5hub-analytics-beta"
+workers_dev = true
+
+[env.beta.vars]
+ANALYTICS_ALLOWED_ORIGIN = "https://beta.iu5hub.pages.dev"
+ADMIN_DASHBOARD_URL = "https://beta.iu5hub.pages.dev/#/admin/stats"
+
+[[env.beta.d1_databases]]
+binding = "ANALYTICS_DB"
+database_name = "iu5hub-beta"
+database_id = "89517e15-22fc-48ae-a037-3a1b481137db"
+migrations_dir = "worker/migrations"
+
+[env.beta.triggers]
 crons = ["17 3 * * *"]

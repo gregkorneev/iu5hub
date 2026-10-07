@@ -14,6 +14,8 @@ Every `/api/admin/*` request repeats validation and checks `ADMIN_TELEGRAM_IDS`;
 
 Production and Beta are separate trust boundaries. Each Worker environment needs its own secret bindings; generate independent Beta HMAC, webhook and support encryption secrets rather than copying production values. `ADMIN_TELEGRAM_IDS` may use the same administrator IDs but must be configured separately as a Beta Worker secret. Never retrieve production secret values to populate Beta. Beta's `ANALYTICS_DB` binding must refer to Beta D1, and Beta CORS must allow only the actual Beta Pages origin. Production CORS, bindings and Telegram webhook remain unchanged by beta pushes.
 
+Beta resources are provisioned: its D1 ID differs from production and migrations `0001`–`0006` are applied to the fresh database. The independent Beta HMAC, webhook and support encryption secrets are present. The Beta admin allowlist and bot token remain unset until supplied through the administrator/BotFather setup. Smoke confirmed a Beta-origin preflight receives `Access-Control-Allow-Origin: https://beta.iu5hub.pages.dev`; the production Worker does not grant that origin and continues to allow only `https://iu5hub.pages.dev`.
+
 | Value | Allowed location | Prohibited locations |
 | --- | --- | --- |
 | Analytics HMAC, user ID HMAC, bot and webhook secrets | Cloudflare Worker secrets | Git, Wiki values, logs, test fixtures, `VITE_*`, Pages bundle |

@@ -145,6 +145,7 @@ header::before {
 }
 .header-brand-group { position: absolute; left: 50%; display: flex; align-items: center; gap: var(--space-2); max-width: calc(100% - 2rem); transform: translateX(-50%); }
 .brand { gap: var(--space-3); color: var(--text-primary); font-family: "ALS Sector", -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing: -.02em; font-size: var(--type-body); font-weight: var(--weight-strong); }
+.environment-badge { flex: 0 0 auto; padding: .2rem .42rem; border: 1px solid var(--action-glass-edge); border-radius: var(--radius-pill); background: var(--action-glass); color: var(--action-glass-text); font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; font-size: .62rem; font-weight: 750; letter-spacing: .045em; line-height: 1.1; }
 .brand img { width: 2.25rem; height: 2.25rem; border-radius: var(--radius-small); box-shadow: none; }
 .admin-stats-link { position: absolute; z-index: 1; top: 50%; right: var(--space-4); display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: var(--space-2); min-height: 44px; padding-inline: var(--space-3); border: 1px solid transparent; border-radius: var(--radius-pill); background: var(--material-thin); box-shadow: inset 0 1px 0 var(--material-highlight); color: var(--action-quiet); font-size: .875rem; font-weight: var(--weight-strong); white-space: nowrap; transform: translateY(-50%); }
 .admin-stats-link svg { width: 1.125rem; height: 1.125rem; }

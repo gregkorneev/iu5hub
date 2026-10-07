@@ -2,7 +2,7 @@
 
 ## Beta environment manual checks
 
-Until the Beta Telegram bot is created in BotFather and its token/menu button are configured, a physical Telegram Mini App smoke is unavailable. Complete that manual step after the actual stable Beta Pages URL is known. A second Telegram account is needed to verify the complete student → admin → student support relay. Do not claim these checks passed based only on browser fixtures.
+The Beta Telegram bot is not yet created in BotFather, so its token, menu button, valid `initData`, physical Mini App smoke and live support relay remain unavailable. Stable Beta URL is `https://beta.iu5hub.pages.dev`. Create bot «Студент ИУ5 Beta», provide its token through a secure handoff, and point its Mini App/Menu Button to that URL. A second Telegram account is needed to verify the complete student → admin → student support relay. Browser fixtures do not replace these checks.
 
 | Status | Issue | Impact / resolution |
 | --- | --- | --- |

@@ -2,7 +2,9 @@
 
 ## Production and Beta separation
 
-Production continues to use bot «Студент ИУ5», its production webhook, Worker and D1. Beta support uses a separately created «Студент ИУ5 Beta» bot, Beta Worker webhook and Beta D1. Never point Beta at the production bot or webhook, and never copy support routes or users from production. The Beta bot token and webhook secret are Worker-only secrets. BotFather creation/menu-button setup is an external manual step; record completion and the actual Beta Pages URL here after provisioning.
+Production continues to use bot «Студент ИУ5», its production webhook, Worker and D1. Beta support uses a separately created «Студент ИУ5 Beta» bot, Beta Worker webhook and Beta D1. Never point Beta at the production bot or webhook, and never copy support routes or users from production. The Beta bot token, when supplied, and its webhook secret are Worker-only secrets. BotFather creation/menu-button setup is an external manual step; record completion and the actual Beta Pages URL here after provisioning.
+
+The Beta Worker and D1 are provisioned and use a separate webhook secret and support encryption key. The webhook returned `401` for missing and deliberately incorrect secret headers. BotFather creation, Beta token, menu button and the full student/admin reply relay remain pending; the production bot and webhook were not changed.
 
 Student support uses the existing Telegram bot, webhook Worker and `ANALYTICS_DB` D1 database. No Mini App support screen or separate service is involved.
 
