@@ -339,6 +339,7 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
         introToCourses: box('.home-courses').top - box('.home-intro-row').bottom,
         coursesToFavorites: box('.home-favorites').top - box('.home-courses').bottom, favoritesToLinks: box('.home-links').top - box('.home-favorites').bottom,
         noticeHeight: box('.home-notice').height,
+        noticeBottom: box('.home-notice').bottom,
         links: box('.home-links').bottom, footer: box('footer').top, footerBottom: box('footer').bottom, nav: box('.bottom-nav').top }
     })
     expect(geometry.doc).toBeLessThanOrEqual(height + 1)
@@ -355,6 +356,10 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
         expect(gap).toBeLessThanOrEqual(16)
       }
       expect(geometry.main, `${height}px viewport, ${top}px top inset`).toBeLessThanOrEqual(geometry.client + geometry.noticeHeight + 1)
+      if (top === 24) {
+        expect(geometry.main, `${height}px viewport, ${top}px top inset should not scroll`).toBeLessThanOrEqual(geometry.client + 1)
+        expect(geometry.noticeBottom).toBeLessThanOrEqual(geometry.footer + 1)
+      }
       expect(geometry.links).toBeLessThanOrEqual(geometry.footer + 1)
       await page.locator('main').evaluate(element => element.scrollTo(0, 100))
       expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(geometry.noticeHeight + 1)
@@ -435,6 +440,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         main: main.scrollHeight,
         mainClient: main.clientHeight,
         noticeHeight: box('.home-notice').height,
+        noticeBottom: box('.home-notice').bottom,
         header: box('header'), greeting: box('.user-greeting'), content: box('main'), intro: box('.home-intro-row'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
       }
@@ -443,6 +449,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.body, `${width}×${height} body`).toBeLessThanOrEqual(height + 1)
     expect(metrics.width, `${width}×${height} horizontal`).toBeLessThanOrEqual(width)
     expect(metrics.main, `${width}×${height} main scroll overflow should fit within the notice`).toBeLessThanOrEqual(metrics.mainClient + metrics.noticeHeight + 9)
+    if ([390, 393, 430].includes(width) && height >= 844) expect(metrics.main, `${width}×${height} complete Home should not scroll`).toBeLessThanOrEqual(metrics.mainClient + 1)
     if ([390, 393, 430].includes(width) && height >= 844) {
       expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeGreaterThanOrEqual(11.95)
       expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeLessThanOrEqual(16)
@@ -468,6 +475,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     }
     expect(metrics.footer.top).toBeGreaterThanOrEqual(metrics.links.bottom)
     expect(metrics.footer.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
+    if (height >= 741) expect(metrics.noticeBottom).toBeLessThanOrEqual(metrics.nav.top - 4)
     expect(metrics.nav.bottom).toBeLessThanOrEqual(height - 24)
     await expect(page.getByText('Учебные материалы', { exact: true })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Материалы на Яндекс.Диске' })).toHaveCount(0)

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-14 — Home vertical overflow
+
+- Removed the extra bottom reserve on tall portrait Home when the red Yandex Disk status notice is present, keeping the notice visible above the footer/navigation without inner vertical scrolling. Short screens preserve natural scrolling. Focused Home regression passed 39/39 in Chromium, mobile Chromium and WebKit; full `npm run qa` passed with 298 browser cases (two existing WebKit keyboard-only skips), 30 Vitest and 81 Node/Worker tests.
+
 ## 2026-10-07 — Production and beta workflow
 
 - Audited all local and remote branches against `main`: no unique commits or branch-only diff remained; superseded Codex branches were removed.
