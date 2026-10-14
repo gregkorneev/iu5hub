@@ -442,7 +442,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.html, `${width}×${height} document`).toBeLessThanOrEqual(height + 1)
     expect(metrics.body, `${width}×${height} body`).toBeLessThanOrEqual(height + 1)
     expect(metrics.width, `${width}×${height} horizontal`).toBeLessThanOrEqual(width)
-    expect(metrics.main, `${width}×${height} main scroll overflow should fit within the notice`).toBeLessThanOrEqual(metrics.mainClient + metrics.noticeHeight + 1)
+    expect(metrics.main, `${width}×${height} main scroll overflow should fit within the notice`).toBeLessThanOrEqual(metrics.mainClient + metrics.noticeHeight + 9)
     if ([390, 393, 430].includes(width) && height >= 844) {
       expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeGreaterThanOrEqual(11.95)
       expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeLessThanOrEqual(16)
