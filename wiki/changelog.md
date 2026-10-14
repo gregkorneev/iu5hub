@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-14 — Beta Home support/notice carousel
+
+- Support and the red Yandex Disk notice now occupy one swipeable card slot on Home. Added two accessible pager controls, preserved vertical Home scrolling, and honored reduced-motion preferences. The focused cross-browser Home suite and full `npm run qa` passed (303 Playwright cases; five host-specific skips). Beta deployment and manual Telegram device check pending.
+
 ## 2026-10-14 — Home vertical overflow
 
 - Removed the extra bottom reserve on tall portrait Home when the red Yandex Disk status notice is present, keeping the notice visible above the footer/navigation without inner vertical scrolling. Short screens preserve natural scrolling. Released in `4d33834`; production Pages smoke confirmed the updated CSS and notice copy. Focused Home regression passed 39/39 in Chromium, mobile Chromium and WebKit; full `npm run qa` passed with 298 browser cases (two existing WebKit keyboard-only skips), 30 Vitest and 81 Node/Worker tests.

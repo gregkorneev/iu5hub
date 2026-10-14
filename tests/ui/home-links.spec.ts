@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { test, expect } from './fixtures'
 
 test('shows the Telegram identity as a compact link to Profile only for signed-in users', async ({ page }) => {
@@ -193,12 +194,15 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
 
   const courses = page.locator('.home-courses')
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
-  const support = page.getByRole('region', { name: 'Нужен материал или помощь?' })
-  const notice = page.getByRole('status', { name: 'Временные неполадки' })
+  const statusCarousel = page.getByRole('region', { name: 'Поддержка и уведомления' })
+  const support = page.locator('.home-support')
+  const notice = page.locator('.home-notice')
   await expect(courses).toBeVisible()
   await expect(usefulLinks).toBeVisible()
+  await expect(statusCarousel).toBeVisible()
   await expect(support).toContainText('Напишите боту в чат.')
   await expect(notice).toContainText('из-за временной нестабильной работы Яндекс Диска')
+  await expect(notice).toHaveAttribute('aria-hidden', 'true')
   await expect(support.getByRole('link')).toHaveCount(0)
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
@@ -232,8 +236,9 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   expect(coursesBounds && linksBounds && supportBounds && noticeBounds && footerBounds).toBeTruthy()
   expect(linksBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
   expect(supportBounds!.y).toBeGreaterThanOrEqual(linksBounds!.y + linksBounds!.height)
-  expect(noticeBounds!.y).toBeGreaterThanOrEqual(supportBounds!.y + supportBounds!.height)
-  expect(footerBounds!.y).toBeGreaterThanOrEqual(noticeBounds!.y + noticeBounds!.height)
+  expect(Math.abs(noticeBounds!.y - supportBounds!.y)).toBeLessThanOrEqual(1)
+  expect(noticeBounds!.x).toBeGreaterThanOrEqual(supportBounds!.x + supportBounds!.width - 1)
+  expect(footerBounds!.y).toBeGreaterThanOrEqual(supportBounds!.y + supportBounds!.height)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   await page.screenshot({ path: testInfo.outputPath('home-useful-links.png') })
   await page.evaluate(() => {
@@ -250,6 +255,61 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await githubLink.click()
   await ugapanyukLink.click()
   expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
+})
+
+test('switches the Home support and notice cards with accessible controls and reduced motion', async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 852 })
+  await page.goto('/#/')
+  const pages = page.getByRole('group', { name: 'Выбрать карточку' }).getByRole('button')
+  const support = page.locator('.home-support')
+  const notice = page.locator('.home-notice')
+  await expect(pages).toHaveCount(2)
+  await expect(pages.nth(0)).toHaveAttribute('aria-pressed', 'true')
+  await pages.nth(1).focus()
+  await page.keyboard.press('Space')
+  await expect(pages.nth(1)).toHaveAttribute('aria-pressed', 'true')
+  await expect(notice).toHaveAttribute('aria-hidden', 'false')
+  await expect(notice).toBeVisible()
+  await expect(support).toHaveAttribute('aria-hidden', 'true')
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await pages.nth(0).focus()
+  await page.keyboard.press('Enter')
+  await expect(pages.nth(0)).toHaveAttribute('aria-pressed', 'true')
+  await expect(support).toHaveAttribute('aria-hidden', 'false')
+  expect(await page.locator('.home-status-carousel__viewport').evaluate((element) => getComputedStyle(element).scrollBehavior)).toBe('auto')
+  const accessibility = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
+  expect(accessibility.violations).toEqual([])
+})
+
+test('swipes between Home status cards without intercepting vertical page scroll', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium', 'CDP touch input is only available in Chromium.')
+  await page.setViewportSize({ width: 393, height: 852 })
+  await page.goto('/#/')
+  const viewport = page.locator('.home-status-carousel__viewport')
+  const bounds = await viewport.boundingBox()
+  expect(bounds).not.toBeNull()
+  const session = await page.context().newCDPSession(page)
+  const swipe = async (x: number, y: number, endX: number, endY: number) => {
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, x, y }] })
+    for (let step = 1; step <= 5; step += 1) {
+      await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: x + (endX - x) * step / 5, y: y + (endY - y) * step / 5 }] })
+    }
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  }
+  const y = bounds!.y + bounds!.height / 2
+  await swipe(bounds!.x + bounds!.width - 24, y, bounds!.x + 24, y)
+  await expect(page.getByRole('group', { name: 'Выбрать карточку' }).getByRole('button').nth(1)).toHaveAttribute('aria-pressed', 'true')
+  await swipe(bounds!.x + 24, y, bounds!.x + bounds!.width - 24, y)
+  await expect(page.getByRole('group', { name: 'Выбрать карточку' }).getByRole('button').nth(0)).toHaveAttribute('aria-pressed', 'true')
+
+  await page.setViewportSize({ width: 320, height: 568 })
+  await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
+  const compactBounds = await viewport.boundingBox()
+  expect(compactBounds).not.toBeNull()
+  await swipe(compactBounds!.x + compactBounds!.width / 2, compactBounds!.y + 32, compactBounds!.x + compactBounds!.width / 2, compactBounds!.y - 80)
+  expect(await page.locator('main').evaluate((main: HTMLElement) => main.scrollTop)).toBeGreaterThan(0)
+  await session.detach()
 })
 
 test('shows a Favorites block between courses and Useful Links and opens the existing profile', async ({ page }) => {

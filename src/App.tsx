@@ -98,7 +98,13 @@ function Home() {
   const user = getTelegramUser()
   const { courses } = useCatalog()
   const favorites = useFavorites()
+  const statusCarousel = useRef<HTMLDivElement>(null)
+  const [activeStatusPage, setActiveStatusPage] = useState(0)
   const onlySavedFolder = favorites.items.length === 1 && favorites.items[0].type === 'dir' ? favorites.items[0] : undefined
+  const selectStatusPage = (page: number) => {
+    const carousel = statusCarousel.current
+    if (carousel) carousel.scrollTo({ left: page * carousel.clientWidth, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }
   return <>
     <div className="home-intro-row">
       {user?.username && <Link className="user-greeting" to="/profile" aria-label={`Открыть профиль: ${user.username}`}>
@@ -129,20 +135,33 @@ function Home() {
         <li className="home-links__item--freshmen"><a className="home-links__link--freshmen" aria-label="Будущим первокурсникам" href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><HardDrive aria-hidden="true" focusable="false" /><span className="home-links__label"><span>Будущим</span><span>первокурсникам</span></span></a></li>
       </ul>
     </section>
-    <section className="home-support" aria-labelledby="home-support-title">
-      <MessageCircle aria-hidden="true" focusable="false" />
-      <div className="home-support__copy">
-        <h2 id="home-support-title">Нужен материал или помощь?</h2>
-        <p>Напишите боту в чат.</p>
+    <section className="home-status-carousel" role="region" aria-label="Поддержка и уведомления" aria-roledescription="карусель">
+      <div className="home-status-carousel__viewport" role="group" aria-label="Карточки. Пролистайте или выберите страницу ниже." tabIndex={0} ref={statusCarousel} onScroll={(event) => {
+        const carousel = event.currentTarget
+        setActiveStatusPage(Math.min(1, Math.round(carousel.scrollLeft / carousel.clientWidth)))
+      }}>
+        <div className="home-status-carousel__track">
+          <section className="home-support home-status-carousel__slide" role="group" aria-label="1 из 2: Поддержка" aria-roledescription="слайд" aria-hidden={activeStatusPage !== 0}>
+            <MessageCircle aria-hidden="true" focusable="false" />
+            <div className="home-support__copy">
+              <h2 id="home-support-title">Нужен материал или помощь?</h2>
+              <p>Напишите боту в чат.</p>
+            </div>
+          </section>
+          <aside className="home-notice home-status-carousel__slide" role="status" aria-label="Временные неполадки" aria-roledescription="слайд" aria-hidden={activeStatusPage !== 1}>
+            <AlertTriangle aria-hidden="true" focusable="false" />
+            <div className="home-notice__copy">
+              <h2 id="home-notice-title">Временные неполадки</h2>
+              <p>В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <div className="home-status-carousel__pagination" role="group" aria-label="Выбрать карточку">
+        <button type="button" aria-label="Показать поддержку" aria-pressed={activeStatusPage === 0} onClick={() => selectStatusPage(0)} />
+        <button type="button" aria-label="Показать уведомление о неполадках" aria-pressed={activeStatusPage === 1} onClick={() => selectStatusPage(1)} />
       </div>
     </section>
-    <aside className="home-notice" role="status" aria-labelledby="home-notice-title">
-      <AlertTriangle aria-hidden="true" focusable="false" />
-      <div className="home-notice__copy">
-        <h2 id="home-notice-title">Временные неполадки</h2>
-        <p>В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.</p>
-      </div>
-    </aside>
   </>
 }
 function CoursePage() {

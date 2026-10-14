@@ -1,5 +1,9 @@
 # Testing
 
+## Beta Home support/notice carousel — 2026-10-14
+
+The support card and Yandex Disk notice occupy the same horizontal snap viewport. Browser regression verifies the cards switch in both directions with touch input, vertical swipes still scroll Home at a compact viewport, pager buttons support keyboard activation, inactive content is hidden from assistive technology, `prefers-reduced-motion` disables smooth scrolling, and axe reports no violations (excluding the separately audited color-contrast rule). Focused Home coverage passed 43/43 across Chromium, mobile Chromium and WebKit; touch swipes run in mobile Chromium. Full `npm run qa` passed lint, typecheck, 30 Vitest tests, Node/Worker and data validation, production build, and 303 Playwright cases; five existing host-specific cases were skipped. This is browser emulation, not a physical Telegram Mini App check. Beta deployment is pending.
+
 ## Home vertical overflow fix — 2026-10-14
 
 On tall portrait phone viewports, Home no longer reserves extra bottom space below the content when the Yandex Disk status notice is present. Browser regressions require zero inner main scrolling and check that the notice remains above the footer/nav, both with and without a saved Favorite. Shorter viewports retain natural scrolling and reachability. Focused Home Playwright passed 39/39 in Chromium, mobile Chromium and WebKit. Full `npm run qa` passed lint, typecheck, 30 Vitest, 81 Node/Worker tests, data validations, production build and 298 Playwright cases; two existing WebKit keyboard-only cases were skipped. Beta CI [run 38618972634](https://github.com/gregkorneev/iu5hub/actions/runs/38618972634) passed. Production Pages returned HTTP 200 and served the updated CSS rule plus the status notice copy in its JS asset. Telegram fullscreen safe-area behavior still needs a physical device check.
