@@ -2,7 +2,7 @@
 
 ## Home vertical overflow fix — 2026-10-14
 
-On tall portrait phone viewports, Home no longer reserves extra bottom space below the content when the Yandex Disk status notice is present. Browser regressions require zero inner main scrolling and check that the notice remains above the footer/nav, both with and without a saved Favorite. Shorter viewports retain natural scrolling and reachability. Focused Home Playwright passed 39/39 in Chromium, mobile Chromium and WebKit. Full `npm run qa` passed lint, typecheck, 30 Vitest, 81 Node/Worker tests, data validations, production build and 298 Playwright cases; two existing WebKit keyboard-only cases were skipped. This is browser viewport coverage; Telegram fullscreen safe-area behavior still needs a physical device check.
+On tall portrait phone viewports, Home no longer reserves extra bottom space below the content when the Yandex Disk status notice is present. Browser regressions require zero inner main scrolling and check that the notice remains above the footer/nav, both with and without a saved Favorite. Shorter viewports retain natural scrolling and reachability. Focused Home Playwright passed 39/39 in Chromium, mobile Chromium and WebKit. Full `npm run qa` passed lint, typecheck, 30 Vitest, 81 Node/Worker tests, data validations, production build and 298 Playwright cases; two existing WebKit keyboard-only cases were skipped. Beta CI [run 38618972634](https://github.com/gregkorneev/iu5hub/actions/runs/38618972634) passed. Production Pages returned HTTP 200 and served the updated CSS rule plus the status notice copy in its JS asset. Telegram fullscreen safe-area behavior still needs a physical device check.
 
 ## Branch and environment checks
 

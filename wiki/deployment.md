@@ -40,6 +40,10 @@ Student-facing entry is the bot «Студент ИУ5» (`https://t.me/<bot_use
 
 Production release merge `fbeede9` adds the temporary Yandex Disk status notice to Home, matching Beta's red-accent card and copy. Cloudflare Pages Git integration published `main` at [`https://iu5hub.pages.dev`](https://iu5hub.pages.dev); a browser smoke confirmed the notice and a cache-busted root returned JS `index-BX63lEnV.js` and CSS `index-8H7eEW1K.css` with the new text and styles. This is frontend-only: no production Worker redeploy or D1 migration was required. Physical Telegram WebView testing remains unavailable while the Beta bot setup is pending.
 
+### Home vertical overflow fix — 2026-10-14
+
+Release merge `4d33834` removes the extra bottom reserve on tall portrait Home when the notice is present. Beta Pages smoke confirmed the Beta CSS rule before release; production Pages returned HTTP 200 and served CSS `index-BgeONgy5.css` with `.app--home:has(.home-notice) main{padding-bottom:0}` plus JS `index-BtSlI-pJ.js` with the status notice copy. No Worker change, migration or D1 operation was required. Beta must fast-forward to the release merge and remain available as the preview environment. Physical Telegram device validation remains open.
+
 The Mini App uses `HashRouter`; client routes are URLs such as `/#/material/<id>`. No provider-specific SPA fallback is needed for them. Static Website Hosting must return `index.html` for the base endpoint and should use generated `error.html` as its error document.
 
 ## Implemented GitHub Actions pipeline
