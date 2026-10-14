@@ -321,6 +321,8 @@ test('swipes between Home status cards without intercepting vertical page scroll
   expect(compactBounds).not.toBeNull()
   await swipe(compactBounds!.x + compactBounds!.width / 2, compactBounds!.y + 32, compactBounds!.x + compactBounds!.width / 2, compactBounds!.y - 80)
   expect(await page.locator('main').evaluate((main: HTMLElement) => main.scrollTop)).toBeGreaterThan(0)
+  await page.waitForTimeout(6000)
+  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
   await session.detach()
 })
 

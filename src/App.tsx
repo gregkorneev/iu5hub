@@ -155,7 +155,7 @@ function Home() {
       }
       setStatusPosition(destination)
       setActiveStatusPage(destination === 1 ? 0 : 1)
-      setInteractionPaused(carousel.matches(':hover') || carousel.contains(document.activeElement))
+      setInteractionPaused(carousel.matches(':hover'))
     }, 140)
   }
   const stepStatusCarousel = (direction: -1 | 1) => moveToStatusPosition(statusPosition + direction)
