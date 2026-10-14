@@ -1,10 +1,10 @@
 # Changelog
 
-## 2026-10-14 — Beta Home support/notice carousel
+## 2026-10-14 — Home support/notice carousel release
 
-- Support and the red Yandex Disk notice now occupy one swipeable card slot on Home. Added two accessible pager controls, preserved vertical Home scrolling, and honored reduced-motion preferences. The focused cross-browser Home suite, full `npm run qa` (303 Playwright cases; five host-specific skips), and Beta CI passed. Beta Pages serves the new JS/CSS assets; manual Telegram device check remains open.
+- Support and the red Yandex Disk notice now occupy one swipeable card slot on Home. Added accessible pager controls, preserved vertical Home scrolling, and use immediate transitions when reduced motion is requested while autoplay continues. Full Beta CI [38633312936](https://github.com/gregkorneev/iu5hub/actions/runs/38633312936) passed; production Pages smoke returned HTTP 200 and served the new assets. Release commit: `a544448`. No Worker deploy or D1 migration was needed; manual Telegram device check remains open.
 - Increased pagination contrast: the inactive carousel position now uses a pale gray dot and the active position remains blue.
-- The Home carousel starts on «Временные неполадки», loops in both directions, and advances automatically every five seconds. Added a pause control and pause-on-hover/focus/manual interaction to keep rotation out of the user's way.
+- The Home carousel starts on «Временные неполадки», loops in both directions, and advances automatically every five seconds. A swipe or manual navigation restarts the timer; hovering or focusing the carousel pauses rotation. There is no on-screen pause control.
 
 ## 2026-10-14 — Home vertical overflow
 

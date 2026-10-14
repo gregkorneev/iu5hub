@@ -18,6 +18,10 @@ Cloudflare's native Git preview is triggered directly by a `beta` push and is no
 
 Only explicit user approval such as «делаем релиз», «выпускаем релиз», «релизим» or «переноси beta в main» authorizes production release. Follow [development-workflow.md](development-workflow.md): fetch both branches, merge current main into beta, run full QA and release checks on beta, merge beta to main only after the approval, apply reviewed migrations to production D1, deploy production Worker, allow the Pages Git integration to publish main, smoke test production, then synchronize beta with the resulting main.
 
+### Home support/notice carousel — 2026-10-14
+
+Release commit `a544448` moved the tested Beta carousel to `main`. Beta CI [38633312936](https://github.com/gregkorneev/iu5hub/actions/runs/38633312936) passed the full verify job. Production Pages now serves the updated hashed JS/CSS; the root and a hash-route request returned HTTP 200, and the production JS bundle contains the red Yandex Disk notice, its copy, and both carousel pager labels. This frontend-only release required no production Worker deployment or D1 migration. `main` and `beta` were synchronized at `a544448`; this release note is the subsequent Wiki update.
+
 For rollback, redeploy the last known-good Pages deployment/commit and Worker version. Do not assume a destructive D1 migration can be rolled back; prefer additive, backward-compatible migrations and prepare a separate data recovery plan when destructive changes are unavoidable.
 
 ## One-time legacy anonymous cohort snapshot — 2026-10-07

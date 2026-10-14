@@ -1,8 +1,8 @@
 # Testing
 
-## Beta Home support/notice carousel — 2026-10-14
+## Home support/notice carousel release — 2026-10-14
 
-The notice is the initial slide; cloned edge slides make horizontal swipes loop in both directions without intercepting vertical Home scroll. Browser regression covers swipe wrapping, five-second automatic rotation, resuming five seconds after manual navigation, hover/focus pause, the pause control, keyboard arrows and pager buttons. Reduced-motion preference disables autoplay by default and uses instant movement if explicitly resumed. Inactive slides are hidden from assistive technology and the viewport uses `aria-live="off"` to avoid announcing automatic changes. Axe has no violations (excluding the separately audited color-contrast rule). Full local `npm run qa` passed: lint, typecheck, 30 Vitest, Node/Worker and data checks, build, and 307 Playwright passes with five existing host-specific skips. This remains browser emulation, not a physical Telegram Mini App check.
+The notice is the initial slide; cloned edge slides make horizontal swipes loop in both directions without intercepting vertical Home scroll. Browser regression covers swipe wrapping, five-second automatic rotation, resuming five seconds after manual navigation, pause while hovered/focused, keyboard arrows and pager buttons. There is no pause control. Reduced-motion preference uses immediate movement while autoplay continues. Inactive slides are hidden from assistive technology and the viewport uses `aria-live="off"` to avoid announcing automatic changes. Axe has no violations (excluding the separately audited color-contrast rule). Full Beta CI [38633312936](https://github.com/gregkorneev/iu5hub/actions/runs/38633312936) passed. Production Pages returned HTTP 200 and served the updated JS/CSS assets and notice text. No Worker deploy or D1 migration was needed. This remains browser emulation, not a physical Telegram Mini App check.
 
 ## Home vertical overflow fix — 2026-10-14
 
@@ -14,7 +14,7 @@ Ordinary feature QA runs on `beta`; a production release additionally requires t
 
 ## Yandex Disk status notice — 2026-10-14
 
-Beta Home displays an accessible status notice after the support card and before the footer, with red warning accents and the copy «В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.» Playwright verifies the copy and order, and compact Telegram viewport tests verify scrolling without clipping. Full local `npm run qa` passed: lint, typecheck, 30 Vitest, 81 Node/Worker tests, search/tagging/schedule validations, production build and 298 Playwright cases; two existing WebKit keyboard-only cases were skipped. The Beta Pages root served the updated hashed build. No Worker code or D1 migration is part of this release. Physical Telegram testing remains unavailable while Beta bot setup is pending.
+Home displays an accessible status notice in the shared carousel slot with the support card, using red warning accents and the copy «В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.» Playwright verifies the copy, carousel order and compact viewport behavior. The carousel shipped in `a544448`; full Beta CI passed and production Pages returned HTTP 200 with the new hashed assets. No Worker code or D1 migration was part of this release. Physical Telegram testing remains unavailable while Beta bot setup is pending.
 
 GitHub Actions [run 38615568228](https://github.com/gregkorneev/iu5hub/actions/runs/38615568228) passed the full 375-case Playwright matrix on Ubuntu, plus lint, typecheck, Node/Worker tests, validations and build. After merge, the in-app browser opened production Home and exposed the named status card in its accessibility tree; cache-busted Pages assets contained the updated Russian copy and red notice styles. This verifies publication through Cloudflare Pages, not a physical Telegram WebView.
 
