@@ -367,12 +367,15 @@ section + section { margin-top: 2.5rem; }
 .home-status-carousel { min-width: 0; margin-top: auto; margin-bottom: var(--space-3); }
 .home-status-carousel__viewport { overflow-x: auto; scrollbar-width: none; scroll-snap-type: x mandatory; scroll-behavior: smooth; overscroll-behavior-x: contain; }
 .home-status-carousel__viewport::-webkit-scrollbar { display: none; }
-.home-status-carousel__track { display: flex; align-items: stretch; width: 200%; }
-.home-status-carousel__slide { box-sizing: border-box; flex: 0 0 50%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+.home-status-carousel__track { display: flex; align-items: stretch; width: 400%; }
+.home-status-carousel__slide { box-sizing: border-box; flex: 0 0 25%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
 .home-status-carousel .home-support, .home-status-carousel .home-notice { margin: 0; }
-.home-status-carousel__pagination { display: flex; justify-content: center; margin-top: var(--space-1); }
+.home-status-carousel__pagination { display: flex; align-items: center; justify-content: center; margin-top: var(--space-1); }
 .home-status-carousel__pagination button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; border-radius: var(--radius-pill); background: transparent; cursor: pointer; }
-.home-status-carousel__pagination button::before { width: 6px; height: 6px; border-radius: var(--radius-pill); background: #c4cbd4; content: ''; transition: width var(--duration-transition) var(--curve-exit), background-color var(--duration-transition) ease-out; }
+.home-status-carousel__pagination .home-status-carousel__rotation { color: var(--text-tertiary); }
+.home-status-carousel__rotation::before { content: none !important; }
+.home-status-carousel__rotation svg { width: 1rem; height: 1rem; }
+.home-status-carousel__pagination button::before { width: 6px; height: 6px; border-radius: var(--radius-pill); background: rgb(196 203 212); content: ''; transition: width var(--duration-transition) var(--curve-exit), background-color var(--duration-transition) ease-out; }
 .home-status-carousel__pagination button[aria-pressed="true"]::before { width: 18px; background: var(--action); }
 .home-status-carousel__pagination button:focus-visible { outline: 2px solid var(--action); outline-offset: -3px; }
 .home-favorites__link { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto 1.25rem; align-items: center; gap: var(--space-3); min-height: 4.25rem; padding: var(--space-3) var(--space-4); border-radius: var(--radius-large); background: var(--surface-elevated); box-shadow: inset 0 1px 0 var(--material-highlight), 0 1px 0 var(--separator); color: var(--text-primary); text-decoration: none; }

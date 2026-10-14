@@ -4,6 +4,7 @@
 
 - Support and the red Yandex Disk notice now occupy one swipeable card slot on Home. Added two accessible pager controls, preserved vertical Home scrolling, and honored reduced-motion preferences. The focused cross-browser Home suite, full `npm run qa` (303 Playwright cases; five host-specific skips), and Beta CI passed. Beta Pages serves the new JS/CSS assets; manual Telegram device check remains open.
 - Increased pagination contrast: the inactive carousel position now uses a pale gray dot and the active position remains blue.
+- The Home carousel starts on «Временные неполадки», loops in both directions, and advances automatically every five seconds. Added a pause control and pause-on-hover/focus/manual interaction to keep rotation out of the user's way.
 
 ## 2026-10-14 — Home vertical overflow
 

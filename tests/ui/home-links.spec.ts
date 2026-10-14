@@ -163,6 +163,7 @@ test('keeps home controls usable and scrolls without clipping at short viewports
 test('shows clickable Yandex Disk and GitHub links below courses on the home screen', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/')
+  await page.getByRole('button', { name: 'Остановить автоперелистывание' }).click()
 
   const brandGeometry = await page.evaluate(() => {
     const group = document.querySelector('.header-brand-group')!.getBoundingClientRect()
@@ -195,14 +196,15 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   const courses = page.locator('.home-courses')
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
   const statusCarousel = page.getByRole('region', { name: 'Поддержка и уведомления' })
-  const support = page.locator('.home-support')
-  const notice = page.locator('.home-notice')
+  const support = page.locator('.home-support:not([inert])')
+  const notice = page.locator('.home-notice:not([inert])')
   await expect(courses).toBeVisible()
   await expect(usefulLinks).toBeVisible()
   await expect(statusCarousel).toBeVisible()
   await expect(support).toContainText('Напишите боту в чат.')
   await expect(notice).toContainText('из-за временной нестабильной работы Яндекс Диска')
-  await expect(notice).toHaveAttribute('aria-hidden', 'true')
+  await expect(notice).toHaveAttribute('aria-hidden', 'false')
+  await expect(support).toHaveAttribute('aria-hidden', 'true')
   await expect(support.getByRole('link')).toHaveCount(0)
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
@@ -237,7 +239,7 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   expect(linksBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
   expect(supportBounds!.y).toBeGreaterThanOrEqual(linksBounds!.y + linksBounds!.height)
   expect(Math.abs(noticeBounds!.y - supportBounds!.y)).toBeLessThanOrEqual(1)
-  expect(noticeBounds!.x).toBeGreaterThanOrEqual(supportBounds!.x + supportBounds!.width - 1)
+  expect(supportBounds!.width).toBeCloseTo(noticeBounds!.width, 0)
   expect(footerBounds!.y).toBeGreaterThanOrEqual(supportBounds!.y + supportBounds!.height)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   await page.screenshot({ path: testInfo.outputPath('home-useful-links.png') })
@@ -260,25 +262,26 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
 test('switches the Home support and notice cards with accessible controls and reduced motion', async ({ page }) => {
   await page.setViewportSize({ width: 393, height: 852 })
   await page.goto('/#/')
-  const pages = page.getByRole('group', { name: 'Выбрать карточку' }).getByRole('button')
-  const support = page.locator('.home-support')
-  const notice = page.locator('.home-notice')
-  await expect(pages).toHaveCount(2)
-  await expect(pages.nth(0)).toHaveAttribute('aria-pressed', 'true')
-  await expect(pages.nth(1).evaluate((button) => getComputedStyle(button, '::before').backgroundColor)).resolves.toBe('rgb(196, 203, 212)')
-  await expect(pages.nth(0).evaluate((button) => getComputedStyle(button, '::before').backgroundColor)).resolves.not.toBe('rgb(196, 203, 212)')
-  await pages.nth(1).focus()
-  await page.keyboard.press('Space')
-  await expect(pages.nth(1)).toHaveAttribute('aria-pressed', 'true')
+  const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
+  const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
+  const support = page.locator('.home-support:not([inert])')
+  const notice = page.locator('.home-notice:not([inert])')
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
+  await expect.poll(() => supportPage.evaluate((button) => getComputedStyle(button, '::before').width)).toBe('6px')
+  await expect.poll(() => noticePage.evaluate((button) => getComputedStyle(button, '::before').width)).toBe('18px')
   await expect(notice).toHaveAttribute('aria-hidden', 'false')
-  await expect(notice).toBeVisible()
   await expect(support).toHaveAttribute('aria-hidden', 'true')
+  await supportPage.focus()
+  await page.keyboard.press('Space')
+  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
+  await expect(support).toHaveAttribute('aria-hidden', 'false')
+  await expect(notice).toHaveAttribute('aria-hidden', 'true')
 
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await pages.nth(0).focus()
+  await noticePage.focus()
   await page.keyboard.press('Enter')
-  await expect(pages.nth(0)).toHaveAttribute('aria-pressed', 'true')
-  await expect(support).toHaveAttribute('aria-hidden', 'false')
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
+  await expect(notice).toHaveAttribute('aria-hidden', 'false')
   expect(await page.locator('.home-status-carousel__viewport').evaluate((element) => getComputedStyle(element).scrollBehavior)).toBe('auto')
   const accessibility = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
   expect(accessibility.violations).toEqual([])
@@ -291,6 +294,9 @@ test('swipes between Home status cards without intercepting vertical page scroll
   const viewport = page.locator('.home-status-carousel__viewport')
   const bounds = await viewport.boundingBox()
   expect(bounds).not.toBeNull()
+  const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
+  const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
   const session = await page.context().newCDPSession(page)
   const swipe = async (x: number, y: number, endX: number, endY: number) => {
     await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, x, y }] })
@@ -300,10 +306,14 @@ test('swipes between Home status cards without intercepting vertical page scroll
     await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   }
   const y = bounds!.y + bounds!.height / 2
-  await swipe(bounds!.x + bounds!.width - 24, y, bounds!.x + 24, y)
-  await expect(page.getByRole('group', { name: 'Выбрать карточку' }).getByRole('button').nth(1)).toHaveAttribute('aria-pressed', 'true')
   await swipe(bounds!.x + 24, y, bounds!.x + bounds!.width - 24, y)
-  await expect(page.getByRole('group', { name: 'Выбрать карточку' }).getByRole('button').nth(0)).toHaveAttribute('aria-pressed', 'true')
+  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
+  await swipe(bounds!.x + bounds!.width - 24, y, bounds!.x + 24, y)
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
+  await swipe(bounds!.x + bounds!.width - 24, y, bounds!.x + 24, y)
+  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
+  await swipe(bounds!.x + 24, y, bounds!.x + bounds!.width - 24, y)
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
 
   await page.setViewportSize({ width: 320, height: 568 })
   await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
@@ -312,6 +322,32 @@ test('swipes between Home status cards without intercepting vertical page scroll
   await swipe(compactBounds!.x + compactBounds!.width / 2, compactBounds!.y + 32, compactBounds!.x + compactBounds!.width / 2, compactBounds!.y - 80)
   expect(await page.locator('main').evaluate((main: HTMLElement) => main.scrollTop)).toBeGreaterThan(0)
   await session.detach()
+})
+
+test('automatically rotates Home cards every five seconds and resets after manual navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 852 })
+  await page.goto('/#/')
+  const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
+  const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
+  const pause = page.getByRole('button', { name: 'Остановить автоперелистывание' })
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
+  await page.waitForTimeout(6000)
+  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
+
+  await noticePage.click()
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+  await page.mouse.move(0, 0)
+  await page.waitForTimeout(4800)
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
+  await page.waitForTimeout(900)
+  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
+
+  await pause.click()
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+  await page.mouse.move(0, 0)
+  await page.waitForTimeout(6000)
+  await expect(page.getByRole('button', { name: 'Запустить автоперелистывание' })).toBeVisible()
+  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('shows a Favorites block between courses and Useful Links and opens the existing profile', async ({ page }) => {
@@ -566,14 +602,14 @@ test('keeps the support hint inside Home on a compact phone with Favorites', asy
     ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('viewportChanged')
   })
 
-  await expect(page.locator('.home-support')).toContainText('Напишите боту в чат.')
+  await expect(page.locator('.home-notice:not([inert])')).toContainText('Временные неполадки')
   await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = main.scrollHeight })
-  await expect(page.locator('.home-support p')).toBeInViewport()
+  await expect(page.locator('.home-notice:not([inert]) p')).toBeInViewport()
   const geometry = await page.evaluate(() => {
     const main = document.querySelector('main')!
     const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
-    const title = document.querySelector('.home-support h2')!
-    return { mainHeight: main.clientHeight, mainContentHeight: main.scrollHeight, noticeHeight: rect('.home-notice').height, supportBottom: rect('.home-support').bottom, mainBottom: rect('main').bottom,
+    const title = document.querySelector('.home-notice:not([inert]) h2')!
+    return { mainHeight: main.clientHeight, mainContentHeight: main.scrollHeight, noticeHeight: rect('.home-notice:not([inert])').height, supportBottom: rect('.home-notice:not([inert])').bottom, mainBottom: rect('main').bottom,
       titleHeight: title.getBoundingClientRect().height, titleLineHeight: parseFloat(getComputedStyle(title).lineHeight) }
   })
   expect(geometry.mainContentHeight).toBeLessThanOrEqual(geometry.mainHeight + geometry.noticeHeight + 1)
