@@ -140,7 +140,7 @@ function Home() {
       <AlertTriangle aria-hidden="true" focusable="false" />
       <div className="home-notice__copy">
         <h2 id="home-notice-title">Временные неполадки</h2>
-        <p>В работе приложения могут возникать сбои из-за временной нестабильности Яндекс.Диска.</p>
+        <p>В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.</p>
       </div>
     </aside>
   </>
