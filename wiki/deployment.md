@@ -38,7 +38,7 @@ Student-facing entry is the bot «Студент ИУ5» (`https://t.me/<bot_use
 
 ### Yandex Disk status notice — 2026-10-14
 
-Production release merge `fbeede9` adds the temporary Yandex Disk status notice to Home, matching Beta's red-accent card and copy. Cloudflare Pages Git integration published `main` at [`https://iu5hub.pages.dev`](https://iu5hub.pages.dev); a browser smoke confirmed the notice and a cache-busted root returned JS `index-BX63lEnV.js` and CSS `index-8H7eEW1K.css` with the new text and styles. This is frontend-only: no production Worker redeploy or D1 migration was required. Beta still needs to be synchronized to the released main head. Physical Telegram WebView testing remains unavailable while the Beta bot setup is pending.
+Production release merge `fbeede9` adds the temporary Yandex Disk status notice to Home, matching Beta's red-accent card and copy. Cloudflare Pages Git integration published `main` at [`https://iu5hub.pages.dev`](https://iu5hub.pages.dev); a browser smoke confirmed the notice and a cache-busted root returned JS `index-BX63lEnV.js` and CSS `index-8H7eEW1K.css` with the new text and styles. This is frontend-only: no production Worker redeploy or D1 migration was required. Physical Telegram WebView testing remains unavailable while the Beta bot setup is pending.
 
 The Mini App uses `HashRouter`; client routes are URLs such as `/#/material/<id>`. No provider-specific SPA fallback is needed for them. Static Website Hosting must return `index.html` for the base endpoint and should use generated `error.html` as its error document.
 
