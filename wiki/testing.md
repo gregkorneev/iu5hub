@@ -1,5 +1,9 @@
 # Testing
 
+## Home vertical overflow fix — 2026-10-14
+
+On tall portrait phone viewports, Home no longer reserves extra bottom space below the content when the Yandex Disk status notice is present. Browser regressions require zero inner main scrolling and check that the notice remains above the footer/nav, both with and without a saved Favorite. Shorter viewports retain natural scrolling and reachability. Focused Home Playwright passed 39/39 in Chromium, mobile Chromium and WebKit. Full `npm run qa` passed lint, typecheck, 30 Vitest, 81 Node/Worker tests, data validations, production build and 298 Playwright cases; two existing WebKit keyboard-only cases were skipped. This is browser viewport coverage; Telegram fullscreen safe-area behavior still needs a physical device check.
+
 ## Branch and environment checks
 
 Ordinary feature QA runs on `beta`; a production release additionally requires the full checks and production smoke documented in `development-workflow.md`. Verify that beta's build points to the beta Worker, the beta Worker binding names the beta D1, the beta Worker name differs from production, and the beta bot token/webhook bindings are separate. Do not log or compare secret values. Confirm that beta analytics, favorites, schedule preferences and support routes appear only in beta D1. `environment-config.node-test.mjs` guards Worker/D1/origin separation and the schedule workflow's beta-only generated-data scope (no force-push, schedule validation required). CI runs the shared UI suite once; the former Beta badge-only test was removed with the badge, so its obsolete CI step was removed too. The scheduled data sync may modify only `public/data/schedule/` on beta and must preserve the beta source-code diff.

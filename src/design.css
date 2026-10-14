@@ -751,6 +751,7 @@ body:has(.app--home) { min-height: 100dvh; }
 }
 @media (min-width: 341px) and (max-width: 620px) and (min-height: 741px) and (orientation: portrait) {
   .app--home main { padding-bottom: clamp(0px, calc(100dvh - var(--tg-safe-area-top) - 756px), 4rem); }
+  .app--home:has(.home-notice) main { padding-bottom: 0; }
   .app--home .home-support { padding-block: var(--space-1); }
   .app--home .home-support h2 { font-size: .875rem; }
   .app--home .home-support p { margin-top: 2px; font-size: .75rem; }
