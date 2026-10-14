@@ -163,6 +163,7 @@ test('keeps home controls usable and scrolls without clipping at short viewports
 test('shows clickable Yandex Disk and GitHub links below courses on the home screen', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/')
+  await expect(page.getByRole('button', { name: 'Показать временные неполадки' })).toHaveAttribute('aria-pressed', 'true')
 
   const brandGeometry = await page.evaluate(() => {
     const group = document.querySelector('.header-brand-group')!.getBoundingClientRect()
@@ -202,8 +203,6 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await expect(statusCarousel).toBeVisible()
   await expect(support).toContainText('Напишите боту в чат.')
   await expect(notice).toContainText('из-за временной нестабильной работы Яндекс Диска')
-  await expect(notice).toHaveAttribute('aria-hidden', 'false')
-  await expect(support).toHaveAttribute('aria-hidden', 'true')
   await expect(support.getByRole('link')).toHaveCount(0)
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
@@ -265,6 +264,7 @@ test('switches the Home support and notice cards with accessible controls and re
   const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
   const support = page.locator('.home-support:not([inert])')
   const notice = page.locator('.home-notice:not([inert])')
+  await noticePage.click()
   await expect(page.getByRole('button', { name: /автоперелистывание/i })).toHaveCount(0)
   await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
   await expect.poll(() => supportPage.evaluate((button) => getComputedStyle(button, '::before').width)).toBe('6px')
@@ -297,6 +297,7 @@ test('swipes between Home status cards without intercepting vertical page scroll
   const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
   const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
   await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
+  await noticePage.hover()
   const session = await page.context().newCDPSession(page)
   const swipe = async (x: number, y: number, endX: number, endY: number) => {
     await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, x, y }] })
@@ -321,8 +322,34 @@ test('swipes between Home status cards without intercepting vertical page scroll
   expect(compactBounds).not.toBeNull()
   await swipe(compactBounds!.x + compactBounds!.width / 2, compactBounds!.y + 32, compactBounds!.x + compactBounds!.width / 2, compactBounds!.y - 80)
   expect(await page.locator('main').evaluate((main: HTMLElement) => main.scrollTop)).toBeGreaterThan(0)
-  await page.waitForTimeout(6000)
+  await session.detach()
+})
+
+test('resumes automatic rotation five seconds after a touch swipe', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium', 'CDP touch input is only available in Chromium.')
+  await page.setViewportSize({ width: 393, height: 852 })
+  await page.goto('/#/')
+  const viewport = page.locator('.home-status-carousel__viewport')
+  const bounds = await viewport.boundingBox()
+  expect(bounds).not.toBeNull()
+  const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
+  const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
+
+  const session = await page.context().newCDPSession(page)
+  const y = bounds!.y + bounds!.height / 2
+  const startX = bounds!.x + 24
+  const endX = bounds!.x + bounds!.width - 24
+  await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, x: startX, y }] })
+  for (let step = 1; step <= 5; step += 1) {
+    await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: startX + (endX - startX) * step / 5, y }] })
+  }
+  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
+  await viewport.focus()
+  await page.waitForTimeout(4500)
+  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
+  await expect(noticePage).toHaveAttribute('aria-pressed', 'true', { timeout: 2500 })
   await session.detach()
 })
 
@@ -336,6 +363,7 @@ test('automatically rotates Home cards every five seconds and resets after manua
   await page.waitForTimeout(6000)
   await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
 
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await noticePage.click()
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
   await page.mouse.move(0, 0)

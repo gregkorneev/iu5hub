@@ -100,6 +100,7 @@ function Home() {
   const favorites = useFavorites()
   const statusCarousel = useRef<HTMLDivElement>(null)
   const scrollEndTimer = useRef<number | undefined>(undefined)
+  const mouseHoveringCarousel = useRef(false)
   const [statusPosition, setStatusPosition] = useState(1)
   const [activeStatusPage, setActiveStatusPage] = useState(0)
   const [interactionPaused, setInteractionPaused] = useState(false)
@@ -130,7 +131,7 @@ function Home() {
   }, [])
   useEffect(() => () => window.clearTimeout(scrollEndTimer.current), [])
   useEffect(() => {
-    if (reducedMotion || interactionPaused) return
+    if (interactionPaused) return
     const timer = window.setTimeout(() => {
       const carousel = statusCarousel.current
       if (carousel) carousel.scrollTo({ left: ((statusPosition + 1) % 4) * carousel.clientWidth, behavior: reducedMotion ? 'auto' : 'smooth' })
@@ -155,12 +156,12 @@ function Home() {
       }
       setStatusPosition(destination)
       setActiveStatusPage(destination === 1 ? 0 : 1)
-      setInteractionPaused(carousel.matches(':hover'))
+      setInteractionPaused(mouseHoveringCarousel.current)
     }, 140)
   }
   const stepStatusCarousel = (direction: -1 | 1) => moveToStatusPosition(statusPosition + direction)
   const releaseStatusFocus = (relatedTarget: EventTarget | null, currentTarget: HTMLElement) => {
-    if (!(relatedTarget instanceof Node) || !currentTarget.contains(relatedTarget)) setInteractionPaused(currentTarget.matches(':hover'))
+    if (!(relatedTarget instanceof Node) || !currentTarget.contains(relatedTarget)) setInteractionPaused(mouseHoveringCarousel.current)
   }
   return <>
     <div className="home-intro-row">
@@ -192,7 +193,7 @@ function Home() {
         <li className="home-links__item--freshmen"><a className="home-links__link--freshmen" aria-label="Будущим первокурсникам" href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><HardDrive aria-hidden="true" focusable="false" /><span className="home-links__label"><span>Будущим</span><span>первокурсникам</span></span></a></li>
       </ul>
     </section>
-    <section className="home-status-carousel" role="region" aria-label="Поддержка и уведомления" aria-roledescription="карусель" onPointerEnter={(event) => { if (event.pointerType === 'mouse') setInteractionPaused(true) }} onPointerLeave={(event) => { if (event.pointerType === 'mouse' && !statusCarousel.current?.contains(document.activeElement)) setInteractionPaused(false) }} onFocusCapture={() => setInteractionPaused(true)} onBlurCapture={(event) => releaseStatusFocus(event.relatedTarget, event.currentTarget)}>
+    <section className="home-status-carousel" role="region" aria-label="Поддержка и уведомления" aria-roledescription="карусель" onPointerEnter={(event) => { if (event.pointerType === 'mouse') { mouseHoveringCarousel.current = true; setInteractionPaused(true) } }} onPointerLeave={(event) => { if (event.pointerType === 'mouse') { mouseHoveringCarousel.current = false; if (!statusCarousel.current?.contains(document.activeElement)) setInteractionPaused(false) } }} onFocusCapture={(event) => { if (event.target !== statusCarousel.current) setInteractionPaused(true) }} onBlurCapture={(event) => releaseStatusFocus(event.relatedTarget, event.currentTarget)}>
       <div className="home-status-carousel__viewport" role="group" aria-label="Карточки. Используйте стрелки или пролистайте." aria-live="off" tabIndex={0} ref={statusCarousel} onKeyDown={(event) => {
         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
           event.preventDefault()
