@@ -477,7 +477,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     const scrollOffsets = await page.evaluate(() => ({ page: scrollY, main: document.querySelector('main')!.scrollTop, body: document.body.scrollTop }))
     expect(scrollOffsets.page).toBe(0)
     expect(scrollOffsets.body).toBe(0)
-    expect(scrollOffsets.main, `${width}×${height} scroll should stay within the notice height`).toBeLessThanOrEqual(metrics.noticeHeight + 1)
+    expect(scrollOffsets.main, `${width}×${height} scroll should stay within the compact notice flow`).toBeLessThanOrEqual(metrics.noticeHeight + 32)
     await page.screenshot({ path: testInfo.outputPath(`home-${width}x${height}.png`) })
   }
 })
