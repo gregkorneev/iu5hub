@@ -2,7 +2,11 @@
 
 ## Branch and environment checks
 
-Ordinary feature QA runs on `beta`; a production release additionally requires the full checks and production smoke documented in `development-workflow.md`. Verify that beta's build points to the beta Worker, the beta Worker binding names the beta D1, the beta Worker name differs from production, and the beta bot token/webhook bindings are separate. Do not log or compare secret values. Confirm that beta analytics, favorites, schedule preferences and support routes appear only in beta D1. The scheduled data sync may modify only `public/data/schedule/` on beta and must preserve the beta source-code diff.
+Ordinary feature QA runs on `beta`; a production release additionally requires the full checks and production smoke documented in `development-workflow.md`. Verify that beta's build points to the beta Worker, the beta Worker binding names the beta D1, the beta Worker name differs from production, and the beta bot token/webhook bindings are separate. Do not log or compare secret values. Confirm that beta analytics, favorites, schedule preferences and support routes appear only in beta D1. `environment-config.node-test.mjs` guards Worker/D1/origin separation and the schedule workflow's beta-only generated-data scope (no force-push, schedule validation required). CI runs the shared UI suite once; the former Beta badge-only test was removed with the badge, so its obsolete CI step was removed too. The scheduled data sync may modify only `public/data/schedule/` on beta and must preserve the beta source-code diff.
+
+## Yandex Disk status notice — 2026-10-14
+
+Beta Home displays an accessible status notice after the support card and before the footer, with red warning accents and the copy «В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.» Playwright verifies the copy and order, and compact Telegram viewport tests verify scrolling without clipping. Full local `npm run qa` passed: lint, typecheck, 30 Vitest, 81 Node/Worker tests, search/tagging/schedule validations, production build and 298 Playwright cases; two existing WebKit keyboard-only cases were skipped. The Beta Pages root served the updated hashed build. No Worker code or D1 migration is part of this release. Physical Telegram testing remains unavailable while Beta bot setup is pending.
 
 ## One-time legacy anonymous cohort snapshot — 2026-10-07
 

@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
-import { CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, MessageCircle, Search, UserRound } from 'lucide-react'
+import { AlertTriangle, CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, MessageCircle, Search, UserRound } from 'lucide-react'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
@@ -136,6 +136,13 @@ function Home() {
         <p>Напишите боту в чат.</p>
       </div>
     </section>
+    <aside className="home-notice" role="status" aria-labelledby="home-notice-title">
+      <AlertTriangle aria-hidden="true" focusable="false" />
+      <div className="home-notice__copy">
+        <h2 id="home-notice-title">Временные неполадки</h2>
+        <p>В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.</p>
+      </div>
+    </aside>
   </>
 }
 function CoursePage() {

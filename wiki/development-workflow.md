@@ -16,7 +16,7 @@ The Phase A/B audit for this migration found six local `codex/*` branches and re
 | Environment | Source | Frontend | API / Worker | D1 | Telegram |
 | --- | --- | --- | --- | --- | --- |
 | Production | `main` | Cloudflare Pages `iu5hub.pages.dev` | `iu5hub-analytics` | `iu5hub-analytics` | «Студент ИУ5» |
-| Beta | `beta` | Cloudflare Pages branch deployment; confirm its stable URL after provisioning | dedicated `iu5hub-analytics-beta` environment | dedicated `iu5hub-beta` database | separate «Студент ИУ5 Beta» bot |
+| Beta | `beta` | Cloudflare Pages `https://beta.iu5hub.pages.dev` | `iu5hub-analytics-beta` (`https://iu5hub-analytics-beta.gregory-korneev.workers.dev`) | `iu5hub-beta` (`89517e15-22fc-48ae-a037-3a1b481137db`) | separate «Студент ИУ5 Beta» bot; BotFather setup pending |
 
 The frontend build uses `VITE_APP_ENV` and the central `VITE_ANALYTICS_API_BASE`. Beta must never point at the production Worker. The Beta Worker uses its own D1 binding, CORS origin, dashboard URL, secrets and webhook. Public read-only Yandex Disk catalogs and schedule source inputs may be shared; private user data and production D1 contents are never cloned.
 
@@ -50,4 +50,4 @@ For a frontend regression, redeploy the last known-good main commit through the 
 
 ## Migration status
 
-This page was committed to main before beta creation as required by the one-time transition sequence. The beta Pages alias, beta Worker/D1 provisioning and Beta bot are recorded as completed or externally blocked in `current-state.md` and `deployment.md` after setup.
+The branch and release policy was committed to main before beta creation. The shared Pages project keeps production branch `main` and allows branch previews; the `beta` preview deployment is active at the stable alias above. Beta D1 was created empty and migrations 0001–0006 were applied. Independent `ANALYTICS_HMAC_SECRET`, `USER_ID_HMAC_SECRET`, `TELEGRAM_WEBHOOK_SECRET` and `SUPPORT_ENCRYPTION_KEY` secrets are set on beta. `ADMIN_TELEGRAM_IDS` and `TELEGRAM_BOT_TOKEN` are pending the external administrator/BotFather step. See `current-state.md`, `deployment.md`, `security.md` and `support.md` for smoke status.

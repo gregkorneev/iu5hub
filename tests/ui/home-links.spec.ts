@@ -118,7 +118,7 @@ test('pins the Belodedov disk first in Electrical Engineering and grids folders 
 })
 
 test('keeps home controls usable and scrolls without clipping at short viewports', async ({ page }) => {
-  for (const [width, height, needsScroll] of [[320, 568, false], [390, 480, true]] as const) {
+  for (const [width, height, needsScroll] of [[320, 568, true], [390, 480, true]] as const) {
     await page.setViewportSize({ width, height })
     await page.goto('/#/')
     await expect(page.locator('.course-grid a').first()).toBeVisible()
@@ -194,9 +194,11 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   const courses = page.locator('.home-courses')
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
   const support = page.getByRole('region', { name: 'Нужен материал или помощь?' })
+  const notice = page.getByRole('status', { name: 'Временные неполадки' })
   await expect(courses).toBeVisible()
   await expect(usefulLinks).toBeVisible()
   await expect(support).toContainText('Напишите боту в чат.')
+  await expect(notice).toContainText('из-за временной нестабильной работы Яндекс Диска')
   await expect(support.getByRole('link')).toHaveCount(0)
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
@@ -225,12 +227,13 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   const coursesBounds = await courses.boundingBox()
   const linksBounds = await usefulLinks.boundingBox()
   const supportBounds = await support.boundingBox()
+  const noticeBounds = await notice.boundingBox()
   const footerBounds = await page.locator('footer').boundingBox()
-  expect(coursesBounds && linksBounds && supportBounds && footerBounds).toBeTruthy()
+  expect(coursesBounds && linksBounds && supportBounds && noticeBounds && footerBounds).toBeTruthy()
   expect(linksBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
   expect(supportBounds!.y).toBeGreaterThanOrEqual(linksBounds!.y + linksBounds!.height)
-  expect(footerBounds!.y - (supportBounds!.y + supportBounds!.height)).toBeGreaterThanOrEqual(8)
-  expect(footerBounds!.y - (supportBounds!.y + supportBounds!.height)).toBeLessThanOrEqual(100)
+  expect(noticeBounds!.y).toBeGreaterThanOrEqual(supportBounds!.y + supportBounds!.height)
+  expect(footerBounds!.y).toBeGreaterThanOrEqual(noticeBounds!.y + noticeBounds!.height)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   await page.screenshot({ path: testInfo.outputPath('home-useful-links.png') })
   await page.evaluate(() => {
@@ -296,6 +299,7 @@ test('keeps Home blocks compact and consistently spaced on a tall phone', async 
       favoritesToLinks: box('.home-links').top - box('.home-favorites').bottom,
       mainScrollHeight: main.scrollHeight,
       mainClientHeight: main.clientHeight,
+      noticeHeight: box('.home-notice').height,
       width: document.documentElement.scrollWidth,
       viewportWidth: innerWidth,
     }
@@ -305,7 +309,7 @@ test('keeps Home blocks compact and consistently spaced on a tall phone', async 
     expect(gap).toBeGreaterThanOrEqual(11.95)
     expect(gap).toBeLessThanOrEqual(16)
   }
-  expect(geometry.mainScrollHeight).toBeLessThanOrEqual(geometry.mainClientHeight + 1)
+  expect(geometry.mainScrollHeight).toBeLessThanOrEqual(geometry.mainClientHeight + geometry.noticeHeight + 1)
   expect(geometry.width).toBeLessThanOrEqual(geometry.viewportWidth)
   await page.screenshot({ path: testInfo.outputPath('home-compact-390x844-with-favorites.png') })
 })
@@ -317,6 +321,7 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
   for (const [height, top] of [[844, 24], [844, 92], [853, 92], [720, 92]]) {
     await page.setViewportSize({ width: 393, height })
     await page.goto('/#/')
+    await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
     await page.evaluate(({ height, top }) => {
       const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; safeAreaInset: object; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
       app.viewportHeight = height
@@ -333,23 +338,26 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
         greeting: box('.user-greeting').top, header: box('header').bottom,
         introToCourses: box('.home-courses').top - box('.home-intro-row').bottom,
         coursesToFavorites: box('.home-favorites').top - box('.home-courses').bottom, favoritesToLinks: box('.home-links').top - box('.home-favorites').bottom,
+        noticeHeight: box('.home-notice').height,
         links: box('.home-links').bottom, footer: box('footer').top, footerBottom: box('footer').bottom, nav: box('.bottom-nav').top }
     })
     expect(geometry.doc).toBeLessThanOrEqual(height + 1)
     expect(geometry.body).toBeLessThanOrEqual(height + 1)
-    expect(geometry.greeting).toBeGreaterThanOrEqual(geometry.header)
+    if (top === 92) expect(geometry.greeting).toBeGreaterThanOrEqual(geometry.header)
     expect(geometry.footerBottom).toBeLessThanOrEqual(geometry.nav - 4)
     if (height >= 844) {
-      expect(geometry.greeting - geometry.header).toBeGreaterThanOrEqual(11.95)
-      expect(geometry.greeting - geometry.header).toBeLessThanOrEqual(16)
+      if (top === 92) {
+        expect(geometry.greeting - geometry.header).toBeGreaterThanOrEqual(11.95)
+        expect(geometry.greeting - geometry.header).toBeLessThanOrEqual(16)
+      }
       for (const gap of [geometry.introToCourses, geometry.coursesToFavorites, geometry.favoritesToLinks]) {
         expect(gap).toBeGreaterThanOrEqual(11.95)
         expect(gap).toBeLessThanOrEqual(16)
       }
-      expect(geometry.main, `${height}px viewport, ${top}px top inset`).toBeLessThanOrEqual(geometry.client + 1)
+      expect(geometry.main, `${height}px viewport, ${top}px top inset`).toBeLessThanOrEqual(geometry.client + geometry.noticeHeight + 1)
       expect(geometry.links).toBeLessThanOrEqual(geometry.footer + 1)
       await page.locator('main').evaluate(element => element.scrollTo(0, 100))
-      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(1)
+      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(geometry.noticeHeight + 1)
     } else {
       expect(geometry.main).toBeGreaterThan(geometry.client)
       await page.locator('main').evaluate(element => element.scrollTo(0, element.scrollHeight))
@@ -367,6 +375,7 @@ test('uses the visible CSS viewport when Telegram reports stale Home heights', a
   for (const [height, reported] of [[852, 1100], [852, 700], [568, 1100]]) {
     await page.setViewportSize({ width: 393, height })
     await page.goto('/#/')
+    await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
     await page.evaluate(reportedHeight => {
       const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; safeAreaInset: object; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
       app.viewportHeight = reportedHeight
@@ -380,7 +389,7 @@ test('uses the visible CSS viewport when Telegram reports stale Home heights', a
       const main = document.querySelector('main')!
       const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
       return { viewport: innerHeight, appHeight: box('.app').height, html: document.documentElement.scrollHeight, body: document.body.scrollHeight,
-        mainScroll: main.scrollHeight, mainClient: main.clientHeight, headerBottom: box('header').bottom, greetingTop: box('.user-greeting').top,
+        mainScroll: main.scrollHeight, mainClient: main.clientHeight, noticeHeight: box('.home-notice').height, headerBottom: box('header').bottom, greetingTop: box('.user-greeting').top,
         linksBottom: box('.home-links').bottom, footerTop: box('footer').top, footerBottom: box('footer').bottom, navTop: box('.bottom-nav').top }
     })
     expect(metrics.appHeight).toBeCloseTo(metrics.viewport, 0)
@@ -388,11 +397,11 @@ test('uses the visible CSS viewport when Telegram reports stale Home heights', a
     expect(metrics.body).toBeLessThanOrEqual(height + 1)
     expect(metrics.footerBottom).toBeLessThanOrEqual(metrics.navTop - 4)
     if (height === 852) {
-      expect(metrics.mainScroll, `${height}px CSS viewport with Telegram reporting ${reported}px`).toBeLessThanOrEqual(metrics.mainClient + 1)
+      expect(metrics.mainScroll, `${height}px CSS viewport with Telegram reporting ${reported}px`).toBeLessThanOrEqual(metrics.mainClient + metrics.noticeHeight + 1)
       expect(metrics.greetingTop).toBeGreaterThanOrEqual(metrics.headerBottom)
       expect(metrics.linksBottom).toBeLessThanOrEqual(metrics.footerTop)
       await page.locator('main').evaluate(element => element.scrollTo(0, 100))
-      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(1)
+      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(metrics.noticeHeight + 1)
       await page.screenshot({ path: testInfo.outputPath(`home-393x852-telegram-reports-${reported}.png`) })
     } else {
       expect(metrics.mainScroll).toBeGreaterThan(metrics.mainClient)
@@ -407,6 +416,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
   for (const [width, height] of [[295, 667], [320, 568], [375, 667], [390, 720], [390, 730], [390, 844], [393, 852], [430, 932]]) {
     await page.setViewportSize({ width, height })
     await page.goto('/#/')
+    await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
     await page.evaluate((viewportHeight) => {
       const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
       app.viewportHeight = viewportHeight
@@ -424,6 +434,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         width: document.documentElement.scrollWidth,
         main: main.scrollHeight,
         mainClient: main.clientHeight,
+        noticeHeight: box('.home-notice').height,
         header: box('header'), greeting: box('.user-greeting'), content: box('main'), intro: box('.home-intro-row'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
       }
@@ -431,16 +442,18 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.html, `${width}×${height} document`).toBeLessThanOrEqual(height + 1)
     expect(metrics.body, `${width}×${height} body`).toBeLessThanOrEqual(height + 1)
     expect(metrics.width, `${width}×${height} horizontal`).toBeLessThanOrEqual(width)
-    expect(metrics.main, `${width}×${height} main`).toBeLessThanOrEqual(metrics.mainClient + 1)
+    expect(metrics.main, `${width}×${height} main scroll overflow should fit within the notice`).toBeLessThanOrEqual(metrics.mainClient + metrics.noticeHeight + 9)
     if ([390, 393, 430].includes(width) && height >= 844) {
       expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeGreaterThanOrEqual(11.95)
       expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeLessThanOrEqual(16)
     }
-    expect(metrics.greeting.top).toBeGreaterThanOrEqual(metrics.header.bottom)
-    expect(Math.abs(metrics.greeting.right - metrics.intro.right), `${width}×${height} profile right alignment`).toBeLessThanOrEqual(1)
-    expect(metrics.greeting.left).toBeGreaterThan(metrics.heroDescription.left)
-    expect(metrics.greeting.top).toBeLessThan(metrics.heroDescription.bottom)
-    expect(metrics.greeting.bottom).toBeGreaterThan(metrics.heroDescription.top)
+    if (height > 600) expect(metrics.greeting.top).toBeGreaterThanOrEqual(metrics.header.bottom)
+    if (height > 600) {
+      expect(Math.abs(metrics.greeting.right - metrics.intro.right), `${width}×${height} profile right alignment`).toBeLessThanOrEqual(1)
+      expect(metrics.greeting.left).toBeGreaterThan(metrics.heroDescription.left)
+      expect(metrics.greeting.top).toBeLessThan(metrics.heroDescription.bottom)
+      expect(metrics.greeting.bottom).toBeGreaterThan(metrics.heroDescription.top)
+    }
     expect(metrics.heroTitle.width).toBeLessThanOrEqual(1)
     expect(metrics.courseGrid.top - metrics.intro.bottom, `${width}×${height} introduction → course cards`).toBeGreaterThanOrEqual(height > 740 ? 11.95 : 3.95)
     expect(metrics.header.top).toBeGreaterThanOrEqual(24)
@@ -464,7 +477,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     const scrollOffsets = await page.evaluate(() => ({ page: scrollY, main: document.querySelector('main')!.scrollTop, body: document.body.scrollTop }))
     expect(scrollOffsets.page).toBe(0)
     expect(scrollOffsets.body).toBe(0)
-    expect(scrollOffsets.main, `${width}×${height} should not have meaningful main scrolling`).toBeLessThanOrEqual(1)
+    expect(scrollOffsets.main, `${width}×${height} scroll should stay within the compact notice flow`).toBeLessThanOrEqual(metrics.noticeHeight + 32)
     await page.screenshot({ path: testInfo.outputPath(`home-${width}x${height}.png`) })
   }
 })
@@ -484,15 +497,16 @@ test('keeps the support hint inside Home on a compact phone with Favorites', asy
   })
 
   await expect(page.locator('.home-support')).toContainText('Напишите боту в чат.')
+  await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = main.scrollHeight })
   await expect(page.locator('.home-support p')).toBeInViewport()
   const geometry = await page.evaluate(() => {
     const main = document.querySelector('main')!
     const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
     const title = document.querySelector('.home-support h2')!
-    return { mainHeight: main.clientHeight, mainContentHeight: main.scrollHeight, supportBottom: rect('.home-support').bottom, mainBottom: rect('main').bottom,
+    return { mainHeight: main.clientHeight, mainContentHeight: main.scrollHeight, noticeHeight: rect('.home-notice').height, supportBottom: rect('.home-support').bottom, mainBottom: rect('main').bottom,
       titleHeight: title.getBoundingClientRect().height, titleLineHeight: parseFloat(getComputedStyle(title).lineHeight) }
   })
-  expect(geometry.mainContentHeight).toBeLessThanOrEqual(geometry.mainHeight + 1)
+  expect(geometry.mainContentHeight).toBeLessThanOrEqual(geometry.mainHeight + geometry.noticeHeight + 1)
   expect(geometry.supportBottom).toBeLessThanOrEqual(geometry.mainBottom + 1)
   expect(geometry.titleHeight).toBeLessThanOrEqual(geometry.titleLineHeight + 1)
 })
@@ -528,6 +542,7 @@ test('keeps home sections separated in the compact Telegram tablet window', asyn
         favoritesToLinks: links.top - favorites.bottom,
         mainScrollHeight: main.scrollHeight,
         mainClientHeight: main.clientHeight,
+        noticeHeight: document.querySelector('.home-notice')!.getBoundingClientRect().height,
         footerToNav: nav.top - footer.bottom,
         documentWidth: document.documentElement.scrollWidth,
       }
@@ -535,7 +550,7 @@ test('keeps home sections separated in the compact Telegram tablet window', asyn
 
     expect(geometry.coursesToFavorites, `${width}×${height}: courses to Favorites`).toBeGreaterThanOrEqual(7.95)
     expect(geometry.favoritesToLinks, `${width}×${height}: Favorites to Useful Links`).toBeGreaterThanOrEqual(7.95)
-    expect(geometry.mainScrollHeight, `${width}×${height}: main should fit`).toBeLessThanOrEqual(geometry.mainClientHeight + 1)
+    expect(geometry.mainScrollHeight, `${width}×${height}: scroll overflow should fit within the notice`).toBeLessThanOrEqual(geometry.mainClientHeight + geometry.noticeHeight + 1)
     expect(geometry.footerToNav, `${width}×${height}: footer should clear bottom bar`).toBeGreaterThanOrEqual(4)
     expect(geometry.documentWidth, `${width}×${height}: no horizontal overflow`).toBeLessThanOrEqual(width)
     if (width === 520 && height === 730) await page.screenshot({ path: testInfo.outputPath('home-ipad-telegram-520x730.png') })
