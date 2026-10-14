@@ -372,9 +372,6 @@ section + section { margin-top: 2.5rem; }
 .home-status-carousel .home-support, .home-status-carousel .home-notice { margin: 0; }
 .home-status-carousel__pagination { display: flex; align-items: center; justify-content: center; margin-top: var(--space-1); }
 .home-status-carousel__pagination button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; border-radius: var(--radius-pill); background: transparent; cursor: pointer; }
-.home-status-carousel__pagination .home-status-carousel__rotation { color: var(--text-tertiary); }
-.home-status-carousel__rotation::before { content: none !important; }
-.home-status-carousel__rotation svg { width: 1rem; height: 1rem; }
 .home-status-carousel__pagination button::before { width: 6px; height: 6px; border-radius: var(--radius-pill); background: rgb(196 203 212); content: ''; transition: width var(--duration-transition) var(--curve-exit), background-color var(--duration-transition) ease-out; }
 .home-status-carousel__pagination button[aria-pressed="true"]::before { width: 18px; background: var(--action); }
 .home-status-carousel__pagination button:focus-visible { outline: 2px solid var(--action); outline-offset: -3px; }

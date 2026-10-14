@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, MessageCircle, Pause, Play, Search, UserRound } from 'lucide-react'
+import { AlertTriangle, CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, MessageCircle, Search, UserRound } from 'lucide-react'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
@@ -104,7 +104,6 @@ function Home() {
   const [activeStatusPage, setActiveStatusPage] = useState(0)
   const [interactionPaused, setInteractionPaused] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-  const [autoPlayEnabled, setAutoPlayEnabled] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const onlySavedFolder = favorites.items.length === 1 && favorites.items[0].type === 'dir' ? favorites.items[0] : undefined
   const moveToStatusPosition = (position: number) => {
     const carousel = statusCarousel.current
@@ -125,20 +124,19 @@ function Home() {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     const updatePreference = () => {
       setReducedMotion(media.matches)
-      if (media.matches) setAutoPlayEnabled(false)
     }
     media.addEventListener('change', updatePreference)
     return () => media.removeEventListener('change', updatePreference)
   }, [])
   useEffect(() => () => window.clearTimeout(scrollEndTimer.current), [])
   useEffect(() => {
-    if (!autoPlayEnabled || interactionPaused) return
+    if (reducedMotion || interactionPaused) return
     const timer = window.setTimeout(() => {
       const carousel = statusCarousel.current
       if (carousel) carousel.scrollTo({ left: ((statusPosition + 1) % 4) * carousel.clientWidth, behavior: reducedMotion ? 'auto' : 'smooth' })
     }, 5000)
     return () => window.clearTimeout(timer)
-  }, [autoPlayEnabled, interactionPaused, reducedMotion, statusPosition])
+  }, [interactionPaused, reducedMotion, statusPosition])
   const handleStatusScroll = (carousel: HTMLDivElement) => {
     const width = carousel.clientWidth
     if (!width) return
@@ -224,7 +222,6 @@ function Home() {
         </div>
       </div>
       <div className="home-status-carousel__pagination" role="group" aria-label="Выбрать карточку">
-        <button className="home-status-carousel__rotation" type="button" aria-label={autoPlayEnabled ? 'Остановить автоперелистывание' : 'Запустить автоперелистывание'} onClick={() => setAutoPlayEnabled((enabled) => !enabled)}>{autoPlayEnabled ? <Pause aria-hidden="true" focusable="false" /> : <Play aria-hidden="true" focusable="false" />}</button>
         <button type="button" aria-label="Показать временные неполадки" aria-pressed={activeStatusPage === 0} onClick={() => moveToStatusPosition(1)} />
         <button type="button" aria-label="Показать поддержку" aria-pressed={activeStatusPage === 1} onClick={() => moveToStatusPosition(2)} />
       </div>

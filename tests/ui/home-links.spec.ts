@@ -163,7 +163,6 @@ test('keeps home controls usable and scrolls without clipping at short viewports
 test('shows clickable Yandex Disk and GitHub links below courses on the home screen', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/')
-  await page.getByRole('button', { name: 'Остановить автоперелистывание' }).click()
 
   const brandGeometry = await page.evaluate(() => {
     const group = document.querySelector('.header-brand-group')!.getBoundingClientRect()
@@ -266,6 +265,7 @@ test('switches the Home support and notice cards with accessible controls and re
   const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
   const support = page.locator('.home-support:not([inert])')
   const notice = page.locator('.home-notice:not([inert])')
+  await expect(page.getByRole('button', { name: /автоперелистывание/i })).toHaveCount(0)
   await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
   await expect.poll(() => supportPage.evaluate((button) => getComputedStyle(button, '::before').width)).toBe('6px')
   await expect.poll(() => noticePage.evaluate((button) => getComputedStyle(button, '::before').width)).toBe('18px')
@@ -329,7 +329,7 @@ test('automatically rotates Home cards every five seconds and resets after manua
   await page.goto('/#/')
   const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
   const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
-  const pause = page.getByRole('button', { name: 'Остановить автоперелистывание' })
+  await expect(page.getByRole('button', { name: /автоперелистывание/i })).toHaveCount(0)
   await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
   await page.waitForTimeout(6000)
   await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
@@ -340,13 +340,6 @@ test('automatically rotates Home cards every five seconds and resets after manua
   await page.waitForTimeout(4800)
   await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
   await page.waitForTimeout(900)
-  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
-
-  await pause.click()
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-  await page.mouse.move(0, 0)
-  await page.waitForTimeout(6000)
-  await expect(page.getByRole('button', { name: 'Запустить автоперелистывание' })).toBeVisible()
   await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
 })
 
@@ -593,6 +586,7 @@ test('keeps the support hint inside Home on a compact phone with Favorites', asy
     { courseId: 'course-1', path: '1 семестр', type: 'dir', name: '1 семестр', createdAt: 1 },
   ] } }))
   await page.setViewportSize({ width: 295, height: 667 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/#/')
   await page.evaluate(() => {
     const app = (window as Window & { Telegram: { WebApp: { viewportHeight: number; viewportStableHeight: number; contentSafeAreaInset: object } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
