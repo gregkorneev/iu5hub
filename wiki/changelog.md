@@ -3,6 +3,7 @@
 ## 2026-10-14 — Beta Home support/notice carousel
 
 - Support and the red Yandex Disk notice now occupy one swipeable card slot on Home. Added two accessible pager controls, preserved vertical Home scrolling, and honored reduced-motion preferences. The focused cross-browser Home suite, full `npm run qa` (303 Playwright cases; five host-specific skips), and Beta CI passed. Beta Pages serves the new JS/CSS assets; manual Telegram device check remains open.
+- Increased pagination contrast: the inactive carousel position now uses a pale gray dot and the active position remains blue.
 
 ## 2026-10-14 — Home vertical overflow
 

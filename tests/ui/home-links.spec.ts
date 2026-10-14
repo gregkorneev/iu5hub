@@ -265,6 +265,8 @@ test('switches the Home support and notice cards with accessible controls and re
   const notice = page.locator('.home-notice')
   await expect(pages).toHaveCount(2)
   await expect(pages.nth(0)).toHaveAttribute('aria-pressed', 'true')
+  await expect(pages.nth(1).evaluate((button) => getComputedStyle(button, '::before').backgroundColor)).resolves.toBe('rgb(196, 203, 212)')
+  await expect(pages.nth(0).evaluate((button) => getComputedStyle(button, '::before').backgroundColor)).resolves.not.toBe('rgb(196, 203, 212)')
   await pages.nth(1).focus()
   await page.keyboard.press('Space')
   await expect(pages.nth(1)).toHaveAttribute('aria-pressed', 'true')
