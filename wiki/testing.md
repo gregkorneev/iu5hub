@@ -1,5 +1,9 @@
 # Testing
 
+## Home useful links layout — 2026-10-16 (beta)
+
+Removed the «Будущим первокурсникам» Yandex Disk card from the Home markup and its mobile-only styling. The remaining three links stay in equal columns with a 12px gap; Playwright checks all three remain accessible/open through Telegram, the removed link is absent, and the short 320×568 Home layout fits without scrolling. Full `npm run qa` passed: lint, typecheck, unit/Worker checks, validations, build, and 312 Playwright passes with 8 existing skips. Physical Telegram device rendering was not checked.
+
 ## Course 2 public folder recovery — 2026-10-16
 
 The retired course-2 share `PoeWdke_BB291g` returned HTTP 404 `DiskNotFoundError`. The replacement shared resource returns HTTP 200 for `/IU5/2 course`, `3 sem` and `4 sem`. All 16 indexed course-2 folders match the replacement resource at semester depth; four sampled indexed paths return HTTP 200, so a full search inventory sync was unnecessary. Both separate supplemental Disk links also return HTTP 200. The production browser smoke after release verified the root, both semesters, and `Электротехника` nested browsing at 390×844 and 1280×800, with no page errors or horizontal overflow.
@@ -142,7 +146,7 @@ The Excel workbook is regenerated from CSV by `npm run search:workbook`; its hum
 - Compact Telegram tablet-window regression verifies that home sections retain at least an 8px gap at 480–620×700/730 (the narrow short portrait layout seen in the iPad Mini App screenshot), while main content still fits above the footer and bottom bar without horizontal overflow. It runs in Chromium, mobile Chromium and WebKit; real iPad Telegram remains a device-only check.
 - Home Useful Links coverage verifies all external labels/URLs, three links on the first row and the fourth on its own mobile row, one consistent vector icon per tappable control, a 44px minimum target, Telegram's `openLink` integration, responsive liquid-glass surfaces and no-scroll home fit at narrow phone sizes.
 - CI regression: after adding the fourth link, Home exceeded the 295×667 main viewport by 36px; follow-up runs found 18px at 320×568 and 14px at 375×667 on GitHub Linux Chromium. Scoped short-portrait Home spacing rules now preserve the no-scroll layout. `npm run qa` passes all 156 UI tests in Chromium, mobile Chromium and WebKit, including Home link, centering and viewport cases.
-- Useful Links regression also verifies the «Будущим первокурсникам» Yandex Disk card and confirms its external URL opens through Telegram's `openLink` integration.
+- Useful Links regression verifies the three remaining Yandex Disk/GitHub cards and confirms their external URLs open through Telegram's `openLink` integration.
 - Final layout QA safe-area regression applies a 24px Telegram top inset and verifies first Profile and Schedule controls remain below the header at 320×568 and 390×844 in Chromium and WebKit. Schedule tests also confirm that the two visible lessons still fit in the schedule viewport and that portrait/landscape scroll remains confined to lessons.
 - Week schedule date-window regression verifies exactly seven Moscow-time dates from today −3 days through today +3 days, today selected and centered on open, stable boundaries when another day is selected, and restoration of today after switching back from «Сегодня».
 - File cards use a fixed download-control column: the browser regression checks equal right alignment for short and long file names in both catalog and search results, in every viewport engine.

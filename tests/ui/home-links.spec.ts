@@ -122,7 +122,7 @@ test('pins the Belodedov disk first in Electrical Engineering and grids folders 
 })
 
 test('keeps home controls usable and scrolls without clipping at short viewports', async ({ page }) => {
-  for (const [width, height, needsScroll] of [[320, 568, true], [390, 480, true]] as const) {
+  for (const [width, height, needsScroll] of [[320, 568, false], [390, 480, true]] as const) {
     await page.setViewportSize({ width, height })
     await page.goto('/#/')
     await expect(page.locator('.course-grid a').first()).toBeVisible()
@@ -140,7 +140,7 @@ test('keeps home controls usable and scrolls without clipping at short viewports
     }))
     expect(geometry.courseGap, `${width}×${height} course gap`).toBeGreaterThanOrEqual(8)
     expect(geometry.courseHeight).toBeGreaterThanOrEqual(44)
-    expect(geometry.linkGap).toBeGreaterThanOrEqual(8)
+    expect(geometry.linkGap).toBe(12)
     expect(geometry.linkHeight).toBeGreaterThanOrEqual(44)
     expect(geometry.pageHeight).toBeGreaterThanOrEqual(geometry.viewportHeight)
     expect(geometry.mainOverflow).toBe('auto')
@@ -208,28 +208,28 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await expect(notice).toContainText('из-за временной нестабильной работы Яндекс Диска')
   await expect(support.getByRole('link')).toHaveCount(0)
   await expect(page.locator('.home-favorites')).toHaveCount(0)
+  await expect(usefulLinks.getByRole('link')).toHaveCount(3)
+  await expect(usefulLinks.getByRole('link', { name: 'Будущим первокурсникам' })).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
-  const freshmenLink = usefulLinks.getByRole('link', { name: 'Будущим первокурсникам' })
   const githubLink = usefulLinks.getByRole('link', { name: 'GitHub @tal3nt3d' })
   const ugapanyukLink = usefulLinks.getByRole('link', { name: 'GitHub Ю. Е. Гапанюк' })
   await expect(yandexLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
-  await expect(freshmenLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem')
   await expect(githubLink).toHaveAttribute('href', 'https://github.com/tal3nt3d/iu5manual')
   await expect(ugapanyukLink).toHaveAttribute('href', 'https://ugapanyuk.github.io')
   await expect(yandexLink).toHaveAttribute('target', '_blank')
   await expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
-  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [freshmenLink, ['Будущим', 'первокурсникам']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub', 'Ю. Е. Гапанюк']]] as const) {
+  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub', 'Ю. Е. Гапанюк']]] as const) {
     await expect(link.locator('.home-links__label > span')).toHaveText(lines)
     await expect(link).toHaveAttribute('aria-label', lines.join(' '))
   }
-  for (const link of [yandexLink, freshmenLink, githubLink, ugapanyukLink]) {
+  for (const link of [yandexLink, githubLink, ugapanyukLink]) {
     await expect(link.locator('svg')).toHaveCount(1)
     const box = await link.boundingBox()
     expect(box?.height).toBeGreaterThanOrEqual(44)
   }
   const linkRows = await usefulLinks.locator('.home-links__list > li').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)))
-  expect(new Set(linkRows.slice(0, 3)).size).toBe(1)
-  expect(linkRows[3]).toBeGreaterThan(linkRows[0])
+  expect(new Set(linkRows).size).toBe(1)
+  await expect(usefulLinks.locator('.home-links__list')).toHaveCSS('gap', '12px')
 
   const coursesBounds = await courses.boundingBox()
   const linksBounds = await usefulLinks.boundingBox()
@@ -254,10 +254,9 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await page.screenshot({ path: testInfo.outputPath('home-useful-links-dark.png') })
 
   await yandexLink.click()
-  await freshmenLink.click()
   await githubLink.click()
   await ugapanyukLink.click()
-  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
+  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
 })
 
 test('switches the Home support and notice cards with accessible controls and reduced motion', async ({ page }) => {
@@ -319,7 +318,7 @@ test('swipes between Home status cards without intercepting vertical page scroll
   await swipe(bounds!.x + 24, y, bounds!.x + bounds!.width - 24, y)
   await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
 
-  await page.setViewportSize({ width: 320, height: 568 })
+  await page.setViewportSize({ width: 320, height: 480 })
   await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
   const compactBounds = await viewport.boundingBox()
   expect(compactBounds).not.toBeNull()
@@ -491,7 +490,7 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
       expect(geometry.main).toBeGreaterThan(geometry.client)
       await page.locator('main').evaluate(element => element.scrollTo(0, element.scrollHeight))
       expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeGreaterThan(0)
-      await expect(page.getByRole('link', { name: 'Будущим первокурсникам' })).toBeInViewport()
+      await expect(page.locator('.home-links__list a').last()).toBeInViewport()
     }
     if (height === 844 && top === 92) await page.screenshot({ path: testInfo.outputPath('home-393x844-telegram-fullscreen-favorite.png') })
   }
@@ -536,7 +535,7 @@ test('uses the visible CSS viewport when Telegram reports stale Home heights', a
       expect(metrics.mainScroll).toBeGreaterThan(metrics.mainClient)
       await page.locator('main').evaluate(element => element.scrollTo(0, element.scrollHeight))
       expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeGreaterThan(0)
-      await expect(page.getByRole('link', { name: 'Будущим первокурсникам' })).toBeInViewport()
+      await expect(page.locator('.home-links__list a').last()).toBeInViewport()
     }
   }
 })
