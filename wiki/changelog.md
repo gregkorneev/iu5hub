@@ -2,7 +2,7 @@
 
 ## 2026-10-16 — Course 2 catalog recovery (beta candidate)
 
-- Repoint course 2 from a retired public Disk share (API 404) to the live shared `/IU5/2 course` folder. Preserve nested navigation, tagged search destinations, supplemental Disk links and previously saved favorites. Full local `npm run qa` passed (312 Playwright passes, 8 existing skips). The production site is unchanged pending release approval.
+- Repoint course 2 from a retired public Disk share (API 404) to the live shared `/IU5/2 course` folder. Preserve nested navigation, tagged search destinations, supplemental Disk links and previously saved favorites. Full local `npm run qa` passed (312 Playwright passes, 8 existing skips), Beta CI passed, and the Beta Pages preview was confirmed in a real browser after one transient Cloudflare publish error. Production remains unchanged pending release approval.
 
 ## 2026-10-14 — Home support/notice carousel release
 

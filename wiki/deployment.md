@@ -12,9 +12,9 @@ Beta Worker vars use the actual Beta Pages origin for `ANALYTICS_ALLOWED_ORIGIN`
 
 Use the connected Pages Git integration for Beta branch deployments. Beta pushes must never enable or invoke production deployment jobs. Worker deployment for Beta may be done with `wrangler deploy --env beta` after Beta secrets and D1 are ready; production Worker deployment and production D1 migrations are release-only. The CI verify job already runs on pushes and pull requests for all branches.
 
-### Course 2 preview retry — 2026-10-16
+### Course 2 Beta preview — 2026-10-16
 
-The Beta Pages deployment for commit `9faf173` built `dist/` and uploaded the assets, then failed at the final Function publish step with `Unknown internal error occurred.` There is no repository `/functions` directory and no application build error; the failed preview left `beta.iu5hub.pages.dev` on its previous asset bundle. A documentation-only Wiki update to beta requests a fresh native Git preview. This is not a production deployment.
+The Pages deployment for code commit `9faf173` built `dist/` and uploaded assets, then failed at the final Function publish step with `Unknown internal error occurred.` There is no repository `/functions` directory and no application build error. A following beta push retried the native Git preview successfully; check for `da8d09a` is `Deployed successfully`, and `beta.iu5hub.pages.dev` served JS asset `index-BV6fMvLk.js` containing the replacement course-2 share and `/IU5/2 course`. Browser smoke confirmed the course root, `3 sem`, Electrical Engineering folders and Belodedov supplemental link against live Disk API data. This is a Beta preview only; production remains on `main`.
 
 Cloudflare's native Git preview is triggered directly by a `beta` push and is not gated on the GitHub CI result; CI and preview deployment run independently. This is the only configured Pages deployment mechanism, so no duplicate Actions Pages deploy is enabled. Beta Worker pushes are not auto-deployed: use `wrangler deploy --env beta` after QA because no GitHub deploy credentials are configured. To enforce green-before-preview deployment later, switch Beta to a single CI-triggered Pages deployment and disable its native branch preview; do not enable both mechanisms together.
 
