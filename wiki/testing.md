@@ -1,5 +1,9 @@
 # Testing
 
+## Home block order and spacing — 2026-10-16 (beta)
+
+Root cause of the empty region above the support/notice carousel was `margin-top: auto` on a flex item inside the vertically stretched Home stack. Useful Links now follow Courses; Favorites appear after Useful Links only for users with saved items; the dynamic carousel follows Favorites or, if Favorites is hidden/loading/failed, Useful Links. Major sections use a measured 12px gap on ordinary phone and desktop layouts. Playwright checks both Favorites states at 390×844 and 1280×800, compact tablet spacing, Telegram safe-area insets, short-screen reachability, and no horizontal overflow. Full local `npm run qa` passed: lint, typecheck, 34 Vitest tests, 81 Node/Worker tests, data validation, build, and 316 Playwright passes with 8 existing skips. Beta CI and published preview smoke remain pending. Physical Telegram device rendering was not checked.
+
 ## Home useful links layout — 2026-10-16 (beta)
 
 Removed the «Будущим первокурсникам» Yandex Disk card from the Home markup and its mobile-only styling. The remaining three links stay in equal columns with a 12px gap; Playwright checks all three remain accessible/open through Telegram, the removed link is absent, and the short 320×568 Home layout fits without scrolling. Full `npm run qa` passed: lint, typecheck, unit/Worker checks, validations, build, and 312 Playwright passes with 8 existing skips. Physical Telegram device rendering was not checked.

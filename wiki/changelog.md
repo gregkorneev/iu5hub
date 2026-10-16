@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-16 — Home block order and spacing (beta)
+
+- Moved Useful Links before the optional Favorites block and placed the support/notice carousel immediately after the last visible block. Removed the flex auto-margin that sent the carousel to the bottom of the Home stack; standardized ordinary Home section spacing to 12px and retained compact-screen overrides. Full local `npm run qa` passed (316 Playwright passes, 8 existing skips). Production remains unchanged.
+
 ## 2026-10-16 — Remove the future freshmen Home link (beta)
 
 - Removed the «Будущим первокурсникам» card. The three remaining useful links now have a 12px gap on mobile and desktop; the 320×568 Home view fits without scrolling. Full local `npm run qa` passed (312 Playwright passes, 8 existing skips).
