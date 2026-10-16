@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-16 — Home block order and spacing (beta)
+
+- Moved Useful Links before the optional Favorites block and placed the support/notice carousel immediately after the last visible block. Removed the flex auto-margin that sent the carousel to the bottom of the Home stack; standardized ordinary Home section spacing to 12px and retained compact-screen overrides. Full local `npm run qa` passed (316 Playwright passes, 8 existing skips). Beta Pages deployment `5d1e1740-d814-407c-83c3-11872e0268e8` passed 390×844 and 1280×800 browser smoke. Production remains unchanged.
+
+## 2026-10-16 — Remove the future freshmen Home link (beta)
+
+- Removed the «Будущим первокурсникам» card. The three remaining useful links now have a 12px gap on mobile and desktop; the 320×568 Home view fits without scrolling. Full local `npm run qa` passed (312 Playwright passes, 8 existing skips).
+
 ## 2026-10-16 — Course 2 catalog recovery (production)
 
 - Repoint course 2 from a retired public Disk share (API 404) to the live shared `/IU5/2 course` folder. Preserve nested navigation, tagged search destinations, supplemental Disk links and previously saved favorites. Full local `npm run qa` passed (312 Playwright passes, 8 existing skips); release commit `0a1235d` is live on production Pages. Production browser smoke confirmed both semesters, nested folders, and HTTP 200 responses from Yandex Disk. No Worker deploy or D1 migration was needed.

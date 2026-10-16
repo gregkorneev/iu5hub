@@ -122,7 +122,7 @@ test('pins the Belodedov disk first in Electrical Engineering and grids folders 
 })
 
 test('keeps home controls usable and scrolls without clipping at short viewports', async ({ page }) => {
-  for (const [width, height, needsScroll] of [[320, 568, true], [390, 480, true]] as const) {
+  for (const [width, height, needsScroll] of [[320, 568, false], [390, 480, true]] as const) {
     await page.setViewportSize({ width, height })
     await page.goto('/#/')
     await expect(page.locator('.course-grid a').first()).toBeVisible()
@@ -140,7 +140,7 @@ test('keeps home controls usable and scrolls without clipping at short viewports
     }))
     expect(geometry.courseGap, `${width}×${height} course gap`).toBeGreaterThanOrEqual(8)
     expect(geometry.courseHeight).toBeGreaterThanOrEqual(44)
-    expect(geometry.linkGap).toBeGreaterThanOrEqual(8)
+    expect(geometry.linkGap).toBe(12)
     expect(geometry.linkHeight).toBeGreaterThanOrEqual(44)
     expect(geometry.pageHeight).toBeGreaterThanOrEqual(geometry.viewportHeight)
     expect(geometry.mainOverflow).toBe('auto')
@@ -208,37 +208,39 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await expect(notice).toContainText('из-за временной нестабильной работы Яндекс Диска')
   await expect(support.getByRole('link')).toHaveCount(0)
   await expect(page.locator('.home-favorites')).toHaveCount(0)
+  await expect(usefulLinks.getByRole('link')).toHaveCount(3)
+  await expect(usefulLinks.getByRole('link', { name: 'Будущим первокурсникам' })).toHaveCount(0)
   const yandexLink = usefulLinks.getByRole('link', { name: 'Диск ИУ5 от @kirschnya' })
-  const freshmenLink = usefulLinks.getByRole('link', { name: 'Будущим первокурсникам' })
   const githubLink = usefulLinks.getByRole('link', { name: 'GitHub @tal3nt3d' })
   const ugapanyukLink = usefulLinks.getByRole('link', { name: 'GitHub Ю. Е. Гапанюк' })
   await expect(yandexLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5')
-  await expect(freshmenLink).toHaveAttribute('href', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem')
   await expect(githubLink).toHaveAttribute('href', 'https://github.com/tal3nt3d/iu5manual')
   await expect(ugapanyukLink).toHaveAttribute('href', 'https://ugapanyuk.github.io')
   await expect(yandexLink).toHaveAttribute('target', '_blank')
   await expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
-  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [freshmenLink, ['Будущим', 'первокурсникам']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub', 'Ю. Е. Гапанюк']]] as const) {
+  for (const [link, lines] of [[yandexLink, ['Диск ИУ5 от', '@kirschnya']], [githubLink, ['GitHub', '@tal3nt3d']], [ugapanyukLink, ['GitHub', 'Ю. Е. Гапанюк']]] as const) {
     await expect(link.locator('.home-links__label > span')).toHaveText(lines)
     await expect(link).toHaveAttribute('aria-label', lines.join(' '))
   }
-  for (const link of [yandexLink, freshmenLink, githubLink, ugapanyukLink]) {
+  for (const link of [yandexLink, githubLink, ugapanyukLink]) {
     await expect(link.locator('svg')).toHaveCount(1)
     const box = await link.boundingBox()
     expect(box?.height).toBeGreaterThanOrEqual(44)
   }
   const linkRows = await usefulLinks.locator('.home-links__list > li').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)))
-  expect(new Set(linkRows.slice(0, 3)).size).toBe(1)
-  expect(linkRows[3]).toBeGreaterThan(linkRows[0])
+  expect(new Set(linkRows).size).toBe(1)
+  await expect(usefulLinks.locator('.home-links__list')).toHaveCSS('gap', '12px')
 
   const coursesBounds = await courses.boundingBox()
   const linksBounds = await usefulLinks.boundingBox()
+  const carouselBounds = await statusCarousel.boundingBox()
   const supportBounds = await support.boundingBox()
   const noticeBounds = await notice.boundingBox()
   const footerBounds = await page.locator('footer').boundingBox()
-  expect(coursesBounds && linksBounds && supportBounds && noticeBounds && footerBounds).toBeTruthy()
+  expect(coursesBounds && linksBounds && carouselBounds && supportBounds && noticeBounds && footerBounds).toBeTruthy()
   expect(linksBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
-  expect(supportBounds!.y).toBeGreaterThanOrEqual(linksBounds!.y + linksBounds!.height)
+  expect(carouselBounds!.y - linksBounds!.y - linksBounds!.height).toBeCloseTo(12, 0)
+  expect(supportBounds!.y).toBeGreaterThanOrEqual(carouselBounds!.y)
   expect(Math.abs(noticeBounds!.y - supportBounds!.y)).toBeLessThanOrEqual(1)
   expect(supportBounds!.width).toBeCloseTo(noticeBounds!.width, 0)
   expect(footerBounds!.y).toBeGreaterThanOrEqual(supportBounds!.y + supportBounds!.height)
@@ -254,10 +256,9 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   await page.screenshot({ path: testInfo.outputPath('home-useful-links-dark.png') })
 
   await yandexLink.click()
-  await freshmenLink.click()
   await githubLink.click()
   await ugapanyukLink.click()
-  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
+  expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
 })
 
 test('switches the Home support and notice cards with accessible controls and reduced motion', async ({ page }) => {
@@ -319,7 +320,7 @@ test('swipes between Home status cards without intercepting vertical page scroll
   await swipe(bounds!.x + 24, y, bounds!.x + bounds!.width - 24, y)
   await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
 
-  await page.setViewportSize({ width: 320, height: 568 })
+  await page.setViewportSize({ width: 320, height: 480 })
   await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
   const compactBounds = await viewport.boundingBox()
   expect(compactBounds).not.toBeNull()
@@ -376,7 +377,7 @@ test('automatically rotates Home cards every five seconds and resets after manua
   await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
 })
 
-test('shows a Favorites block between courses and Useful Links and opens the existing profile', async ({ page }) => {
+test('shows Favorites after Useful Links and before the dynamic widget, and opens the existing profile', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.route('**/api/profile/favorites', (route) => route.fulfill({ json: { items: [
     { courseId: 'course-1', path: '/1 sem/Математика', type: 'dir', name: 'Математика', createdAt: 2 },
@@ -387,18 +388,54 @@ test('shows a Favorites block between courses and Useful Links and opens the exi
   const courses = page.locator('.home-courses')
   const favorites = page.getByRole('region', { name: 'Избранное' })
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
+  const statusCarousel = page.getByRole('region', { name: 'Поддержка и уведомления' })
   await expect(favorites).toBeVisible()
   await expect(favorites.locator('.home-favorites__count')).toHaveText('2')
   await expect(favorites).toContainText('Сохранённые папки и файлы')
-  const [coursesBounds, favoritesBounds, linksBounds] = await Promise.all([courses.boundingBox(), favorites.boundingBox(), usefulLinks.boundingBox()])
-  expect(coursesBounds && favoritesBounds && linksBounds).toBeTruthy()
-  expect(favoritesBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
-  expect(linksBounds!.y).toBeGreaterThan(favoritesBounds!.y + favoritesBounds!.height)
+  const [coursesBounds, favoritesBounds, linksBounds, carouselBounds] = await Promise.all([courses.boundingBox(), favorites.boundingBox(), usefulLinks.boundingBox(), statusCarousel.boundingBox()])
+  expect(coursesBounds && favoritesBounds && linksBounds && carouselBounds).toBeTruthy()
+  expect(linksBounds!.y - coursesBounds!.y - coursesBounds!.height).toBeCloseTo(12, 0)
+  expect(favoritesBounds!.y - linksBounds!.y - linksBounds!.height).toBeCloseTo(12, 0)
+  expect(carouselBounds!.y - favoritesBounds!.y - favoritesBounds!.height).toBeCloseTo(12, 0)
 
   await favorites.getByRole('link', { name: /Избранное/ }).click()
   await expect(page.getByRole('heading', { name: 'Избранное' })).toBeVisible()
   await expect(page.getByText('Математика', { exact: true })).toBeVisible()
   await expect(page.getByText('Физика.pdf', { exact: true })).toBeVisible()
+})
+
+test('keeps the same 12px Home section rhythm on phone and desktop with or without Favorites', async ({ page }) => {
+  let favoriteItems: Array<{ courseId: string; path: string; type: 'dir'; name: string; createdAt: number }> = []
+  await page.route('**/api/profile/favorites', route => route.fulfill({ json: { items: favoriteItems } }))
+
+  let loaded = false
+  for (const [width, height] of [[390, 844], [1280, 800]]) {
+    for (const hasFavorites of [false, true]) {
+      favoriteItems = hasFavorites ? [{ courseId: 'course-1', path: '1 семестр', type: 'dir', name: '1 семестр', createdAt: 1 }] : []
+      await page.setViewportSize({ width, height })
+      if (loaded) await page.reload()
+      else await page.goto('/#/')
+      loaded = true
+      await expect(page.locator('.home-favorites')).toHaveCount(hasFavorites ? 1 : 0)
+      const gaps = await page.evaluate(() => {
+        const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+        const courses = box('.home-courses')
+        const links = box('.home-links')
+        const carousel = box('.home-status-carousel')
+        const favorites = document.querySelector('.home-favorites')?.getBoundingClientRect()
+        return {
+          coursesToLinks: links.top - courses.bottom,
+          linksToNext: (favorites ?? carousel).top - links.bottom,
+          favoritesToCarousel: favorites ? carousel.top - favorites.bottom : null,
+        }
+      })
+      const label = `${width}×${height}, Favorites ${hasFavorites ? 'shown' : 'hidden'}`
+      expect(gaps.coursesToLinks, `${label}: courses → useful links`).toBeCloseTo(12, 0)
+      expect(gaps.linksToNext, `${label}: useful links → next block`).toBeCloseTo(12, 0)
+      if (hasFavorites) expect(gaps.favoritesToCarousel, `${label}: Favorites → dynamic widget`).toBeCloseTo(12, 0)
+      else expect(gaps.favoritesToCarousel).toBeNull()
+    }
+  }
 })
 
 test('keeps Home blocks compact and consistently spaced on a tall phone', async ({ page }, testInfo) => {
@@ -419,8 +456,9 @@ test('keeps Home blocks compact and consistently spaced on a tall phone', async 
       contentTop: mainBox.top + parseFloat(getComputedStyle(main).paddingTop),
       headerToGreeting: box('.user-greeting').top - box('header').bottom,
       introToCourses: box('.home-courses').top - box('.home-intro-row').bottom,
-      coursesToFavorites: box('.home-favorites').top - box('.home-courses').bottom,
-      favoritesToLinks: box('.home-links').top - box('.home-favorites').bottom,
+      coursesToLinks: box('.home-links').top - box('.home-courses').bottom,
+      linksToFavorites: box('.home-favorites').top - box('.home-links').bottom,
+      favoritesToCarousel: box('.home-status-carousel').top - box('.home-favorites').bottom,
       mainScrollHeight: main.scrollHeight,
       mainClientHeight: main.clientHeight,
       noticeHeight: box('.home-notice').height,
@@ -429,7 +467,7 @@ test('keeps Home blocks compact and consistently spaced on a tall phone', async 
     }
   })
   expect(Math.abs(geometry.stackTop - geometry.contentTop)).toBeLessThanOrEqual(1)
-  for (const gap of [geometry.headerToGreeting, geometry.introToCourses, geometry.coursesToFavorites, geometry.favoritesToLinks]) {
+  for (const gap of [geometry.headerToGreeting, geometry.introToCourses, geometry.coursesToLinks, geometry.linksToFavorites, geometry.favoritesToCarousel]) {
     expect(gap).toBeGreaterThanOrEqual(11.95)
     expect(gap).toBeLessThanOrEqual(16)
   }
@@ -461,7 +499,9 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
       return { doc: document.documentElement.scrollHeight, body: document.body.scrollHeight, main: main.scrollHeight, client: main.clientHeight,
         greeting: box('.user-greeting').top, header: box('header').bottom,
         introToCourses: box('.home-courses').top - box('.home-intro-row').bottom,
-        coursesToFavorites: box('.home-favorites').top - box('.home-courses').bottom, favoritesToLinks: box('.home-links').top - box('.home-favorites').bottom,
+        coursesToLinks: box('.home-links').top - box('.home-courses').bottom,
+        linksToFavorites: box('.home-favorites').top - box('.home-links').bottom,
+        favoritesToCarousel: box('.home-status-carousel').top - box('.home-favorites').bottom,
         noticeHeight: box('.home-notice').height,
         noticeBottom: box('.home-notice').bottom,
         links: box('.home-links').bottom, footer: box('footer').top, footerBottom: box('footer').bottom, nav: box('.bottom-nav').top }
@@ -475,7 +515,7 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
         expect(geometry.greeting - geometry.header).toBeGreaterThanOrEqual(11.95)
         expect(geometry.greeting - geometry.header).toBeLessThanOrEqual(16)
       }
-      for (const gap of [geometry.introToCourses, geometry.coursesToFavorites, geometry.favoritesToLinks]) {
+      for (const gap of [geometry.introToCourses, geometry.coursesToLinks, geometry.linksToFavorites, geometry.favoritesToCarousel]) {
         expect(gap).toBeGreaterThanOrEqual(11.95)
         expect(gap).toBeLessThanOrEqual(16)
       }
@@ -491,7 +531,7 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
       expect(geometry.main).toBeGreaterThan(geometry.client)
       await page.locator('main').evaluate(element => element.scrollTo(0, element.scrollHeight))
       expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeGreaterThan(0)
-      await expect(page.getByRole('link', { name: 'Будущим первокурсникам' })).toBeInViewport()
+      await expect(page.locator('.home-links__list a').last()).toBeInViewport()
     }
     if (height === 844 && top === 92) await page.screenshot({ path: testInfo.outputPath('home-393x844-telegram-fullscreen-favorite.png') })
   }
@@ -536,7 +576,7 @@ test('uses the visible CSS viewport when Telegram reports stale Home heights', a
       expect(metrics.mainScroll).toBeGreaterThan(metrics.mainClient)
       await page.locator('main').evaluate(element => element.scrollTo(0, element.scrollHeight))
       expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeGreaterThan(0)
-      await expect(page.getByRole('link', { name: 'Будущим первокурсникам' })).toBeInViewport()
+      await expect(page.locator('.home-links__list a').last()).toBeInViewport()
     }
   }
 })
@@ -564,6 +604,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         main: main.scrollHeight,
         mainClient: main.clientHeight,
         noticeHeight: box('.home-notice').height,
+        carousel: box('.home-status-carousel'),
         noticeBottom: box('.home-notice').bottom,
         header: box('header'), greeting: box('.user-greeting'), content: box('main'), intro: box('.home-intro-row'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
@@ -591,11 +632,12 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.links.bottom).toBeLessThanOrEqual(metrics.content.bottom + 1)
     const homeSectionGap = height > 740 ? 11.95 : 0
     if (metrics.favorites) {
-      expect(metrics.links.top).toBeGreaterThanOrEqual(metrics.favorites.bottom)
-      expect(metrics.favorites.top - metrics.courses.bottom, `${width}×${height} courses → favorites`).toBeGreaterThanOrEqual(homeSectionGap)
-      expect(metrics.links.top - metrics.favorites.bottom, `${width}×${height} favorites → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
+      expect(metrics.links.top - metrics.courses.bottom, `${width}×${height} courses → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
+      expect(metrics.favorites.top - metrics.links.bottom, `${width}×${height} useful links → favorites`).toBeGreaterThanOrEqual(homeSectionGap)
+      expect(metrics.carousel.top - metrics.favorites.bottom, `${width}×${height} favorites → dynamic widget`).toBeGreaterThanOrEqual(11.95)
     } else {
       expect(metrics.links.top - metrics.courses.bottom, `${width}×${height} courses → useful links`).toBeGreaterThanOrEqual(homeSectionGap - 0.05)
+      expect(metrics.carousel.top - metrics.links.bottom, `${width}×${height} useful links → dynamic widget`).toBeGreaterThanOrEqual(11.95)
     }
     expect(metrics.footer.top).toBeGreaterThanOrEqual(metrics.links.bottom)
     expect(metrics.footer.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
@@ -667,12 +709,14 @@ test('keeps home sections separated in the compact Telegram tablet window', asyn
       const courses = box('.home-courses')
       const favorites = box('.home-favorites')
       const links = box('.home-links')
+      const carousel = box('.home-status-carousel')
       const main = document.querySelector('main')!
       const footer = box('footer')
       const nav = box('.bottom-nav')
       return {
-        coursesToFavorites: favorites.top - courses.bottom,
-        favoritesToLinks: links.top - favorites.bottom,
+        coursesToLinks: links.top - courses.bottom,
+        linksToFavorites: favorites.top - links.bottom,
+        favoritesToCarousel: carousel.top - favorites.bottom,
         mainScrollHeight: main.scrollHeight,
         mainClientHeight: main.clientHeight,
         noticeHeight: document.querySelector('.home-notice')!.getBoundingClientRect().height,
@@ -681,8 +725,9 @@ test('keeps home sections separated in the compact Telegram tablet window', asyn
       }
     })
 
-    expect(geometry.coursesToFavorites, `${width}×${height}: courses to Favorites`).toBeGreaterThanOrEqual(7.95)
-    expect(geometry.favoritesToLinks, `${width}×${height}: Favorites to Useful Links`).toBeGreaterThanOrEqual(7.95)
+    expect(geometry.coursesToLinks, `${width}×${height}: courses to Useful Links`).toBeGreaterThanOrEqual(7.95)
+    expect(geometry.linksToFavorites, `${width}×${height}: Useful Links to Favorites`).toBeGreaterThanOrEqual(7.95)
+    expect(geometry.favoritesToCarousel, `${width}×${height}: Favorites to dynamic widget`).toBeGreaterThanOrEqual(11.95)
     expect(geometry.mainScrollHeight, `${width}×${height}: scroll overflow should fit within the notice`).toBeLessThanOrEqual(geometry.mainClientHeight + geometry.noticeHeight + 1)
     expect(geometry.footerToNav, `${width}×${height}: footer should clear bottom bar`).toBeGreaterThanOrEqual(4)
     expect(geometry.documentWidth, `${width}×${height}: no horizontal overflow`).toBeLessThanOrEqual(width)

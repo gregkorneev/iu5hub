@@ -176,6 +176,14 @@ function Home() {
       <h2 className="sr-only" id="home-courses-title">Курсы</h2>
       <div className="course-grid">{courses.map((course, index) => <Link key={course.id} aria-label={`${course.title}. ${course.description}. Открыть каталог`} to={`/course/${course.id}`} style={{ '--course-color': course.color } as CSSProperties}><span className="course-grid__heading"><span className="course-grid__number" aria-hidden="true">{index + 1}</span><strong className="course-grid__label">Курс</strong></span><small>{course.description}</small><b>Открыть каталог →</b></Link>)}</div>
     </section>
+    <section className="home-links" aria-labelledby="home-links-title">
+      <div className="section-title"><h2 id="home-links-title">Полезные ссылки</h2></div>
+      <ul className="home-links__list">
+        <li><a aria-label="Диск ИУ5 от @kirschnya" href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><HardDrive aria-hidden="true" focusable="false" /><span className="home-links__label"><span>Диск ИУ5 от</span><span>@kirschnya</span></span></a></li>
+        <li><a aria-label="GitHub @tal3nt3d" href="https://github.com/tal3nt3d/iu5manual" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span className="home-links__label"><span>GitHub</span><span>@tal3nt3d</span></span></a></li>
+        <li><a aria-label="GitHub Ю. Е. Гапанюк" href="https://ugapanyuk.github.io" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span className="home-links__label"><span>GitHub</span><span>Ю. Е. Гапанюк</span></span></a></li>
+      </ul>
+    </section>
     {!favorites.loading && !favorites.error && favorites.items.length > 0 && <section className="home-favorites" aria-labelledby="home-favorites-title">
       <Link className="home-favorites__link" to={onlySavedFolder ? `/course/${onlySavedFolder.courseId}?path=${encodeURIComponent(onlySavedFolder.path)}` : '/profile'} state={onlySavedFolder ? { fromFavorite: onlySavedFolder } : undefined}>
         <Heart aria-hidden="true" focusable="false" />
@@ -184,15 +192,6 @@ function Home() {
         <ChevronRight aria-hidden="true" focusable="false" />
       </Link>
     </section>}
-    <section className="home-links" aria-labelledby="home-links-title">
-      <div className="section-title"><h2 id="home-links-title">Полезные ссылки</h2></div>
-      <ul className="home-links__list">
-        <li><a aria-label="Диск ИУ5 от @kirschnya" href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><HardDrive aria-hidden="true" focusable="false" /><span className="home-links__label"><span>Диск ИУ5 от</span><span>@kirschnya</span></span></a></li>
-        <li><a aria-label="GitHub @tal3nt3d" href="https://github.com/tal3nt3d/iu5manual" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span className="home-links__label"><span>GitHub</span><span>@tal3nt3d</span></span></a></li>
-        <li><a aria-label="GitHub Ю. Е. Гапанюк" href="https://ugapanyuk.github.io" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><Code2 aria-hidden="true" focusable="false" /><span className="home-links__label"><span>GitHub</span><span>Ю. Е. Гапанюк</span></span></a></li>
-        <li className="home-links__item--freshmen"><a className="home-links__link--freshmen" aria-label="Будущим первокурсникам" href="https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5/0%20sem" target="_blank" rel="noopener noreferrer" onClick={(event) => { event.preventDefault(); openExternalLink(event.currentTarget.href) }}><HardDrive aria-hidden="true" focusable="false" /><span className="home-links__label"><span>Будущим</span><span>первокурсникам</span></span></a></li>
-      </ul>
-    </section>
     <section className="home-status-carousel" role="region" aria-label="Поддержка и уведомления" aria-roledescription="карусель" onPointerEnter={(event) => { if (event.pointerType === 'mouse') { mouseHoveringCarousel.current = true; setInteractionPaused(true) } }} onPointerLeave={(event) => { if (event.pointerType === 'mouse') { mouseHoveringCarousel.current = false; if (!statusCarousel.current?.contains(document.activeElement)) setInteractionPaused(false) } }} onFocusCapture={(event) => { if (event.target !== statusCarousel.current) setInteractionPaused(true) }} onBlurCapture={(event) => releaseStatusFocus(event.relatedTarget, event.currentTarget)}>
       <div className="home-status-carousel__viewport" role="group" aria-label="Карточки. Используйте стрелки или пролистайте." aria-live="off" tabIndex={0} ref={statusCarousel} onKeyDown={(event) => {
         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
