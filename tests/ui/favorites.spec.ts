@@ -48,6 +48,32 @@ test('saves folders and files without opening them, restores them after reload, 
   await expect(page.getByRole('heading', { name: 'В избранном пока ничего нет' })).toBeVisible()
 })
 
+test('recognizes and removes a course 2 favorite saved before the folder link changed', async ({ page }) => {
+  const oldPath = '/3 sem'
+  let saved = true
+  const mutations: Array<{ method: string; path: string }> = []
+  await page.route('**/api/profile/favorites', async (route) => {
+    const method = route.request().method()
+    if (method === 'GET') return route.fulfill({ json: { items: saved ? [{ courseId: 'course-2', path: oldPath, type: 'dir', name: '3 sem', createdAt: 1 }] : [] } })
+    const item = route.request().postDataJSON() as { path: string }
+    mutations.push({ method, path: item.path })
+    if (method === 'DELETE' && item.path === oldPath) saved = false
+    await route.fulfill({ status: 204 })
+  })
+
+  await page.goto('/#/profile')
+  await page.locator('.profile-item--folder').getByRole('link').click()
+  await expect(page.getByRole('link', { name: 'Электротехника' })).toBeVisible()
+  await page.goto('/#/course/course-2')
+  const semester = page.locator('.semester-button-grid .favorite-card').filter({ hasText: '3' })
+  await expect(semester.getByRole('button', { name: /Удалить из избранного/ })).toBeVisible()
+  await semester.getByRole('button', { name: /Удалить из избранного/ }).click()
+  await expect(semester.getByRole('button', { name: /Добавить в избранное/ })).toBeVisible()
+  expect(mutations).toEqual([{ method: 'DELETE', path: oldPath }])
+  await page.reload()
+  await expect(semester.getByRole('button', { name: /Добавить в избранное/ })).toBeVisible()
+})
+
 test('opens the only saved folder directly from Home with its favorite route state', async ({ page }) => {
   await page.goto('/#/course/course-1')
   const semester = page.locator('.semester-button-grid .favorite-card').first()

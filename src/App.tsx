@@ -255,7 +255,7 @@ function CoursePage() {
   const downloadFile = (item: DiskItem) => { track('yandex_disk_open', { materialId: item.path }); void repository.getFileUrl(id, item.path).then((url) => downloadExternalFile(url, item.name)).catch((reason: unknown) => setCatalog((previous) => previous.key === key ? { ...previous, error: reason instanceof Error ? reason.message : 'Не удалось скачать файл.' } : previous)) }
   const catalogItems = currentCatalog.items.map((item) => ({ item, semester: !path && item.type === 'dir' ? semesterFromFolderName(item.name) : undefined }))
   const semesterFolder = semesterFromFolderName(path.split('/').pop() ?? '')
-  const relativePath = path.replace(/^\/+/, '').replace(/^2 course\//, '')
+  const relativePath = path.replace(/^\/+/, '').replace(/^(?:IU5\/)?2 course\//, '')
   const electricalEngineeringFolder = id === 'course-2' && relativePath === '3 sem/Электротехника'
   const probabilityTheoryFolder = id === 'course-2' && relativePath === '3 sem/Теория вероятностей и математическая статистика'
   if (!course) return courses.length ? <EmptyState title="Курс не найден">Проверьте адрес страницы.</EmptyState> : <p className="lead">Загружаем курс…</p>

@@ -3,7 +3,10 @@ import type { DiskItem } from '../domain/types'
 
 export interface Favorite extends DiskItem { courseId: string; createdAt: number }
 export type FavoriteInput = Pick<Favorite, 'courseId' | 'path' | 'type' | 'name'>
-export const favoriteKey = ({ courseId, path }: Pick<FavoriteInput, 'courseId' | 'path'>) => JSON.stringify([courseId, path])
+export const favoriteKey = ({ courseId, path }: Pick<FavoriteInput, 'courseId' | 'path'>) => JSON.stringify([
+  courseId,
+  courseId === 'course-2' ? `/${path.replace(/^\/+/, '').replace(/^(?:IU5\/)?2 course(?=\/|$)\/?/, '')}` : path,
+])
 
 const request = async (method: 'GET' | 'PUT' | 'DELETE', item?: FavoriteInput | Pick<FavoriteInput, 'courseId' | 'path'>) => {
   const response = await fetch(apiUrl('/api/profile/favorites'), {

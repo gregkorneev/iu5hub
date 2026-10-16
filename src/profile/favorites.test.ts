@@ -1,7 +1,14 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { addFavorite, getFavorites, removeFavorite } from './favorites'
+import { addFavorite, favoriteKey, getFavorites, removeFavorite } from './favorites'
 
 afterEach(() => { vi.unstubAllGlobals() })
+
+it('matches old and current paths for course 2 without changing other courses', () => {
+  const key = favoriteKey({ courseId: 'course-2', path: '/IU5/2 course/3 sem' })
+  expect(favoriteKey({ courseId: 'course-2', path: '/3 sem' })).toBe(key)
+  expect(favoriteKey({ courseId: 'course-2', path: '2 course/3 sem' })).toBe(key)
+  expect(favoriteKey({ courseId: 'course-1', path: '/3 sem' })).not.toBe(favoriteKey({ courseId: 'course-1', path: '/IU5/2 course/3 sem' }))
+})
 
 it('uses signed Telegram data and the correct payload for favorite mutations', async () => {
   vi.stubGlobal('window', { Telegram: { WebApp: { initData: 'signed-data' } } })

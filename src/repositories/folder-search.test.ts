@@ -17,6 +17,11 @@ describe('tagged-folder search', () => {
     expect(new Set(results.map(({ objectKey }) => objectKey)).size).toBe(results.length)
   })
 
+  it('keeps course 2 tagged paths relative to its new shared folder', () => {
+    const folder = searchFolders('АСОИУ').find(({ courseId }) => courseId === 'course-2')
+    expect(folder?.diskPath).toBe('/3 sem/Архитектура АСОИУ')
+  })
+
   it('returns no folders for empty or unmatched prefixes', () => {
     expect(searchFolders('   ')).toEqual([])
     expect(searchFolders('несуществующий-тег')).toEqual([])

@@ -34,7 +34,7 @@ const apiUrl = (endpoint: string, publicUrl: string, path?: string) => {
 const publicResourcePath = (course: Course, path = '') => {
   const rootPath = course.rootPath?.replace(/^\/+|\/+$/g, '') ?? ''
   if (!rootPath) return path
-  const requestedPath = path.replace(/^\/+/, '')
+  const requestedPath = path.replace(/^\/+/, '').replace(course.id === 'course-2' ? /^2 course(?=\/|$)\/?/ : /^$/, '')
   return `/${requestedPath === rootPath || requestedPath.startsWith(`${rootPath}/`) ? requestedPath || rootPath : [rootPath, requestedPath].filter(Boolean).join('/')}`
 }
 const fetchWithTimeout = (url: string) => {

@@ -1,5 +1,11 @@
 # Testing
 
+## Course 2 public folder recovery — 2026-10-16
+
+The production bundle still references the retired course-2 share `PoeWdke_BB291g`; Yandex's public-resource API returns HTTP 404 `DiskNotFoundError`. The replacement shared resource returns HTTP 200 for `/IU5/2 course`, `3 sem` and `4 sem`. All 16 indexed course-2 folders match the replacement resource at semester depth; four sampled indexed paths return HTTP 200, so a full search inventory sync was unnecessary. Both separate supplemental Disk links also return HTTP 200.
+
+On the beta candidate, `npm run qa` passed lint, TypeScript, unit/Worker tests, search and schedule validation, build, and **312 Playwright passes with 8 existing skips**. Browser regressions cover the new course root path, nested course-2 routes, supplemental links and legacy favorites opening/removal. A separate local Chromium smoke used the real Yandex API at 390×844 and 1280×800: root → `3 sem` → `Электротехника` → back worked; all Disk requests returned 200, with no page exceptions or horizontal overflow. Local Vite returned an expected 404 for `/api/analytics/open` because no Worker was attached. Physical Telegram WebView and production after-release behavior remain unchecked.
+
 ## Home support/notice carousel release — 2026-10-14
 
 The notice is the initial slide; cloned edge slides make horizontal swipes loop in both directions without intercepting vertical Home scroll. Browser regression covers swipe wrapping, five-second automatic rotation, resuming five seconds after manual navigation, pause while hovered/focused, keyboard arrows and pager buttons. There is no pause control. Reduced-motion preference uses immediate movement while autoplay continues. Inactive slides are hidden from assistive technology and the viewport uses `aria-live="off"` to avoid announcing automatic changes. Axe has no violations (excluding the separately audited color-contrast rule). Full Beta CI [38633312936](https://github.com/gregkorneev/iu5hub/actions/runs/38633312936) passed. Production Pages returned HTTP 200 and served the updated JS/CSS assets and notice text. No Worker deploy or D1 migration was needed. This remains browser emulation, not a physical Telegram Mini App check.

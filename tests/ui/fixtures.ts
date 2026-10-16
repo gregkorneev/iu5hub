@@ -28,31 +28,35 @@ const folders: Record<string, Array<{ name: string; path: string; type: 'dir' | 
   'course-1:Архив/2026/ИУ5': [{ name: 'УТП', path: 'Архив/2026/ИУ5/УТП', type: 'dir' }],
   'course-1:Архив/2026/ИУ5/УТП': [{ name: 'УТП-файл.pdf', path: 'Архив/2026/ИУ5/УТП/УТП-файл.pdf', type: 'file' }],
   'course-1:long': [],
-  'course-2:': [
-    { name: '2 семестр', path: '2 семестр', type: 'dir' },
-    { name: '3 семестр', path: '3 sem', type: 'dir' },
+  'course-2:/IU5/2 course': [
+    { name: '2 семестр', path: '/IU5/2 course/2 семестр', type: 'dir' },
+    { name: '3 семестр', path: '/IU5/2 course/3 sem', type: 'dir' },
   ],
-  'course-2:3 sem': [{ name: 'Электротехника', path: '3 sem/Электротехника', type: 'dir' }],
-  'course-2:2 семестр': [],
-  'course-2:Список4': [
+  'course-2:/IU5/2 course/3 sem': [
+    { name: 'Электротехника', path: '/IU5/2 course/3 sem/Электротехника', type: 'dir' },
+    { name: 'Теория вероятностей и математическая статистика', path: '/IU5/2 course/3 sem/Теория вероятностей и математическая статистика', type: 'dir' },
+  ],
+  'course-2:/IU5/2 course/2 семестр': [],
+  'course-2:/IU5/2 course/Список4': [
     { name: 'Папка 1', path: 'Список4/Папка 1', type: 'dir' },
     { name: 'Папка 2', path: 'Список4/Папка 2', type: 'dir' },
     { name: 'Папка 3', path: 'Список4/Папка 3', type: 'dir' },
     { name: 'Папка 4', path: 'Список4/Папка 4', type: 'dir' },
   ],
-  'course-2:Список5': [
+  'course-2:/IU5/2 course/Список5': [
     { name: 'Папка 1', path: 'Список5/Папка 1', type: 'dir' },
     { name: 'Папка 2', path: 'Список5/Папка 2', type: 'dir' },
     { name: 'Папка 3', path: 'Список5/Папка 3', type: 'dir' },
     { name: 'Папка 4', path: 'Список5/Папка 4', type: 'dir' },
     { name: 'Папка 5', path: 'Список5/Папка 5', type: 'dir' },
   ],
-  'course-2:3 sem/Электротехника': [
-    { name: 'Лекции', path: '2 course/3 sem/Электротехника/Лекции', type: 'dir' },
-    { name: 'Лабораторные', path: '2 course/3 sem/Электротехника/Лабораторные', type: 'dir' },
-    { name: 'Практика', path: '2 course/3 sem/Электротехника/Практика', type: 'dir' },
-    { name: 'Билеты', path: '2 course/3 sem/Электротехника/Билеты', type: 'dir' },
+  'course-2:/IU5/2 course/3 sem/Электротехника': [
+    { name: 'Лекции', path: '/IU5/2 course/3 sem/Электротехника/Лекции', type: 'dir' },
+    { name: 'Лабораторные', path: '/IU5/2 course/3 sem/Электротехника/Лабораторные', type: 'dir' },
+    { name: 'Практика', path: '/IU5/2 course/3 sem/Электротехника/Практика', type: 'dir' },
+    { name: 'Билеты', path: '/IU5/2 course/3 sem/Электротехника/Билеты', type: 'dir' },
   ],
+  'course-2:/IU5/2 course/3 sem/Теория вероятностей и математическая статистика': [],
   'course-3:/IU5/3 course': [
     { name: '5 sem', path: '/IU5/3 course/5 sem', type: 'dir' },
     { name: '6 sem', path: '/IU5/3 course/6 sem', type: 'dir' },
@@ -121,8 +125,8 @@ export const test = base.extend<{ telegram: TelegramState; welcomeComplete: bool
     await page.route('https://cloud-api.yandex.net/**', async (route) => {
       const url = new URL(route.request().url())
       const publicKey = url.searchParams.get('public_key') ?? ''
-      const courseId = publicKey.includes('PoeWdke') ? 'course-2' : publicKey.includes('4PO5hHMPMaeAEQ') ? 'course-3' : 'course-1'
       const path = url.searchParams.get('path') ?? ''
+      const courseId = path.startsWith('/IU5/2 course') ? 'course-2' : publicKey.includes('4PO5hHMPMaeAEQ') ? 'course-3' : 'course-1'
       if (url.pathname.endsWith('/download')) return route.fulfill({ json: { href: 'https://downloader.disk.yandex.ru/disk/public/file.pdf' } })
       const items = folders[`${courseId}:${path}`]
       if (items === undefined) return route.fulfill({ status: 404, json: { message: 'not found' } })

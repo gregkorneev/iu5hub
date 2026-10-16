@@ -37,6 +37,22 @@ describe('Yandex Disk public repository', () => {
     ])
   })
 
+  it('opens course 2 through the shared IU5 folder', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ _embedded: { items: [{ name: '3 sem', path: '/IU5/2 course/3 sem', type: 'dir' }] } })))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(yandexDiskRepository.getFolder('course-2')).resolves.toMatchObject([{ name: '3 sem', path: '/IU5/2 course/3 sem' }])
+    const url = new URL(fetchMock.mock.calls[0][0] as string)
+    expect(url.searchParams.get('public_key')).toBe('https://disk.yandex.com/d/4PO5hHMPMaeAEQ')
+    expect(url.searchParams.get('path')).toBe('/IU5/2 course')
+  })
+
+  it('opens a legacy course 2 favorite without repeating the old folder name', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ _embedded: { items: [] } })))
+    vi.stubGlobal('fetch', fetchMock)
+    await yandexDiskRepository.getFolder('course-2', '2 course/3 sem')
+    expect(new URL(fetchMock.mock.calls[0][0] as string).searchParams.get('path')).toBe('/IU5/2 course/3 sem')
+  })
+
   it('searches within course 3 starting at its nested share path', async () => {
     courses[0].publicUrl = ''
     courses[1].publicUrl = ''

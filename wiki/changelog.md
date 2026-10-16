@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-16 — Course 2 catalog recovery (beta candidate)
+
+- Repoint course 2 from a retired public Disk share (API 404) to the live shared `/IU5/2 course` folder. Preserve nested navigation, tagged search destinations, supplemental Disk links and previously saved favorites. Full local `npm run qa` passed (312 Playwright passes, 8 existing skips). The production site is unchanged pending release approval.
+
 ## 2026-10-14 — Home support/notice carousel release
 
 - Support and the red Yandex Disk notice now occupy one swipeable card slot on Home. Added accessible pager controls, preserved vertical Home scrolling, and use immediate transitions when reduced motion is requested while autoplay continues. Full Beta CI [38633312936](https://github.com/gregkorneev/iu5hub/actions/runs/38633312936) passed; production Pages smoke returned HTTP 200 and served the new assets. Release commit: `a544448`. No Worker deploy or D1 migration was needed; manual Telegram device check remains open.

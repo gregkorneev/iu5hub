@@ -32,12 +32,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     const key = favoriteKey(item)
     if (loading || error || pendingRef.current.has(key)) return
     const previous = items
-    const exists = keys.has(key)
+    const saved = items.find((entry) => favoriteKey(entry) === key)
+    const exists = !!saved
     setNotice('')
     pendingRef.current.add(key)
     setPending(new Set(pendingRef.current))
     setItems((current) => exists ? current.filter((entry) => favoriteKey(entry) !== key) : [{ ...item, createdAt: Math.floor(Date.now() / 1000) }, ...current])
-    try { if (exists) await removeFavorite(item); else await addFavorite(item) }
+    try { if (saved) await removeFavorite(saved); else await addFavorite(item) }
     catch { setItems((current) => exists ? [...current, ...previous.filter((entry) => favoriteKey(entry) === key)].sort((a, b) => b.createdAt - a.createdAt) : current.filter((entry) => favoriteKey(entry) !== key)); setNotice('Не удалось сохранить избранное. Попробуйте ещё раз.') }
     finally { pendingRef.current.delete(key); setPending(new Set(pendingRef.current)) }
   }
