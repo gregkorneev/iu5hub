@@ -1,8 +1,8 @@
 # Changelog
 
-## 2026-10-16 — Home block order and spacing (beta)
+## 2026-10-17 — Home block order and spacing (production)
 
-- Moved Useful Links before the optional Favorites block and placed the support/notice carousel immediately after the last visible block. Removed the flex auto-margin that sent the carousel to the bottom of the Home stack; standardized ordinary Home section spacing to 12px and retained compact-screen overrides. Full local `npm run qa` passed (316 Playwright passes, 8 existing skips). Beta Pages deployment `5d1e1740-d814-407c-83c3-11872e0268e8` passed 390×844 and 1280×800 browser smoke. Production remains unchanged.
+- Moved Useful Links before the optional Favorites block and placed the support/notice carousel immediately after the last visible block. Removed the flex auto-margin that sent the carousel to the bottom of the Home stack; standardized ordinary Home section spacing to 12px and retained compact-screen overrides. Removed the future-freshmen link. Full local `npm run qa` passed (316 Playwright passes, 8 existing skips); Beta CI [38952316087](https://github.com/gregkorneev/iu5hub/actions/runs/38952316087) and production CI [38955396029](https://github.com/gregkorneev/iu5hub/actions/runs/38955396029) passed. Beta browser smoke covered both Favorites states at 390×844 and 1280×800; production Pages smoke returned HTTP 200 and confirmed the guest Home. No Worker or D1 deployment was needed. Physical Telegram device rendering remains open.
 
 ## 2026-10-16 — Remove the future freshmen Home link (beta)
 

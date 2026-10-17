@@ -96,6 +96,10 @@ The Pages URL is a technical HTTPS endpoint for the Telegram Mini App. Do not ma
 
 ## Current Cloudflare Pages release
 
+### Home block order and spacing — 2026-10-17
+
+Production merge `5285bfe` publishes the Home spacing and ordering update through the connected Cloudflare Pages `main` integration. [`https://iu5hub.pages.dev`](https://iu5hub.pages.dev) returned HTTP 200 and served JS `index-xUNiX6Tj.js` with CSS `index-BV6xNzoh.css`; the production browser smoke showed Courses → Useful Links → the notice carousel when Favorites are absent, with the large empty gap and future-freshmen link removed. Beta smoke covered the Favorites-present order and measured 12px ordinary section gaps at 390×844 and 1280×800. Beta CI [38952316087](https://github.com/gregkorneev/iu5hub/actions/runs/38952316087) and production CI [38955396029](https://github.com/gregkorneev/iu5hub/actions/runs/38955396029) passed. No Worker deploy or D1 migration was needed. Physical Telegram WebView validation remains open.
+
 Schedule JSON is included in the existing static Pages `dist/` artifact and is deployed by the already-connected GitHub integration when `main` changes. `.github/workflows/schedule-sync.yml` only refreshes, validates and commits static source data; it does not run a second Cloudflare deploy. The initial release also applies Worker D1 migration `0003_profile_preferences.sql` and deploys the small preference API. No schedule lesson data enters D1.
 
 On 2026-09-21 the production build was published by Cloudflare Pages Direct Upload at [`https://iu5hub.pages.dev`](https://iu5hub.pages.dev), configured as both the Main App and menu-button URL in BotFather, and verified by opening it in Telegram. It contains only generated `dist/` files; no Telegram token, bot relay, or support backend is included.
