@@ -1,10 +1,12 @@
 # Testing
 
-## Liquid Glass bottom navigation — beta — 2026-10-17
+## Liquid Glass 2.1 — Quiet Glass — beta — 2026-10-17
 
-The first multi-worker cross-project run produced Vite connection refusals, WebKit setup/trace cleanup errors, and a transient 1px selected-lens bounding-box assertion at 320px; this run was not treated as reliable baseline evidence. Because those runs started after CSS editing began, there is no reliable pre-change browser performance baseline. After the CSS update and addition of a rapid/repeated tab selection assertion, the serial navigation suite passed 24/24 across Chromium, mobile Chromium, and WebKit iPhone, including routing, Telegram BackButton, final lens alignment and the 320px geometry. CSS removes scaling from the actual nav links and keeps blur to one shared surface.
+Compared matched pre/post screenshots at 390×844 in headless Chromium (DPR 1) and mobile/touch WebKit (DPR 3): light Catalog and Search, dark Schedule and Profile. Screenshots include the full viewport and the fixed navigation region. The bar is normally over reserved page clearance in these states; the compact dark Schedule case has a small real content edge beneath it, but there was no broad content-underlay state without changing the page. Screenshots are in `/tmp/iu5hub-glass-2.1-baseline/` and `/tmp/iu5hub-glass-2.1-after/` (not committed).
 
-Full `npm run qa` passed on the final CSS: lint, typecheck, 34 Vitest tests, 81 Node/Worker tests, search/schedule validation, build, and 320 Playwright passes with 8 existing skips across Chromium, mobile Chromium, WebKit and WebKit desktop. The headless RAF cadence sample is not a paint/compositor benchmark or physical FPS measurement. See [`liquid-glass.md`](liquid-glass.md) for baseline/post measurement limitations and outstanding iOS/Android Telegram WebView checks.
+Headless Chromium RAF sampling used the same host/browser, 390×844/DPR 1, five 1.2-second windows and rapid tab sequence before and after. Both runs measured p50 16.7ms, p95 16.7–16.8ms, maximum 16.7–16.8ms, 72–73 callback intervals per window, and zero intervals above 50ms. The shared nav filter changed from `blur(16px) saturate(135%)` to `blur(14px) saturate(120%)`; the lens transition remains 290ms with the same easing. RAF callback cadence does not measure paint/compositor cost, dropped frames or physical FPS, so it cannot establish an A/B rendering-performance result or Telegram device performance.
+
+The Chromium navigation regression passed 8/8 after the visual simplification, including route behavior, Telegram BackButton, rapid/repeated selection, 320px geometry, safe area and 44px targets. Full `npm run qa` passed: lint, typecheck, 34 Vitest, 81 Node/Worker tests, search and schedule validations, build, and 320 Playwright passes with 8 existing skips across Chromium, mobile Chromium, WebKit and WebKit desktop. Reduced-motion, reduced-transparency, higher-contrast and responsive regressions remain in the suite. Beta Pages smoke is pending push and deployment. No physical Telegram iOS/Android WebView was available.
 
 ## Home block order and spacing — production — 2026-10-17
 

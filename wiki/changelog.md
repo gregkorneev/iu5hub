@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-17 — Liquid Glass 2.1: Quiet Glass (beta)
+
+- Removed the artificial upper shine band, radial lens hotspot, lens border and stacked inner edge shadows that made the previous navigation look metallic. Reduced outer tint/edge contrast and backdrop filter strength; retained one shared translucent surface, one subtle active lens and its existing transform transition. Softened active label weight while preserving its color and icon distinction. Routes, labels, icons, targets and interaction are unchanged. Full `npm run qa` passed: 34 Vitest, 81 Node/Worker tests, validators/build, and 320 Playwright passes with 8 existing skips. Before/after Chromium and WebKit viewport captures plus RAF callback-cadence samples are documented in `testing.md`; these cadence samples are not render-time or physical-FPS evidence. Beta Pages smoke is pending deployment.
+
 ## 2026-10-17 — Home block order and spacing (production)
 
 - Moved Useful Links before the optional Favorites block and placed the support/notice carousel immediately after the last visible block. Removed the flex auto-margin that sent the carousel to the bottom of the Home stack; standardized ordinary Home section spacing to 12px and retained compact-screen overrides. Removed the future-freshmen link. Full local `npm run qa` passed (316 Playwright passes, 8 existing skips); Beta CI [38952316087](https://github.com/gregkorneev/iu5hub/actions/runs/38952316087) and production CI [38955396029](https://github.com/gregkorneev/iu5hub/actions/runs/38955396029) passed. Beta browser smoke covered both Favorites states at 390×844 and 1280×800; production Pages smoke returned HTTP 200 and confirmed the guest Home. No Worker or D1 deployment was needed. Physical Telegram device rendering remains open.

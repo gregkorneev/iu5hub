@@ -194,11 +194,11 @@ header::before {
   text-align: center;
 }
 .bottom-nav {
-  --nav-glass-fill: color-mix(in srgb, var(--surface-primary) 48%, transparent);
-  --nav-glass-edge: color-mix(in srgb, var(--platform-text) 13%, transparent);
-  --nav-glass-shadow: color-mix(in srgb, #000 13%, transparent);
-  --nav-lens-fill: color-mix(in srgb, var(--surface-elevated) 48%, transparent);
-  --nav-lens-edge: color-mix(in srgb, var(--platform-text) 16%, transparent);
+  --nav-glass-fill: color-mix(in srgb, var(--surface-primary) 34%, transparent);
+  --nav-glass-edge: color-mix(in srgb, var(--platform-text) 7%, transparent);
+  --nav-glass-shadow: color-mix(in srgb, #000 9%, transparent);
+  --nav-lens-fill: color-mix(in srgb, var(--surface-elevated) 43%, transparent);
+  --nav-lens-highlight: color-mix(in srgb, #fff 12%, transparent);
   --nav-motion-duration: 290ms;
   --nav-motion-curve: cubic-bezier(.2, .82, .2, 1);
   --nav-count: 2;
@@ -212,7 +212,7 @@ header::before {
   border: 1px solid var(--nav-glass-edge);
   border-radius: var(--radius-pill);
   background: var(--nav-glass-fill);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 36%, transparent), inset 0 -1px 0 color-mix(in srgb, #000 5%, transparent), 0 .3rem .9rem var(--nav-glass-shadow);
+  box-shadow: 0 .25rem .75rem var(--nav-glass-shadow);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   color: var(--text-secondary);
@@ -226,11 +226,11 @@ header::before {
 .bottom-nav:has(> a:nth-child(3)[aria-current="page"]) { --nav-shift: 200%; }
 .bottom-nav:has(> a:nth-child(4)[aria-current="page"]) { --nav-shift: 300%; }
 :root[data-telegram-theme="dark"] .bottom-nav {
-  --nav-glass-fill: color-mix(in srgb, var(--surface-primary) 52%, transparent);
-  --nav-glass-edge: color-mix(in srgb, #d8e9f8 20%, transparent);
-  --nav-glass-shadow: color-mix(in srgb, #000 28%, transparent);
-  --nav-lens-fill: color-mix(in srgb, var(--surface-elevated) 46%, transparent);
-  --nav-lens-edge: color-mix(in srgb, #e7f3ff 21%, transparent);
+  --nav-glass-fill: color-mix(in srgb, var(--surface-primary) 38%, transparent);
+  --nav-glass-edge: color-mix(in srgb, #d8e9f8 9%, transparent);
+  --nav-glass-shadow: color-mix(in srgb, #000 20%, transparent);
+  --nav-lens-fill: color-mix(in srgb, var(--surface-elevated) 47%, transparent);
+  --nav-lens-highlight: color-mix(in srgb, #dcecff 10%, transparent);
 }
 .bottom-nav::before {
   content: "";
@@ -241,23 +241,11 @@ header::before {
   box-sizing: border-box;
   border-radius: var(--radius-pill);
   z-index: 0;
-  border: 1px solid var(--nav-lens-edge);
-  background: radial-gradient(ellipse 82% 65% at 18% 0%, color-mix(in srgb, #fff 46%, transparent), transparent 72%), linear-gradient(180deg, color-mix(in srgb, #fff 22%, var(--nav-lens-fill)), var(--nav-lens-fill) 42%, color-mix(in srgb, var(--platform-background) 12%, var(--nav-lens-fill)));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 64%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--platform-text) 10%, transparent), inset 1px 0 0 color-mix(in srgb, #fff 16%, transparent), 0 1px 3px color-mix(in srgb, #000 12%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, #fff 7%, var(--nav-lens-fill)), var(--nav-lens-fill) 70%);
+  box-shadow: inset 0 1px 0 var(--nav-lens-highlight), 0 1px 2px color-mix(in srgb, #000 7%, transparent);
   opacity: 0;
   transform: translateX(var(--nav-shift));
   transition: transform var(--nav-motion-duration) var(--nav-motion-curve), opacity var(--duration-press) ease-out;
-  pointer-events: none;
-}
-.bottom-nav::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  inset: 1px 2px auto;
-  height: 44%;
-  border-radius: inherit;
-  background: linear-gradient(104deg, transparent 8%, color-mix(in srgb, #fff 12%, transparent) 23%, transparent 42%, transparent 75%, color-mix(in srgb, #fff 7%, transparent) 91%, transparent);
-  opacity: .72;
   pointer-events: none;
 }
 .bottom-nav:has(> a[aria-current="page"])::before { opacity: 1; }
@@ -280,7 +268,7 @@ header::before {
   transition: color var(--duration-transition) ease-out;
 }
 .bottom-nav > a svg { width: 18px; height: 18px; flex: none; stroke-width: 1.8; }
-.bottom-nav > a[aria-current="page"] { color: var(--text-primary); font-weight: var(--weight-strong); }
+.bottom-nav > a[aria-current="page"] { color: var(--text-primary); font-weight: 600; }
 .bottom-nav > a[aria-current="page"] svg { color: var(--action-quiet); }
 :root[data-telegram-theme="dark"] .bottom-nav > a[aria-current="page"] { color: #f3f8ff; }
 .bottom-nav > a:active { transform: none; }
@@ -521,7 +509,7 @@ body:has(.app--home) { min-height: 100dvh; }
     header { background: var(--material-regular); box-shadow: 0 1px 0 var(--material-edge), 0 .25rem .75rem var(--material-shadow); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
     header::before { background: var(--material-regular); }
     .admin-stats-link { backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); }
-    .bottom-nav { background: var(--nav-glass-fill); -webkit-backdrop-filter: blur(16px) saturate(135%); backdrop-filter: blur(16px) saturate(135%); }
+    .bottom-nav { background: var(--nav-glass-fill); -webkit-backdrop-filter: blur(14px) saturate(120%); backdrop-filter: blur(14px) saturate(120%); }
     .search, .in-app-back, .schedule-group-picker input { background: var(--material-thin); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
     .search:focus-within { background: var(--material-regular); }
     .search-suggestions { background: color-mix(in srgb, var(--surface-elevated) var(--search-suggestions-fill), transparent); backdrop-filter: blur(var(--material-blur-thick)) saturate(var(--material-saturation)); }
@@ -577,7 +565,7 @@ body:has(.app--home) { min-height: 100dvh; }
 }
 @supports (-webkit-backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {
-    .bottom-nav { -webkit-backdrop-filter: blur(16px) saturate(135%); }
+    .bottom-nav { -webkit-backdrop-filter: blur(14px) saturate(120%); }
   }
 }
 @media (prefers-contrast: more) {
