@@ -78,7 +78,7 @@ Blur разрешён только у верхней шапки, нижнего 
 
 | Поверхность | Light / dark fill | Blur | Роль |
 | --- | ---: | ---: | --- |
-| Bottom bar | 30% / 34% | 20 px | Плавающая global navigation; active lens 32% / 36% |
+| Bottom bar | Scoped `--nav-glass-fill` tokens | 16 px | Одна общая поверхность; отдельная активная линза без второго blur. См. [`liquid-glass.md`](liquid-glass.md). |
 | Search | 30% / 34%, focus 42% / 46% | 20 px | Функциональный поиск над контентом |
 | Search suggestions | 90% / 92% | 30 px | Подсказки перекрывают содержимое страницы и клавиатурную область без просвечивания фонового текста |
 | Schedule group picker | 66% / 72% | 30 px | Крупный transient overlay |
@@ -86,3 +86,5 @@ Blur разрешён только у верхней шапки, нижнего 
 | Active actions | action tint 14% / 16% | нет | Выбранное состояние через цвет и luminance |
 
 Кадры после прохода сохранены в Playwright QA artifacts: home, course cards, search, profile, admin, bottom bar в light/dark. Сравнительный home «до» создан повторным применением исходных production-токенов к тому же экрану, а не отдельным продуктовым билдом.
+
+С 2026-10-17 нижняя навигация использует собственные токены поверхности и линзы; прежние общие проценты fill для неё не применяются. Геометрия, свойства доступности и ограничения производительности описаны в [`liquid-glass.md`](liquid-glass.md).

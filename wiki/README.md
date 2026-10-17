@@ -15,6 +15,7 @@
 | ручных тегах для будущего умного поиска | `search.md` |
 | Telegram Mini App и integration layer | `telegram.md` |
 | дизайн-системе и Liquid Glass | `design-system.md` |
+| CSS-адаптации Liquid Glass в нижней навигации | `liquid-glass.md` |
 | локальном Telegram development через Quick Tunnel | `local-telegram-development.md` |
 | выпуске, проверках | `deployment.md`, `testing.md` |
 | branch policy, beta development and production releases | `development-workflow.md`, `deployment.md` |

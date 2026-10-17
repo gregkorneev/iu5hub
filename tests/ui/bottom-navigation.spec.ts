@@ -175,6 +175,25 @@ test.describe('persistent bottom navigation', () => {
     await expect(page.getByLabel('Подсказки поиска')).toHaveCount(0)
   })
 
+  test('settles the decorative lens on the final tab after rapid and repeated selection', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/')
+    const nav = page.getByRole('navigation', { name: 'Основная навигация' })
+    const tabs = ['Поиск', 'Расписание', 'Профиль', 'Каталог', 'Профиль']
+
+    for (const label of tabs) await nav.getByRole('link', { name: label }).click()
+    await nav.getByRole('link', { name: 'Профиль' }).click()
+    await expect(nav.getByRole('link', { name: 'Профиль' })).toHaveAttribute('aria-current', 'page')
+    await expect.poll(() => nav.evaluate((element) => {
+      const lens = getComputedStyle(element, '::before')
+      const navBox = element.getBoundingClientRect()
+      const active = element.querySelector<HTMLElement>('a[aria-current="page"]')!.getBoundingClientRect()
+      const lensLeft = navBox.left + Number.parseFloat(lens.left) + new DOMMatrixReadOnly(lens.transform).m41
+      const lensRight = lensLeft + Number.parseFloat(lens.width)
+      return Math.abs(lensLeft - active.left) <= 2 && Math.abs(lensRight - active.right) <= 2
+    })).toBe(true)
+  })
+
   test('shows Statistics only for confirmed admins and maps direct routes, unknown paths, and role denial', async ({ page }) => {
     await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: true } }))
     await page.goto('/#/admin/stats')

@@ -194,6 +194,13 @@ header::before {
   text-align: center;
 }
 .bottom-nav {
+  --nav-glass-fill: color-mix(in srgb, var(--surface-primary) 48%, transparent);
+  --nav-glass-edge: color-mix(in srgb, var(--platform-text) 13%, transparent);
+  --nav-glass-shadow: color-mix(in srgb, #000 13%, transparent);
+  --nav-lens-fill: color-mix(in srgb, var(--surface-elevated) 48%, transparent);
+  --nav-lens-edge: color-mix(in srgb, var(--platform-text) 16%, transparent);
+  --nav-motion-duration: 290ms;
+  --nav-motion-curve: cubic-bezier(.2, .82, .2, 1);
   --nav-count: 2;
   --nav-shift: 0%;
   position: relative;
@@ -202,11 +209,12 @@ header::before {
   width: 100%;
   gap: 0;
   padding: 0 6px;
-  border: 1px solid color-mix(in srgb, var(--material-edge) 65%, transparent);
+  border: 1px solid var(--nav-glass-edge);
   border-radius: var(--radius-pill);
-  background: var(--surface-secondary);
-  box-shadow: inset 0 1px 0 var(--material-highlight), 0 .25rem .75rem var(--material-shadow);
+  background: var(--nav-glass-fill);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 36%, transparent), inset 0 -1px 0 color-mix(in srgb, #000 5%, transparent), 0 .3rem .9rem var(--nav-glass-shadow);
   backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   color: var(--text-secondary);
   font-size: .875rem;
 }
@@ -217,18 +225,39 @@ header::before {
 .bottom-nav:has(> a:nth-child(2)[aria-current="page"]) { --nav-shift: 100%; }
 .bottom-nav:has(> a:nth-child(3)[aria-current="page"]) { --nav-shift: 200%; }
 .bottom-nav:has(> a:nth-child(4)[aria-current="page"]) { --nav-shift: 300%; }
+:root[data-telegram-theme="dark"] .bottom-nav {
+  --nav-glass-fill: color-mix(in srgb, var(--surface-primary) 52%, transparent);
+  --nav-glass-edge: color-mix(in srgb, #d8e9f8 20%, transparent);
+  --nav-glass-shadow: color-mix(in srgb, #000 28%, transparent);
+  --nav-lens-fill: color-mix(in srgb, var(--surface-elevated) 46%, transparent);
+  --nav-lens-edge: color-mix(in srgb, #e7f3ff 21%, transparent);
+}
 .bottom-nav::before {
   content: "";
   position: absolute;
   inset-block: 4px;
   inset-inline-start: 6px;
   width: calc((100% - 12px) / var(--nav-count));
+  box-sizing: border-box;
   border-radius: var(--radius-pill);
-  background: var(--surface-elevated);
-  box-shadow: inset 0 1px 0 var(--material-highlight), 0 1px 4px var(--material-shadow);
+  z-index: 0;
+  border: 1px solid var(--nav-lens-edge);
+  background: radial-gradient(ellipse 82% 65% at 18% 0%, color-mix(in srgb, #fff 46%, transparent), transparent 72%), linear-gradient(180deg, color-mix(in srgb, #fff 22%, var(--nav-lens-fill)), var(--nav-lens-fill) 42%, color-mix(in srgb, var(--platform-background) 12%, var(--nav-lens-fill)));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 64%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--platform-text) 10%, transparent), inset 1px 0 0 color-mix(in srgb, #fff 16%, transparent), 0 1px 3px color-mix(in srgb, #000 12%, transparent);
   opacity: 0;
   transform: translateX(var(--nav-shift));
-  transition: transform var(--duration-transition) var(--curve-exit), opacity var(--duration-press) ease-out;
+  transition: transform var(--nav-motion-duration) var(--nav-motion-curve), opacity var(--duration-press) ease-out;
+  pointer-events: none;
+}
+.bottom-nav::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 1px 2px auto;
+  height: 44%;
+  border-radius: inherit;
+  background: linear-gradient(104deg, transparent 8%, color-mix(in srgb, #fff 12%, transparent) 23%, transparent 42%, transparent 75%, color-mix(in srgb, #fff 7%, transparent) 91%, transparent);
+  opacity: .72;
   pointer-events: none;
 }
 .bottom-nav:has(> a[aria-current="page"])::before { opacity: 1; }
@@ -254,6 +283,7 @@ header::before {
 .bottom-nav > a[aria-current="page"] { color: var(--text-primary); font-weight: var(--weight-strong); }
 .bottom-nav > a[aria-current="page"] svg { color: var(--action-quiet); }
 :root[data-telegram-theme="dark"] .bottom-nav > a[aria-current="page"] { color: #f3f8ff; }
+.bottom-nav > a:active { transform: none; }
 .welcome-dialog {
   width: min(28rem, calc(100vw - 2rem - max(env(safe-area-inset-left, 0px), var(--tg-safe-area-left)) - max(env(safe-area-inset-right, 0px), var(--tg-safe-area-right))));
   max-height: calc(var(--tg-viewport-height) - max(env(safe-area-inset-top, 0px), var(--tg-safe-area-top)) - max(env(safe-area-inset-bottom, 0px), var(--tg-safe-area-bottom)) - 1.5rem);
@@ -491,8 +521,7 @@ body:has(.app--home) { min-height: 100dvh; }
     header { background: var(--material-regular); box-shadow: 0 1px 0 var(--material-edge), 0 .25rem .75rem var(--material-shadow); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
     header::before { background: var(--material-regular); }
     .admin-stats-link { backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); }
-    .bottom-nav { background: var(--material-thin); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
-    .bottom-nav::before { background: linear-gradient(180deg, color-mix(in srgb, var(--material-selected) 92%, #fff 8%), var(--material-selected)); }
+    .bottom-nav { background: var(--nav-glass-fill); -webkit-backdrop-filter: blur(16px) saturate(135%); backdrop-filter: blur(16px) saturate(135%); }
     .search, .in-app-back, .schedule-group-picker input { background: var(--material-thin); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
     .search:focus-within { background: var(--material-regular); }
     .search-suggestions { background: color-mix(in srgb, var(--surface-elevated) var(--search-suggestions-fill), transparent); backdrop-filter: blur(var(--material-blur-thick)) saturate(var(--material-saturation)); }
@@ -536,8 +565,8 @@ body:has(.app--home) { min-height: 100dvh; }
   .home-links__list a, .home-support, .home-notice { background: var(--surface-elevated); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .user-greeting { background: var(--surface-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
   header, .search-suggestions { background: var(--surface-elevated); backdrop-filter: none; }
-  .bottom-nav { background: var(--surface-secondary); backdrop-filter: none; }
-  .bottom-nav::before, .schedule-days button[aria-pressed="true"] { background: var(--surface-elevated); backdrop-filter: none; }
+  .bottom-nav { --nav-glass-fill: color-mix(in srgb, var(--surface-elevated) 94%, transparent); --nav-lens-fill: var(--surface-elevated); background: var(--nav-glass-fill); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .bottom-nav::before, .schedule-days button[aria-pressed="true"] { backdrop-filter: none; }
   .schedule-group-options { background: var(--surface-elevated); backdrop-filter: none; }
   .schedule-group-options button { background: transparent; }
   .search, .in-app-back, .schedule-group-picker input { background: var(--surface-secondary); backdrop-filter: none; }
@@ -546,13 +575,18 @@ body:has(.app--home) { min-height: 100dvh; }
   :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty, .favorite-error, .schedule-profile-block, .schedule-lesson, .schedule-group-options button) { background: var(--surface-elevated); }
   :is(.filters a:not(.active), .stats-periods button:not(.active), .tag) { background: var(--surface-secondary); }
 }
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  @media (prefers-reduced-transparency: no-preference) {
+    .bottom-nav { -webkit-backdrop-filter: blur(16px) saturate(135%); }
+  }
+}
 @media (prefers-contrast: more) {
   :root { --text-secondary: var(--text-primary); --separator: var(--text-primary); }
   :root[data-telegram-theme="light"] { --action: #005bb9; --action-text: #fff; }
-  .bottom-nav { border-color: var(--separator); background: var(--surface-secondary); backdrop-filter: none; }
+  .bottom-nav { --nav-glass-fill: var(--surface-secondary); --nav-lens-fill: var(--surface-elevated); border-color: var(--separator); background: var(--nav-glass-fill); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .home-links__list a, .home-support, .home-notice { border-color: var(--separator); background: var(--surface-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .user-greeting { border-color: var(--separator); background: var(--surface-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
-  .bottom-nav::before, .schedule-days button[aria-pressed="true"] { background: var(--surface-elevated); box-shadow: inset 0 0 0 1px var(--separator); }
+  .bottom-nav::before, .schedule-days button[aria-pressed="true"] { background: var(--nav-lens-fill); box-shadow: inset 0 0 0 1px var(--separator); }
   .course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search, .search-suggestions { border: 1px solid var(--separator); }
   header, .search-suggestions { background: var(--surface-primary); backdrop-filter: none; }
   .search, .in-app-back, .schedule-group-picker input { background: var(--surface-secondary); backdrop-filter: none; }
@@ -566,6 +600,7 @@ body:has(.app--home) { min-height: 100dvh; }
   main, main[data-navigation="back"] { animation: page-fade 120ms ease-out both !important; }
   .home-status-carousel__viewport { scroll-behavior: auto; }
   .home-status-carousel__pagination button::before { transition: none; }
+  .bottom-nav::before { transition: none; }
   @keyframes page-fade { from { opacity: .8; } to { opacity: 1; } }
   :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search button, .button, .download-button, .in-app-back, .filters a, .bottom-nav a, .stats-periods button, .home-links__list a):active { transform: none; filter: brightness(.92); }
 }
@@ -576,6 +611,7 @@ body:has(.app--home) { min-height: 100dvh; }
 @supports not (backdrop-filter: blur(1px)) {
   .home-links__list a { background: var(--surface-elevated); }
   .user-greeting, .admin-stats-link, .home-notice { background: var(--surface-elevated); }
+  .bottom-nav { --nav-glass-fill: color-mix(in srgb, var(--surface-elevated) 94%, transparent); background: var(--nav-glass-fill); }
 }
 
 .favorite-card { position: relative; min-width: 0; }
