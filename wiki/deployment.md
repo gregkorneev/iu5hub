@@ -1,5 +1,9 @@
 # Deployment
 
+### Liquid Glass 2.1 — Quiet Glass — 2026-10-17
+
+Release commit `9e1b37d` was fast-forwarded from `beta` to production `main`. Cloudflare Pages served HTTP 200 with CSS `index-ClD2EOdI.css`; production Chromium smoke confirmed four-tab selection, the quiet-glass computed filter (`blur(14px) saturate(1.2)`) and no horizontal overflow at 390×844. Production CI [39001908631](https://github.com/gregkorneev/iu5hub/actions/runs/39001908631) passed. This is a static frontend styling/test/documentation release: no Worker deployment, production migration, D1 change, API or bot configuration change was needed. Unauthenticated guest calls to admin, favorites and launch analytics endpoints returned 401 as expected. Physical Telegram WebView and render-time/FPS measurements remain unverified.
+
 ## Permanent main/beta environments
 
 `main` is the production branch and remains the GitHub default. The existing Cloudflare Pages project `iu5hub` is connected to GitHub; production is served from `main` at https://iu5hub.pages.dev. The disabled `deploy-cloudflare-pages` Actions job must remain disabled while the native Git integration is active, to avoid duplicate Pages deployments. The workflow documentation commit `e928371` was published as a Production deployment from `main`.

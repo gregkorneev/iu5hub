@@ -1,5 +1,9 @@
 # Testing
 
+## Liquid Glass 2.1 — Quiet Glass — production — 2026-10-17
+
+Release commit `9e1b37d` passed production CI [39001908631](https://github.com/gregkorneev/iu5hub/actions/runs/39001908631). Production Pages served HTTP 200 with CSS `index-ClD2EOdI.css`; Chromium smoke at 390×844 verified the four existing tabs and active state after selection, computed `blur(14px) saturate(1.2)`, no decorative `::after`, and no horizontal overflow. The guest app's unauthenticated requests to `/api/admin/me`, `/api/profile/favorites`, and `/api/analytics/open` returned 401; those endpoints were not exercised with credentials, and no data-changing action was performed. Local before/after performance and cross-browser results are recorded below. No physical Telegram iOS/Android WebView or paint/compositor frame-time measurement was available.
+
 ## Liquid Glass 2.1 — Quiet Glass — beta — 2026-10-17
 
 Compared matched pre/post screenshots at 390×844 in headless Chromium (DPR 1) and mobile/touch WebKit (DPR 3): light Catalog and Search, dark Schedule and Profile. Screenshots include the full viewport and the fixed navigation region. The bar is normally over reserved page clearance in these states; the compact dark Schedule case has a small real content edge beneath it, but there was no broad content-underlay state without changing the page. Screenshots are in `/tmp/iu5hub-glass-2.1-baseline/` and `/tmp/iu5hub-glass-2.1-after/` (not committed).
