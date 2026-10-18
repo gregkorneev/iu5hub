@@ -509,7 +509,7 @@ body:has(.app--home) { min-height: 100dvh; }
     header { background: var(--material-regular); box-shadow: 0 1px 0 var(--material-edge), 0 .25rem .75rem var(--material-shadow); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
     header::before { background: var(--material-regular); }
     .admin-stats-link { backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); }
-    .bottom-nav { background: var(--nav-glass-fill); -webkit-backdrop-filter: blur(14px) saturate(120%); backdrop-filter: blur(14px) saturate(120%); }
+    .bottom-nav { background: var(--nav-glass-fill); }
     .search, .in-app-back, .schedule-group-picker input { background: var(--material-thin); backdrop-filter: blur(var(--material-blur-regular)) saturate(var(--material-saturation)); }
     .search:focus-within { background: var(--material-regular); }
     .search-suggestions { background: color-mix(in srgb, var(--surface-elevated) var(--search-suggestions-fill), transparent); backdrop-filter: blur(var(--material-blur-thick)) saturate(var(--material-saturation)); }
@@ -549,6 +549,12 @@ body:has(.app--home) { min-height: 100dvh; }
     }
   }
 }
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  .bottom-nav { -webkit-backdrop-filter: blur(14px) saturate(120%); }
+}
+@supports (backdrop-filter: blur(1px)) {
+  .bottom-nav { backdrop-filter: blur(14px) saturate(120%); }
+}
 @media (prefers-reduced-transparency: reduce) {
   .home-links__list a, .home-support, .home-notice { background: var(--surface-elevated); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .user-greeting { background: var(--surface-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -562,11 +568,6 @@ body:has(.app--home) { min-height: 100dvh; }
   .button--quiet, .download-button { background: var(--surface-secondary); backdrop-filter: none; }
   :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .stats-card, .stats-chart, .stats-ranking li, .material-detail dl div, .empty, .favorite-error, .schedule-profile-block, .schedule-lesson, .schedule-group-options button) { background: var(--surface-elevated); }
   :is(.filters a:not(.active), .stats-periods button:not(.active), .tag) { background: var(--surface-secondary); }
-}
-@supports (-webkit-backdrop-filter: blur(1px)) {
-  @media (prefers-reduced-transparency: no-preference) {
-    .bottom-nav { -webkit-backdrop-filter: blur(14px) saturate(120%); }
-  }
 }
 @media (prefers-contrast: more) {
   :root { --text-secondary: var(--text-primary); --separator: var(--text-primary); }

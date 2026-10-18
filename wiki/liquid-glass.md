@@ -1,5 +1,13 @@
 # Нижняя навигация: Liquid Glass для WebView
 
+## Quiet Glass WebKit compatibility — 2026-10-18 (beta)
+
+The lower navigation had placed its blur inside `@media (prefers-reduced-transparency: no-preference)`. Playwright WebKit on macOS did not match that media query, leaving the bar without its intended blur. The nav filter now turns on via `@supports (backdrop-filter: blur(1px))` and `@supports (-webkit-backdrop-filter: blur(1px))`; the later explicit reduced-transparency and increased-contrast rules still disable it. The fallback in `@supports not (backdrop-filter: blur(1px))` remains opaque. This is a compatibility correction to the existing quiet material, not a new rendering effect.
+
+The demo and four linked public repositories were reviewed only for visual and cross-engine behavior. Their distortion/refraction techniques are optional or have WebKit-specific limits and are not needed by this four-link navigation. No package, copied implementation, shader or asset was added. The included demo and listed repositories are independently authored and must not be described as Scrolltide content.
+
+Fresh beta QA covers all four original tabs at 295/320/390/430px in light/dark themes, lens geometry, targets, keyboard focus (Chromium), reduced-transparency/high-contrast fallback and scrolling. Full `npm run qa` passed (324 Playwright passes; 8 existing skips). Captures and Chrome traces are in `/tmp/iu5hub-quiet-glass-2026-10-18/`; see `testing.md` for limitations. This CSS fix is not a production release.
+
 ## Liquid Glass 2.1 — Quiet Glass (2026-10-17)
 
 The previous 2.0 CSS looked artificial because several independent high-contrast details competed at once: a bright radial lens hotspot, a split light/dark lens gradient, multiple inset highlights, a separate lens stroke and an additional upper reflection band. The 2.1 refinement removes that decoration instead of adding another material layer:

@@ -115,6 +115,101 @@ test.describe('persistent bottom navigation', () => {
     }
   })
 
+  test('keeps Quiet Glass readable and keyboard-accessible from 295px through 430px', async ({ page, browserName }, testInfo) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/#/')
+    const nav = page.getByRole('navigation', { name: 'Основная навигация' })
+    const labels = ['Каталог', 'Поиск', 'Расписание', 'Профиль']
+
+    for (const theme of ['light', 'dark'] as const) {
+      await page.evaluate((colorScheme) => {
+        const telegram = (window as Window & { Telegram: { WebApp: { colorScheme: string; themeParams: Record<string, string> } }; __telegramEmit: (event: string) => void }).Telegram.WebApp
+        telegram.colorScheme = colorScheme
+        Object.assign(telegram.themeParams, colorScheme === 'dark'
+          ? { bg_color: '#0d203a', text_color: '#f5f7fb', secondary_bg_color: '#14345b', button_color: '#1688ff', button_text_color: '#fff' }
+          : { bg_color: '#f6faff', text_color: '#1a1a19', secondary_bg_color: '#e7eef6', button_color: '#1769aa', button_text_color: '#fff' })
+        ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('themeChanged')
+      }, theme)
+
+      for (const width of [295, 320, 390, 430]) {
+        await page.setViewportSize({ width, height: 720 })
+        for (const label of labels) {
+          const link = nav.getByRole('link', { name: label })
+          await link.click()
+          await expect(link).toHaveAttribute('aria-current', 'page')
+          const geometry = await nav.evaluate((element) => {
+            const navBox = element.getBoundingClientRect()
+            const links = [...element.querySelectorAll('a')].map((item) => item.getBoundingClientRect())
+            const activeBox = element.querySelector('a[aria-current="page"]')!.getBoundingClientRect()
+            const lens = getComputedStyle(element, '::before')
+            const lensLeft = navBox.left + Number.parseFloat(lens.left) + new DOMMatrixReadOnly(lens.transform).m41
+            return {
+              count: links.length,
+              overflow: document.documentElement.scrollWidth > innerWidth,
+              links: links.map((box) => ({ width: box.width, height: box.height })),
+              lensLeft,
+              lensRight: lensLeft + Number.parseFloat(lens.width),
+              activeLeft: activeBox.left,
+              activeRight: activeBox.right,
+              filter: getComputedStyle(element).backdropFilter,
+              prefixedFilter: getComputedStyle(element).webkitBackdropFilter,
+              lensFilter: getComputedStyle(element, '::before').backdropFilter,
+              after: getComputedStyle(element, '::after').content,
+            }
+          })
+          expect(geometry.count).toBe(4)
+          expect(geometry.overflow).toBe(false)
+          expect(geometry.links.every((box) => box.width >= 44 && box.height >= 44)).toBe(true)
+          expect(Math.abs(geometry.lensLeft - geometry.activeLeft)).toBeLessThanOrEqual(2)
+          expect(Math.abs(geometry.lensRight - geometry.activeRight)).toBeLessThanOrEqual(2)
+          expect(geometry.lensFilter).toBe('none')
+          expect(geometry.after).toBe('none')
+          expect(geometry.filter !== 'none' || geometry.prefixedFilter !== 'none').toBe(true)
+        }
+
+        if (width === 295 && browserName === 'chromium') await page.locator('.bottom-touch-bar').screenshot({ path: testInfo.outputPath(`quiet-glass-${theme}-${width}.png`) })
+      }
+    }
+
+    await page.emulateMedia({ contrast: 'more' })
+    expect(await nav.evaluate((element) => getComputedStyle(element).backdropFilter)).toBe('none')
+    await page.emulateMedia({ contrast: 'no-preference' })
+    if (browserName === 'chromium') {
+      const session = await page.context().newCDPSession(page)
+      await session.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }] })
+      const filters = await nav.evaluate((element) => {
+        const style = getComputedStyle(element)
+        return { standard: style.backdropFilter, prefixed: style.webkitBackdropFilter }
+      })
+      expect(filters.standard).toBe('none')
+      expect(filters.prefixed ?? 'none').toBe('none')
+      await session.detach()
+    }
+
+    if (browserName !== 'webkit') {
+      await page.getByRole('link', { name: 'Поиск' }).focus()
+      await page.keyboard.press('Tab')
+      await page.keyboard.press('Shift+Tab')
+      const focused = await nav.getByRole('link', { name: 'Поиск' }).evaluate((element) => ({
+        active: document.activeElement === element,
+        keyboardFocus: element.matches(':focus-visible'),
+        outlineStyle: getComputedStyle(element).outlineStyle,
+        outlineWidth: getComputedStyle(element).outlineWidth,
+      }))
+      expect(focused.active).toBe(true)
+      expect(focused.keyboardFocus).toBe(true)
+      expect(focused.outlineStyle).toBe('solid')
+      expect(focused.outlineWidth).toBe('2px')
+    }
+
+    await page.setViewportSize({ width: 390, height: 568 })
+    await page.goto('/#/course/course-1')
+    const navTop = await nav.evaluate((element) => element.getBoundingClientRect().top)
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0)
+    await expect.poll(() => nav.evaluate((element) => element.getBoundingClientRect().top)).toBe(navTop)
+  })
+
   test('keeps Catalog and Search contexts while preserving search-result provenance and BackButton', async ({ page }) => {
     await page.route('**/api/admin/me', (route) => route.fulfill({ json: { isAdmin: false } }))
     await page.setViewportSize({ width: 390, height: 844 })
