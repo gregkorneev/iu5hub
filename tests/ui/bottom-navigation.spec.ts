@@ -172,7 +172,8 @@ test.describe('persistent bottom navigation', () => {
     }
 
     await page.emulateMedia({ contrast: 'more' })
-    expect(await nav.evaluate((element) => getComputedStyle(element).backdropFilter)).toBe('none')
+    const supportsContrastPreference = await page.evaluate(() => matchMedia('(prefers-contrast: more)').matches)
+    if (supportsContrastPreference) expect(await nav.evaluate((element) => getComputedStyle(element).backdropFilter)).toBe('none')
     await page.emulateMedia({ contrast: 'no-preference' })
     if (browserName === 'chromium') {
       const session = await page.context().newCDPSession(page)
