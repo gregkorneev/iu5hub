@@ -187,7 +187,10 @@ async function telegramStats(env, chatId) {
 }
 
 async function webhook(request, env) {
-  if (!env.TELEGRAM_WEBHOOK_SECRET || request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== env.TELEGRAM_WEBHOOK_SECRET) return new Response(null, { status: 401 })
+  if (!env.TELEGRAM_WEBHOOK_SECRET || request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== env.TELEGRAM_WEBHOOK_SECRET) {
+    console.warn('telegram_webhook_auth_rejected')
+    return new Response(null, { status: 401 })
+  }
   let update
   try { update = await request.json() } catch { return new Response(null, { status: 400 }) }
   if (update?.widget_query) {
