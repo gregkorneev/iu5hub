@@ -1,5 +1,6 @@
 import { hashTelegramUserId, validateInitDataUser } from './telegram.mjs'
 import { handleSupportMessage } from './support.mjs'
+import { handleScheduleWidgetQuery, sendScheduleWidget } from './schedule-widget.mjs'
 
 const eventTypes = new Set(['search', 'subject_open', 'material_open', 'yandex_disk_open'])
 const periods = { today: 1, '7d': 7, '30d': 30, all: null }
@@ -189,7 +190,25 @@ async function webhook(request, env) {
   if (!env.TELEGRAM_WEBHOOK_SECRET || request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== env.TELEGRAM_WEBHOOK_SECRET) return new Response(null, { status: 401 })
   let update
   try { update = await request.json() } catch { return new Response(null, { status: 400 }) }
+  if (update?.widget_query) {
+    await handleScheduleWidgetQuery(env, update.widget_query)
+    return new Response('ok')
+  }
   const message = update?.message
+  const text = typeof message?.text === 'string' ? message.text.trim() : ''
+  const scheduleCommand = /^\/schedule(?:@[A-Za-z0-9_]+)?(?:\s|$)/i.test(text)
+  const scheduleButton = text === '📅 Расписание'
+  if (scheduleCommand || scheduleButton) {
+    if (message.chat?.type === 'private' && Number.isSafeInteger(message.from?.id) && message.from.id > 0 && message.chat.id === message.from.id) {
+      if (!Number.isSafeInteger(update.update_id) || update.update_id < 0 || !env.ANALYTICS_DB) return new Response('ok')
+      {
+        const receipt = await env.ANALYTICS_DB.prepare('INSERT OR IGNORE INTO telegram_update_receipts (update_id, created_at) VALUES (?, ?)').bind(update.update_id, unixNow()).run()
+        if (receipt.meta?.changes === 0) return new Response('ok')
+      }
+      await sendScheduleWidget(env, message.chat.id, message.from.id, update.update_id)
+    }
+    return new Response('ok')
+  }
   if (typeof message?.text === 'string' && /^\/[A-Za-z0-9_]+(?:@[A-Za-z0-9_]+)?(?:\s|$)/.test(message.text.trim())) {
     if (message.text.trim() === '/stats' && message.chat?.type === 'private' && message.chat.id === message.from?.id && Number.isSafeInteger(message.from.id) && adminIds(env).has(String(message.from.id))) await telegramStats(env, message.chat.id)
     return new Response('ok')
@@ -304,6 +323,7 @@ export default {
       env.ANALYTICS_DB.prepare('DELETE FROM analytics_user_labels WHERE updated_at < ?').bind(now - 90 * 86_400),
       env.ANALYTICS_DB.prepare('DELETE FROM support_routes WHERE created_at < ?').bind(now - 30 * 86_400),
       env.ANALYTICS_DB.prepare('DELETE FROM support_requests WHERE created_at < ?').bind(now - 30 * 86_400),
+      env.ANALYTICS_DB.prepare('DELETE FROM telegram_update_receipts WHERE created_at < ?').bind(now - 3 * 86_400),
     ])
   },
 }

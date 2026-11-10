@@ -1,5 +1,13 @@
 # Telegram Mini App
 
+## Private-chat Schedule Widget (Bot API 10.4)
+
+The existing Mini App menu button and four-tab navigation remain intact. Beta's Worker additionally handles a private `/schedule` command and the exact `📅 Расписание` reply-keyboard label. A successful request sends one static `sendWidget` message with `allow_queries: true` and `disable_notification: true`, plus a persistent reply keyboard for repeating the request or opening the Beta Mini App schedule route. No schedule update is sent outside that explicit message/button action.
+
+The widget HTML is immutable, self-contained, theme-aware and has no network APIs or third-party runtime. Its initial `chat_data` contains only today's compact result. Tabs and week-day buttons make synchronous tap-handler calls to `TelegramWidget.request()` (`today`, `tomorrow`, `week`, `day:YYYY-MM-DD`, or a bounded `page:...` action). The verified webhook answers with compact JSON via `answerWidgetQuery`; it does not send new chat messages or change widget state. Requests are sequential in the widget; Telegram enforces its per-user query rate limit. No shared widgets, inline mode, `public_data` or background request is used.
+
+Telegram's Bot API 10.4 limits widget HTML to 32,768 UTF-8 bytes and 4,096 bytes after zlib level-9 compression; each widget state/query response is limited to 1,024 UTF-8 bytes and request data to 64 bytes. Worker tests use Node zlib level 9 and UTF-8 byte counts. Current Beta rollout is pending: the Beta Worker secret list does not contain `TELEGRAM_BOT_TOKEN`, preventing verification of its bot settings, webhook and live client behavior. See `schedule.md` and `deployment.md`.
+
 ## Integration rules
 
 - Telegram Mini App — единственный поддерживаемый пользовательский runtime. Это не означает, что UI-компоненты могут обращаться к Telegram API напрямую.

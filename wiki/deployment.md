@@ -196,6 +196,16 @@ The personal profile uses the existing Worker and `ANALYTICS_DB` D1 database. Be
 
 ## Limitations
 
+## Beta Telegram Schedule Widget rollout
+
+The Beta-only Widget implementation requires migration `worker/migrations/0007_telegram_update_receipts.sql` on D1 `iu5hub-beta` and deployment with `npx wrangler deploy --env beta`. The Worker must retain its existing separate Beta `USER_ID_HMAC_SECRET` and `TELEGRAM_WEBHOOK_SECRET`, and use only Beta D1 and the fixed `https://beta.iu5hub.pages.dev` schedule data origin. No production command or migration is part of this workflow. The existing technical Cron remains the same; no schedule notification trigger is added.
+
+Migration `0007_telegram_update_receipts.sql` was applied successfully to remote D1 `iu5hub-beta` after local QA. `npx wrangler deploy --dry-run --env beta` succeeds and shows the expected Beta D1 and Pages origin.
+
+Before Worker deployment, configure the existing Beta bot's own `TELEGRAM_BOT_TOKEN` as a Beta Worker secret and confirm that the bot's webhook points to the Beta Worker with its independent webhook secret. Register `/schedule` in Beta bot commands while preserving the existing Mini App menu button. As checked on 2026-11-10, `wrangler secret list --env beta` shows `ANALYTICS_HMAC_SECRET`, `SUPPORT_ENCRYPTION_KEY`, `TELEGRAM_WEBHOOK_SECRET` and `USER_ID_HMAC_SECRET`, but no `TELEGRAM_BOT_TOKEN`; no webhook status or live Bot API request can be verified without that token. Worker deployment is intentionally pending until this Beta-only configuration is available and verified. Do not inspect or copy production secrets.
+
+The sender is invoked only inside an authenticated private `/schedule` or exact `📅 Расписание` webhook branch. Every sent widget and fallback response sets `disable_notification: true`. There are no subscription, broadcast, background request or new Cron paths. Physical Telegram clients and a real Beta widget remain unverified until the Beta bot credentials/setup are available.
+
 ## Telegram support Worker release
 
 Support extends the existing `iu5hub-analytics` Worker and D1 without a Pages deployment or new Cron Trigger. On 2026-10-06, migration `0004_support.sql` was applied, a strong random `SUPPORT_ENCRYPTION_KEY` was set using `wrangler secret put`, and the Worker was redeployed. Missing and wrong webhook secret production requests both returned `401`; API-level and Worker tests cover support and `/stats` command handling. Live `/stats` delivery and the full student/admin Reply journey still need a real Telegram check. For later deployments, run QA first, apply any pending D1 migration, retain the Worker-only secret, and use `npx wrangler deploy`. No `/start` handler or bot-chat welcome source exists in this repository; the external Telegram bot configuration was not changed because its active welcome text/source could not be established from the project checkout. See `support.md`.

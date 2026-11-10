@@ -45,3 +45,13 @@ JSON содержит `group`, `source` (provider, UUID источника и в
 - Для части ИУ5 групп LKS пока не публикует календарь; UI показывает «Расписание пока не опубликовано».
 - LKS отдаёт корректный calendar body с неправильным MIME и malformed ATTENDEE. Sync tolerates только подтверждённую ATTENDEE аномалию; другие parser errors останавливают обновление.
 - Реальный Telegram WebView, экранная клавиатура и фактическая cross-device проверка двух учётных записей требуют запуска в Telegram; браузерные фикстуры подтверждают только локальное поведение.
+
+## Telegram Schedule Widget (Beta)
+
+Schedule Widget is an additional private-chat view and does not replace `/#/schedule`. `/schedule` and the exact reply-keyboard text `📅 Расписание` use the verified Telegram webhook update's `from.id`, HMAC it with the environment's existing `USER_ID_HMAC_SECRET`, and read `profile_preferences.schedule_group_id` from that environment's `ANALYTICS_DB`. Beta never reads production preferences. The stored group must match the published `groups.json`; its static `groups/{groupId}.json` supplies all lesson, week and source-update data. The Worker requests only fixed `https://beta.iu5hub.pages.dev` JSON URLs, with a five-second timeout and HTTP/schema validation. It never requests LKS at runtime.
+
+The widget sends a current Moscow day snapshot in `chat_data`. Its immutable HTML calls `TelegramWidget.request()` only from explicit taps; today, tomorrow, week, day selection and additional lesson pages are returned directly via `answerWidgetQuery`, so switching views adds no chat message. The week is Monday–Sunday in `Europe/Moscow`; teaching week and numerator/denominator derive from the existing semester `weekOneStart`. Empty days and unavailable group schedules remain separate states. Long days are paged without shortening subject, teacher or room names.
+
+If no group is selected or the saved group disappeared, the bot explains the state and opens the existing Beta schedule route for selection. It does not choose a default or automatically resend after a profile change. Data or Telegram failures produce one silent response after the explicit request and a manual retry path. Group chats are ignored. A short-lived D1 `telegram_update_receipts` table deduplicates repeated schedule message updates; the existing technical cleanup Cron removes old receipts. It is not a user notification mechanism.
+
+The Beta Worker and private-chat Telegram bot must be configured independently from production. As of the 2026-11-10 implementation check, the Beta Worker has no `TELEGRAM_BOT_TOKEN` secret; live bot/webhook verification and deployment are therefore pending. No production bot, Worker, D1 or Pages resource was changed.
