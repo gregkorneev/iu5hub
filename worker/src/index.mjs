@@ -191,6 +191,7 @@ async function webhook(request, env) {
   let update
   try { update = await request.json() } catch { return new Response(null, { status: 400 }) }
   if (update?.widget_query) {
+    console.info('telegram_widget_query_received')
     await handleScheduleWidgetQuery(env, update.widget_query)
     return new Response('ok')
   }
@@ -199,6 +200,7 @@ async function webhook(request, env) {
   const scheduleCommand = /^\/schedule(?:@[A-Za-z0-9_]+)?(?:\s|$)/i.test(text)
   const scheduleButton = text === '📅 Расписание'
   if (scheduleCommand || scheduleButton) {
+    console.info('telegram_schedule_request_received')
     if (message.chat?.type === 'private' && Number.isSafeInteger(message.from?.id) && message.from.id > 0 && message.chat.id === message.from.id) {
       if (!Number.isSafeInteger(update.update_id) || update.update_id < 0 || !env.ANALYTICS_DB) return new Response('ok')
       {
