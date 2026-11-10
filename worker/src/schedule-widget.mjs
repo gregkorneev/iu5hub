@@ -1,8 +1,7 @@
 import { hashTelegramUserId } from './telegram.mjs'
 
 const encoder = new TextEncoder()
-const SCHEDULE_ORIGIN = 'https://beta.iu5hub.pages.dev'
-const APP_SCHEDULE_URL = 'https://beta.iu5hub.pages.dev/#/schedule'
+const ALLOWED_PAGE_ORIGINS = new Set(['https://iu5hub.pages.dev', 'https://beta.iu5hub.pages.dev'])
 const DATA_TIMEOUT_MS = 3000
 const RESPONSE_LIMIT = 1024
 
@@ -39,8 +38,14 @@ function validSchedule(value, groupId) {
       lesson && typeof lesson.start === 'string' && typeof lesson.end === 'string' && typeof lesson.subject === 'string' &&
       typeof lesson.type === 'string' && typeof lesson.teacher === 'string' && typeof lesson.location === 'string'))
 }
-async function loadJson(path) {
-  const response = await fetch(`${SCHEDULE_ORIGIN}${path}`, { signal: AbortSignal.timeout(DATA_TIMEOUT_MS) })
+function pageOrigin(env) {
+  const origin = env.ANALYTICS_ALLOWED_ORIGIN
+  if (!ALLOWED_PAGE_ORIGINS.has(origin)) throw new Error('schedule_origin_unavailable')
+  return origin
+}
+function appScheduleUrl(env) { return `${pageOrigin(env)}/#/schedule` }
+async function loadJson(env, path) {
+  const response = await fetch(`${pageOrigin(env)}${path}`, { signal: AbortSignal.timeout(DATA_TIMEOUT_MS) })
   if (!response.ok) throw new Error('schedule_source_unavailable')
   return response.json()
 }
@@ -50,10 +55,10 @@ async function loadUserSchedule(env, userId) {
   const row = await env.ANALYTICS_DB.prepare('SELECT schedule_group_id AS groupId FROM profile_preferences WHERE user_hash = ?').bind(owner).first()
   if (!row?.groupId) return { error: 'no_group' }
   if (!validGroupId(row.groupId)) return { error: 'invalid_group' }
-  const groups = await loadJson('/data/schedule/groups.json')
+  const groups = await loadJson(env, '/data/schedule/groups.json')
   const group = groups?.groups?.find((item) => item?.id === row.groupId)
   if (!group) return { error: 'missing_group' }
-  const schedule = await loadJson(`/data/schedule/groups/${row.groupId}.json`)
+  const schedule = await loadJson(env, `/data/schedule/groups/${row.groupId}.json`)
   if (!validSchedule(schedule, row.groupId)) return { error: 'invalid_schedule' }
   return { group, schedule }
 }
@@ -116,7 +121,7 @@ export async function sendScheduleWidget(env, chatId, userId, updateId) {
     const found = await loadUserSchedule(env, userId)
     if (found.error) {
       const messages = { no_group: 'Сначала выберите учебную группу в приложении «Студент ИУ5».', missing_group: 'Выбранная учебная группа больше не доступна. Измените выбор в приложении «Студент ИУ5».', invalid_group: 'Не удалось проверить учебную группу. Измените её в приложении «Студент ИУ5».', unavailable: 'Сервис расписания временно недоступен. Попробуйте позже.', invalid_schedule: 'Расписание временно недоступно. Попробуйте позже.' }
-      await callTelegram(env, 'sendMessage', { chat_id: chatId, text: messages[found.error] ?? messages.unavailable, disable_notification: true, reply_markup: { inline_keyboard: [[{ text: 'Открыть расписание в приложении', web_app: { url: APP_SCHEDULE_URL } }]] } })
+      await callTelegram(env, 'sendMessage', { chat_id: chatId, text: messages[found.error] ?? messages.unavailable, disable_notification: true, reply_markup: { inline_keyboard: [[{ text: 'Открыть расписание в приложении', web_app: { url: appScheduleUrl(env) } }]] } })
       return
     }
     const date = localDate()
@@ -124,10 +129,10 @@ export async function sendScheduleWidget(env, chatId, userId, updateId) {
     // The document is deliberately compact; tests also verify zlib level-9 size before release.
     if (bytes(html) > 32_768) throw new Error('widget_html_too_large')
     const chatData = responseData(buildScheduleDay(found.group, found.schedule, date))
-    await callTelegram(env, 'sendWidget', { chat_id: chatId, html, chat_data: chatData, allow_queries: true, disable_notification: true, caption: '📅 Расписание. Если виджет не отображается, откройте приложение.', reply_markup: { keyboard: [[{ text: '📅 Расписание' }, { text: 'Открыть приложение', web_app: { url: APP_SCHEDULE_URL } }]], resize_keyboard: true, is_persistent: true } })
+    await callTelegram(env, 'sendWidget', { chat_id: chatId, html, chat_data: chatData, allow_queries: true, disable_notification: true, caption: '📅 Расписание. Если виджет не отображается, откройте приложение.', reply_markup: { keyboard: [[{ text: '📅 Расписание' }, { text: 'Открыть приложение', web_app: { url: appScheduleUrl(env) } }]], resize_keyboard: true, is_persistent: true } })
   } catch (error) {
     console.error('schedule_widget_send_failed', { updateId, reason: error instanceof Error ? error.message : 'unknown' })
-    try { await callTelegram(env, 'sendMessage', { chat_id: chatId, text: 'Не удалось загрузить расписание. Попробуйте ещё раз позже.', disable_notification: true, reply_markup: { inline_keyboard: [[{ text: 'Открыть расписание в приложении', web_app: { url: APP_SCHEDULE_URL } }]] } }) } catch {}
+    try { await callTelegram(env, 'sendMessage', { chat_id: chatId, text: 'Не удалось загрузить расписание. Попробуйте ещё раз позже.', disable_notification: true, reply_markup: { inline_keyboard: [[{ text: 'Открыть расписание в приложении', web_app: { url: appScheduleUrl(env) } }]] } }) } catch {}
   }
 }
 

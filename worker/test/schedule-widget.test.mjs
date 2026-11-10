@@ -15,7 +15,7 @@ const baseSchedule = {
     '2026-11-15': [{ start: '14:05', end: '15:35', subject: 'Тест воскресного перехода', type: 'Лекция', teacher: 'Петров П. П.', location: 'Ауд. 2' }],
   },
 }
-const env = { TELEGRAM_WEBHOOK_SECRET: 'hook-secret', TELEGRAM_BOT_TOKEN: 'beta-token', USER_ID_HMAC_SECRET: 'beta-hmac-secret', ANALYTICS_DB: null }
+const env = { TELEGRAM_WEBHOOK_SECRET: 'hook-secret', TELEGRAM_BOT_TOKEN: 'beta-token', USER_ID_HMAC_SECRET: 'beta-hmac-secret', ANALYTICS_ALLOWED_ORIGIN: 'https://beta.iu5hub.pages.dev', ANALYTICS_DB: null }
 
 class FakeDb {
   constructor(row = { groupId: group.id }) { this.row = row; this.owner = null; this.receipts = new Set() }
@@ -173,7 +173,7 @@ test('webhook secret is required before widget updates are processed', async () 
   assert.equal(result.status, 401)
 })
 
-test('schedule data load has a fixed Beta origin and validates unknown response groups', async (t) => {
+test('schedule data load uses the configured allowlisted origin and validates unknown response groups', async (t) => {
   const db = new FakeDb()
   const calls = []
   await mockFetch(t, async (url) => {
@@ -184,6 +184,28 @@ test('schedule data load has a fixed Beta origin and validates unknown response 
   await worker.fetch(request(incoming('/schedule')), { ...env, ANALYTICS_DB: db })
   assert.equal(calls.filter((url) => url.startsWith('https://beta.iu5hub.pages.dev/')).length, 1)
   assert.equal(calls[0].startsWith('https://beta.iu5hub.pages.dev/'), true)
+})
+
+test('production settings use only production Pages for schedule data and Mini App fallback', async (t) => {
+  const calls = []
+  await mockFetch(t, async (url, init) => {
+    const value = String(url)
+    if (value.startsWith('https://iu5hub.pages.dev/')) {
+      calls.push(value)
+      return value.endsWith('groups.json') ? Response.json({ groups: [{ ...group, hasSchedule: true }] }) : Response.json(baseSchedule)
+    }
+    const body = JSON.parse(init.body)
+    calls.push({ method: value.split('/').at(-1), body })
+    return Response.json({ ok: true, result: true })
+  })
+  const production = { ...env, ANALYTICS_ALLOWED_ORIGIN: 'https://iu5hub.pages.dev' }
+  await worker.fetch(request(incoming('/schedule')), { ...production, ANALYTICS_DB: new FakeDb(null) })
+  assert.equal(calls[0].body.reply_markup.inline_keyboard[0][0].web_app.url, 'https://iu5hub.pages.dev/#/schedule')
+  calls.length = 0
+  await worker.fetch(request(incoming('/schedule', { updateId: 12 })), { ...production, ANALYTICS_DB: new FakeDb() })
+  assert.equal(calls[0], 'https://iu5hub.pages.dev/data/schedule/groups.json')
+  assert.equal(calls[1], 'https://iu5hub.pages.dev/data/schedule/groups/iu5-34b.json')
+  assert.equal(calls[2].method, 'sendWidget')
 })
 
 test('replayed Telegram schedule update does not create a second widget', async (t) => {
