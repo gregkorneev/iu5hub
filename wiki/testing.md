@@ -1,5 +1,9 @@
 # Testing
 
+## Temporary Yandex Disk notice removal (2026-11-19)
+
+The focused Home suite passed all 60 cases in Chromium, mobile Chromium, WebKit and desktop WebKit. It checks that the outage announcement is absent, the support card has an accessible name, and Home fits at normal mobile sizes with and without Favorites. The short-viewport cases cover scrolling when content exceeds the viewport. Lint, type checking, the production build, search and schedule validation, 34 Vitest cases and 95 Node cases also passed. Browser coverage used Telegram fixtures. Physical Telegram WebView rendering remains unverified.
+
 ## Telegram Schedule Widget (2026-11-10)
 
 `worker/test/schedule-widget.test.mjs` covers Moscow today/tomorrow dates, week boundary and parity, empty/unpublished/out-of-range states, long-name pagination, absent teacher/room, real published JSON shape, HTML UTF-8 and zlib level-9 limits, theme and tap-only request markup, `/schedule`, the reply button, HMAC owner selection, missing/stale groups, private-chat enforcement, query action validation, direct query answers without chat messages, secret-header rejection, strict Beta/production Pages origin selection, Telegram API fallback and safe logs, and replay deduplication. It also checks all published days (3,371 across 70 groups) against the answer limit, with no unrenderable oversized lesson. `tests/ui/telegram-widget.spec.ts` runs the standalone HTML in Chromium with a mock Telegram bridge and covers today/tomorrow/week/day selection, one in-flight request, timeout error and retry. Full `npm run qa` passed 328 Playwright cases with 12 skips, including four project skips for the Chromium-only widget runtime suite and eight existing platform/test skips. `npm test` passed all 34 Vitest and 95 Node tests; lint, typecheck, schedule/search validations and build passed.

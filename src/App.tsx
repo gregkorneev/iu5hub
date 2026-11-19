@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useParams, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, MessageCircle, Search, UserRound } from 'lucide-react'
+import { CalendarDays, ChevronRight, Code2, HardDrive, Heart, LibraryBig, MessageCircle, Search, UserRound } from 'lucide-react'
 import { EmptyState, MaterialCard, MaterialTag, SearchBox, SubjectCard } from './components'
 import { categoryNames, type DiskItem, type Material, type Semester, type Subject } from './domain/types'
 import { semesterFromFolderName } from './domain/semester-folder'
@@ -98,71 +98,7 @@ function Home() {
   const user = getTelegramUser()
   const { courses } = useCatalog()
   const favorites = useFavorites()
-  const statusCarousel = useRef<HTMLDivElement>(null)
-  const scrollEndTimer = useRef<number | undefined>(undefined)
-  const mouseHoveringCarousel = useRef(false)
-  const [statusPosition, setStatusPosition] = useState(1)
-  const [activeStatusPage, setActiveStatusPage] = useState(0)
-  const [interactionPaused, setInteractionPaused] = useState(false)
-  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const onlySavedFolder = favorites.items.length === 1 && favorites.items[0].type === 'dir' ? favorites.items[0] : undefined
-  const moveToStatusPosition = (position: number) => {
-    const carousel = statusCarousel.current
-    if (!carousel) return
-    const normalizedPosition = (position + 4) % 4
-    setStatusPosition(normalizedPosition)
-    setActiveStatusPage(normalizedPosition === 1 || normalizedPosition === 3 ? 0 : 1)
-    carousel.scrollTo({ left: normalizedPosition * carousel.clientWidth, behavior: reducedMotion ? 'auto' : 'smooth' })
-  }
-  useLayoutEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      const carousel = statusCarousel.current
-      if (carousel) carousel.scrollLeft = carousel.clientWidth
-    })
-    return () => window.cancelAnimationFrame(frame)
-  }, [])
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const updatePreference = () => {
-      setReducedMotion(media.matches)
-    }
-    media.addEventListener('change', updatePreference)
-    return () => media.removeEventListener('change', updatePreference)
-  }, [])
-  useEffect(() => () => window.clearTimeout(scrollEndTimer.current), [])
-  useEffect(() => {
-    if (interactionPaused) return
-    const timer = window.setTimeout(() => {
-      const carousel = statusCarousel.current
-      if (carousel) carousel.scrollTo({ left: ((statusPosition + 1) % 4) * carousel.clientWidth, behavior: reducedMotion ? 'auto' : 'smooth' })
-    }, 5000)
-    return () => window.clearTimeout(timer)
-  }, [interactionPaused, reducedMotion, statusPosition])
-  const handleStatusScroll = (carousel: HTMLDivElement) => {
-    const width = carousel.clientWidth
-    if (!width) return
-    const position = Math.max(0, Math.min(3, Math.round(carousel.scrollLeft / width)))
-    setStatusPosition(position)
-    setActiveStatusPage(position === 1 || position === 3 ? 0 : 1)
-    setInteractionPaused(true)
-    window.clearTimeout(scrollEndTimer.current)
-    scrollEndTimer.current = window.setTimeout(() => {
-      const settledPosition = Math.max(0, Math.min(3, Math.round(carousel.scrollLeft / carousel.clientWidth)))
-      const destination = settledPosition === 0 ? 2 : settledPosition === 3 ? 1 : settledPosition
-      if (destination !== settledPosition) {
-        carousel.style.scrollBehavior = 'auto'
-        carousel.scrollLeft = destination * carousel.clientWidth
-        carousel.style.removeProperty('scroll-behavior')
-      }
-      setStatusPosition(destination)
-      setActiveStatusPage(destination === 1 ? 0 : 1)
-      setInteractionPaused(mouseHoveringCarousel.current)
-    }, 140)
-  }
-  const stepStatusCarousel = (direction: -1 | 1) => moveToStatusPosition(statusPosition + direction)
-  const releaseStatusFocus = (relatedTarget: EventTarget | null, currentTarget: HTMLElement) => {
-    if (!(relatedTarget instanceof Node) || !currentTarget.contains(relatedTarget)) setInteractionPaused(mouseHoveringCarousel.current)
-  }
   return <>
     <div className="home-intro-row">
       {user?.username && <Link className="user-greeting" to="/profile" aria-label={`Открыть профиль: ${user.username}`}>
@@ -192,39 +128,9 @@ function Home() {
         <ChevronRight aria-hidden="true" focusable="false" />
       </Link>
     </section>}
-    <section className="home-status-carousel" role="region" aria-label="Поддержка и уведомления" aria-roledescription="карусель" onPointerEnter={(event) => { if (event.pointerType === 'mouse') { mouseHoveringCarousel.current = true; setInteractionPaused(true) } }} onPointerLeave={(event) => { if (event.pointerType === 'mouse') { mouseHoveringCarousel.current = false; if (!statusCarousel.current?.contains(document.activeElement)) setInteractionPaused(false) } }} onFocusCapture={(event) => { if (event.target !== statusCarousel.current) setInteractionPaused(true) }} onBlurCapture={(event) => releaseStatusFocus(event.relatedTarget, event.currentTarget)}>
-      <div className="home-status-carousel__viewport" role="group" aria-label="Карточки. Используйте стрелки или пролистайте." aria-live="off" tabIndex={0} ref={statusCarousel} onKeyDown={(event) => {
-        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-          event.preventDefault()
-          stepStatusCarousel(event.key === 'ArrowRight' ? 1 : -1)
-        }
-      }} onScroll={(event) => handleStatusScroll(event.currentTarget)}>
-        <div className="home-status-carousel__track">
-          <section className="home-support home-status-carousel__slide" role="group" aria-label="Поддержка" aria-roledescription="слайд" aria-hidden="true" inert>
-            <MessageCircle aria-hidden="true" focusable="false" />
-            <div className="home-support__copy"><h2>Нужен материал или помощь?</h2><p>Напишите боту в чат.</p></div>
-          </section>
-          <div className="home-notice home-status-carousel__slide" role="group" aria-label="1 из 2: Временные неполадки" aria-roledescription="слайд" aria-hidden={activeStatusPage !== 0}>
-            <AlertTriangle aria-hidden="true" focusable="false" />
-            <div className="home-notice__copy">
-              <h2 id="home-notice-title">Временные неполадки</h2>
-              <p>В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.</p>
-            </div>
-          </div>
-          <section className="home-support home-status-carousel__slide" role="group" aria-label="2 из 2: Поддержка" aria-roledescription="слайд" aria-hidden={activeStatusPage !== 1}>
-            <MessageCircle aria-hidden="true" focusable="false" />
-            <div className="home-support__copy"><h2 id="home-support-title">Нужен материал или помощь?</h2><p>Напишите боту в чат.</p></div>
-          </section>
-          <div className="home-notice home-status-carousel__slide" role="group" aria-label="Временные неполадки" aria-roledescription="слайд" aria-hidden="true" inert>
-            <AlertTriangle aria-hidden="true" focusable="false" />
-            <div className="home-notice__copy"><h2>Временные неполадки</h2><p>В работе приложения могут возникать сбои из-за временной нестабильной работы Яндекс Диска.</p></div>
-          </div>
-        </div>
-      </div>
-      <div className="home-status-carousel__pagination" role="group" aria-label="Выбрать карточку">
-        <button type="button" aria-label="Показать временные неполадки" aria-pressed={activeStatusPage === 0} onClick={() => moveToStatusPosition(1)} />
-        <button type="button" aria-label="Показать поддержку" aria-pressed={activeStatusPage === 1} onClick={() => moveToStatusPosition(2)} />
-      </div>
+    <section className="home-support" aria-labelledby="home-support-title">
+      <MessageCircle aria-hidden="true" focusable="false" />
+      <div className="home-support__copy"><h2 id="home-support-title">Нужен материал или помощь?</h2><p>Напишите боту в чат.</p></div>
     </section>
   </>
 }

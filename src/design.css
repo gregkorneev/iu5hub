@@ -373,27 +373,11 @@ section + section { margin-top: 2.5rem; }
 .home-links__label { display: grid; }
 .home-links__list a:active { background: var(--material-selected); transform: scale(.98); }
 .home-links__list a:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
-.home-support { display: flex; align-items: center; gap: var(--space-3); margin-top: auto; margin-bottom: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--material-edge); border-radius: var(--radius-large); background: var(--material-thin); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .375rem 1rem var(--material-shadow); -webkit-backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); }
+.home-support { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--material-edge); border-radius: var(--radius-large); background: var(--material-thin); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .375rem 1rem var(--material-shadow); -webkit-backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); backdrop-filter: blur(var(--material-blur-thin)) saturate(var(--material-saturation)); }
 .home-support > svg { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; color: var(--action-quiet); }
 .home-support__copy { min-width: 0; }
 .home-support h2 { margin: 0; font-size: 1rem; line-height: 1.2; }
 .home-support p { margin: var(--space-1) 0 0; color: var(--text-secondary); font-size: var(--type-meta); line-height: 1.35; }
-.home-notice { display: flex; align-items: flex-start; gap: var(--space-3); margin-top: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid color-mix(in srgb, #ef5350 34%, var(--material-edge)); border-radius: var(--radius-large); background: var(--material-thin); box-shadow: inset 0 1px 0 var(--material-highlight), 0 .375rem 1rem var(--material-shadow); color: var(--text-primary); }
-.home-notice > svg { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; margin-top: 1px; color: #ef5350; }
-.home-notice__copy { min-width: 0; }
-.home-notice h2 { margin: 0; font-size: .9375rem; line-height: 1.25; }
-.home-notice p { margin: var(--space-1) 0 0; color: var(--text-secondary); font-size: var(--type-meta); line-height: 1.35; }
-.home-status-carousel { min-width: 0; margin-top: var(--space-3); margin-bottom: var(--space-3); }
-.home-status-carousel__viewport { overflow-x: auto; scrollbar-width: none; scroll-snap-type: x mandatory; scroll-behavior: smooth; overscroll-behavior-x: contain; }
-.home-status-carousel__viewport::-webkit-scrollbar { display: none; }
-.home-status-carousel__track { display: flex; align-items: stretch; width: 400%; }
-.home-status-carousel__slide { box-sizing: border-box; flex: 0 0 25%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
-.home-status-carousel .home-support, .home-status-carousel .home-notice { margin: 0; }
-.home-status-carousel__pagination { display: flex; align-items: center; justify-content: center; margin-top: var(--space-1); }
-.home-status-carousel__pagination button { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 0; border-radius: var(--radius-pill); background: transparent; cursor: pointer; }
-.home-status-carousel__pagination button::before { width: 6px; height: 6px; border-radius: var(--radius-pill); background: rgb(196 203 212); content: ''; transition: width var(--duration-transition) var(--curve-exit), background-color var(--duration-transition) ease-out; }
-.home-status-carousel__pagination button[aria-pressed="true"]::before { width: 18px; background: var(--action); }
-.home-status-carousel__pagination button:focus-visible { outline: 2px solid var(--action); outline-offset: -3px; }
 .home-favorites__link { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto 1.25rem; align-items: center; gap: var(--space-3); min-height: 4.25rem; padding: var(--space-3) var(--space-4); border-radius: var(--radius-large); background: var(--surface-elevated); box-shadow: inset 0 1px 0 var(--material-highlight), 0 1px 0 var(--separator); color: var(--text-primary); text-decoration: none; }
 .home-favorites__link > svg:first-child { width: 1.25rem; height: 1.25rem; color: var(--action); }
 .home-favorites__link > svg:last-child { width: 1rem; height: 1rem; color: var(--text-tertiary); }
@@ -556,7 +540,7 @@ body:has(.app--home) { min-height: 100dvh; }
   .bottom-nav { backdrop-filter: blur(14px) saturate(120%); }
 }
 @media (prefers-reduced-transparency: reduce) {
-  .home-links__list a, .home-support, .home-notice { background: var(--surface-elevated); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .home-links__list a, .home-support { background: var(--surface-elevated); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .user-greeting { background: var(--surface-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
   header, .search-suggestions { background: var(--surface-elevated); backdrop-filter: none; }
   .bottom-nav { --nav-glass-fill: color-mix(in srgb, var(--surface-elevated) 94%, transparent); --nav-lens-fill: var(--surface-elevated); background: var(--nav-glass-fill); -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -573,7 +557,7 @@ body:has(.app--home) { min-height: 100dvh; }
   :root { --text-secondary: var(--text-primary); --separator: var(--text-primary); }
   :root[data-telegram-theme="light"] { --action: #005bb9; --action-text: #fff; }
   .bottom-nav { --nav-glass-fill: var(--surface-secondary); --nav-lens-fill: var(--surface-elevated); border-color: var(--separator); background: var(--nav-glass-fill); -webkit-backdrop-filter: none; backdrop-filter: none; }
-  .home-links__list a, .home-support, .home-notice { border-color: var(--separator); background: var(--surface-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .home-links__list a, .home-support { border-color: var(--separator); background: var(--surface-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .user-greeting { border-color: var(--separator); background: var(--surface-secondary); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .bottom-nav::before, .schedule-days button[aria-pressed="true"] { background: var(--nav-lens-fill); box-shadow: inset 0 0 0 1px var(--separator); }
   .course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search, .search-suggestions { border: 1px solid var(--separator); }
@@ -587,8 +571,6 @@ body:has(.app--home) { min-height: 100dvh; }
 
 @media (prefers-reduced-motion: reduce) {
   main, main[data-navigation="back"] { animation: page-fade 120ms ease-out both !important; }
-  .home-status-carousel__viewport { scroll-behavior: auto; }
-  .home-status-carousel__pagination button::before { transition: none; }
   .bottom-nav::before { transition: none; }
   @keyframes page-fade { from { opacity: .8; } to { opacity: 1; } }
   :is(.course-grid a, .semester-button, .subject-card, .material-card, .disk-item, .search button, .button, .download-button, .in-app-back, .filters a, .bottom-nav a, .stats-periods button, .home-links__list a):active { transform: none; filter: brightness(.92); }
@@ -599,7 +581,7 @@ body:has(.app--home) { min-height: 100dvh; }
 }
 @supports not (backdrop-filter: blur(1px)) {
   .home-links__list a { background: var(--surface-elevated); }
-  .user-greeting, .admin-stats-link, .home-notice { background: var(--surface-elevated); }
+  .user-greeting, .admin-stats-link { background: var(--surface-elevated); }
   .bottom-nav { --nav-glass-fill: color-mix(in srgb, var(--surface-elevated) 94%, transparent); background: var(--nav-glass-fill); }
 }
 
@@ -684,12 +666,7 @@ body:has(.app--home) { min-height: 100dvh; }
   .app--home section + section { margin-top: var(--space-1); }
   .app--home .home-intro-row + .home-courses { margin-top: var(--space-3); }
   .app--home .home-favorites, .app--home .home-links { margin-top: var(--space-3); }
-  .app--home .home-status-carousel { margin-top: var(--space-3); }
-  .app--home .home-status-carousel .home-support { padding: var(--space-2) var(--space-3); }
-  .app--home .home-notice { gap: var(--space-2); padding: var(--space-2) var(--space-3); }
-  .app--home .home-notice > svg { width: 1.125rem; height: 1.125rem; }
-  .app--home .home-notice h2 { font-size: .8125rem; }
-  .app--home .home-notice p { margin-top: 2px; font-size: .6875rem; }
+  .app--home .home-support { margin-top: var(--space-3); padding: var(--space-2) var(--space-3); }
   .app--home .course-grid a { min-height: 4rem; padding: var(--space-1) var(--space-3); }
   .app--home .course-grid__heading { font-size: 1.375rem; }
   .app--home .course-grid b { margin-top: var(--space-1); }
@@ -731,7 +708,7 @@ body:has(.app--home) { min-height: 100dvh; }
 @media (max-width: 620px) and (max-height: 740px) and (orientation: portrait) {
   .app--home .hero > p:not(.eyebrow) { margin-top: var(--space-2); }
   .app--home .home-intro-row + .home-courses { margin-top: var(--space-2); }
-  .app--home .home-favorites, .app--home .home-links, .app--home .home-support { margin-top: 0; }
+  .app--home .home-favorites, .app--home .home-links { margin-top: 0; }
   .app--home .home-courses .section-title { margin-bottom: var(--space-2); }
   .app--home .course-grid a { min-height: 4rem; padding: var(--space-1) var(--space-3); }
   .app--home .course-grid__heading { font-size: 1.375rem; }
@@ -785,8 +762,7 @@ body:has(.app--home) { min-height: 100dvh; }
   .app--home main { justify-content: flex-start; padding-block: var(--space-1) 0; }
 }
 @media (min-width: 341px) and (max-width: 620px) and (min-height: 741px) and (orientation: portrait) {
-  .app--home main { padding-bottom: clamp(0px, calc(100dvh - var(--tg-safe-area-top) - 756px), 4rem); }
-  .app--home:has(.home-notice) main { padding-bottom: 0; }
+  .app--home main { padding-bottom: 0; }
   .app--home .home-support { padding-block: var(--space-1); }
   .app--home .home-support h2 { font-size: .875rem; }
   .app--home .home-support p { margin-top: 2px; font-size: .75rem; }

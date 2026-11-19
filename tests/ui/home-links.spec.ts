@@ -122,7 +122,7 @@ test('pins the Belodedov disk first in Electrical Engineering and grids folders 
 })
 
 test('keeps home controls usable and scrolls without clipping at short viewports', async ({ page }) => {
-  for (const [width, height, needsScroll] of [[320, 568, false], [390, 480, true]] as const) {
+  for (const [width, height, needsScroll] of [[320, 568, false], [390, 400, true]] as const) {
     await page.setViewportSize({ width, height })
     await page.goto('/#/')
     await expect(page.locator('.course-grid a').first()).toBeVisible()
@@ -166,7 +166,6 @@ test('keeps home controls usable and scrolls without clipping at short viewports
 test('shows clickable Yandex Disk and GitHub links below courses on the home screen', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/')
-  await expect(page.getByRole('button', { name: 'Показать временные неполадки' })).toHaveAttribute('aria-pressed', 'true')
 
   const brandGeometry = await page.evaluate(() => {
     const group = document.querySelector('.header-brand-group')!.getBoundingClientRect()
@@ -198,14 +197,11 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
 
   const courses = page.locator('.home-courses')
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
-  const statusCarousel = page.getByRole('region', { name: 'Поддержка и уведомления' })
-  const support = page.locator('.home-support:not([inert])')
-  const notice = page.locator('.home-notice:not([inert])')
+  const support = page.getByRole('region', { name: 'Нужен материал или помощь?' })
   await expect(courses).toBeVisible()
   await expect(usefulLinks).toBeVisible()
-  await expect(statusCarousel).toBeVisible()
+  await expect(support).toBeVisible()
   await expect(support).toContainText('Напишите боту в чат.')
-  await expect(notice).toContainText('из-за временной нестабильной работы Яндекс Диска')
   await expect(support.getByRole('link')).toHaveCount(0)
   await expect(page.locator('.home-favorites')).toHaveCount(0)
   await expect(usefulLinks.getByRole('link')).toHaveCount(3)
@@ -233,16 +229,12 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
 
   const coursesBounds = await courses.boundingBox()
   const linksBounds = await usefulLinks.boundingBox()
-  const carouselBounds = await statusCarousel.boundingBox()
   const supportBounds = await support.boundingBox()
-  const noticeBounds = await notice.boundingBox()
   const footerBounds = await page.locator('footer').boundingBox()
-  expect(coursesBounds && linksBounds && carouselBounds && supportBounds && noticeBounds && footerBounds).toBeTruthy()
+  expect(coursesBounds && linksBounds && supportBounds && footerBounds).toBeTruthy()
   expect(linksBounds!.y).toBeGreaterThan(coursesBounds!.y + coursesBounds!.height)
-  expect(carouselBounds!.y - linksBounds!.y - linksBounds!.height).toBeCloseTo(12, 0)
-  expect(supportBounds!.y).toBeGreaterThanOrEqual(carouselBounds!.y)
-  expect(Math.abs(noticeBounds!.y - supportBounds!.y)).toBeLessThanOrEqual(1)
-  expect(supportBounds!.width).toBeCloseTo(noticeBounds!.width, 0)
+  expect(supportBounds!.y - linksBounds!.y - linksBounds!.height).toBeCloseTo(12, 0)
+  expect(supportBounds!.width).toBeCloseTo(linksBounds!.width, 0)
   expect(footerBounds!.y).toBeGreaterThanOrEqual(supportBounds!.y + supportBounds!.height)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   await page.screenshot({ path: testInfo.outputPath('home-useful-links.png') })
@@ -261,123 +253,17 @@ test('shows clickable Yandex Disk and GitHub links below courses on the home scr
   expect(await page.evaluate(() => (window as Window & { __telegram: { opened: string[] } }).__telegram.opened)).toEqual(['https://disk.yandex.com/d/4PO5hHMPMaeAEQ/IU5', 'https://github.com/tal3nt3d/iu5manual', 'https://ugapanyuk.github.io/'])
 })
 
-test('switches the Home support and notice cards with accessible controls and reduced motion', async ({ page }) => {
+test('shows one accessible Home support card without the Yandex Disk outage notice', async ({ page }) => {
   await page.setViewportSize({ width: 393, height: 852 })
   await page.goto('/#/')
-  const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
-  const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
-  const support = page.locator('.home-support:not([inert])')
-  const notice = page.locator('.home-notice:not([inert])')
-  await noticePage.click()
-  await expect(page.getByRole('button', { name: /автоперелистывание/i })).toHaveCount(0)
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
-  await expect.poll(() => supportPage.evaluate((button) => getComputedStyle(button, '::before').width)).toBe('6px')
-  await expect.poll(() => noticePage.evaluate((button) => getComputedStyle(button, '::before').width)).toBe('18px')
-  await expect(notice).toHaveAttribute('aria-hidden', 'false')
-  await expect(support).toHaveAttribute('aria-hidden', 'true')
-  await supportPage.focus()
-  await page.keyboard.press('Space')
-  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
-  await expect(support).toHaveAttribute('aria-hidden', 'false')
-  await expect(notice).toHaveAttribute('aria-hidden', 'true')
-
-  await page.emulateMedia({ reducedMotion: 'reduce' })
-  await noticePage.focus()
-  await page.keyboard.press('Enter')
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
-  await expect(notice).toHaveAttribute('aria-hidden', 'false')
-  expect(await page.locator('.home-status-carousel__viewport').evaluate((element) => getComputedStyle(element).scrollBehavior)).toBe('auto')
+  await expect(page.getByRole('region', { name: 'Нужен материал или помощь?' })).toBeVisible()
+  await expect(page.getByText('Напишите боту в чат.', { exact: true })).toHaveCount(1)
+  await expect(page.getByText('Временные неполадки', { exact: true })).toHaveCount(0)
   const accessibility = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze()
   expect(accessibility.violations).toEqual([])
 })
 
-test('swipes between Home status cards without intercepting vertical page scroll', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile-chromium', 'CDP touch input is only available in Chromium.')
-  await page.setViewportSize({ width: 393, height: 852 })
-  await page.goto('/#/')
-  const viewport = page.locator('.home-status-carousel__viewport')
-  const bounds = await viewport.boundingBox()
-  expect(bounds).not.toBeNull()
-  const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
-  const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
-  await noticePage.hover()
-  const session = await page.context().newCDPSession(page)
-  const swipe = async (x: number, y: number, endX: number, endY: number) => {
-    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, x, y }] })
-    for (let step = 1; step <= 5; step += 1) {
-      await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: x + (endX - x) * step / 5, y: y + (endY - y) * step / 5 }] })
-    }
-    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
-  }
-  const y = bounds!.y + bounds!.height / 2
-  await swipe(bounds!.x + 24, y, bounds!.x + bounds!.width - 24, y)
-  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
-  await swipe(bounds!.x + bounds!.width - 24, y, bounds!.x + 24, y)
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
-  await swipe(bounds!.x + bounds!.width - 24, y, bounds!.x + 24, y)
-  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
-  await swipe(bounds!.x + 24, y, bounds!.x + bounds!.width - 24, y)
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
-
-  await page.setViewportSize({ width: 320, height: 480 })
-  await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
-  const compactBounds = await viewport.boundingBox()
-  expect(compactBounds).not.toBeNull()
-  await swipe(compactBounds!.x + compactBounds!.width / 2, compactBounds!.y + 32, compactBounds!.x + compactBounds!.width / 2, compactBounds!.y - 80)
-  expect(await page.locator('main').evaluate((main: HTMLElement) => main.scrollTop)).toBeGreaterThan(0)
-  await session.detach()
-})
-
-test('resumes automatic rotation five seconds after a touch swipe', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile-chromium', 'CDP touch input is only available in Chromium.')
-  await page.setViewportSize({ width: 393, height: 852 })
-  await page.goto('/#/')
-  const viewport = page.locator('.home-status-carousel__viewport')
-  const bounds = await viewport.boundingBox()
-  expect(bounds).not.toBeNull()
-  const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
-  const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
-
-  const session = await page.context().newCDPSession(page)
-  const y = bounds!.y + bounds!.height / 2
-  const startX = bounds!.x + 24
-  const endX = bounds!.x + bounds!.width - 24
-  await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, x: startX, y }] })
-  for (let step = 1; step <= 5; step += 1) {
-    await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: startX + (endX - startX) * step / 5, y }] })
-  }
-  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
-  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
-  await viewport.focus()
-  await page.waitForTimeout(4500)
-  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true', { timeout: 2500 })
-  await session.detach()
-})
-
-test('automatically rotates Home cards every five seconds and resets after manual navigation', async ({ page }) => {
-  await page.setViewportSize({ width: 393, height: 852 })
-  await page.goto('/#/')
-  const noticePage = page.getByRole('button', { name: 'Показать временные неполадки' })
-  const supportPage = page.getByRole('button', { name: 'Показать поддержку' })
-  await expect(page.getByRole('button', { name: /автоперелистывание/i })).toHaveCount(0)
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
-  await page.waitForTimeout(6000)
-  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
-
-  await page.emulateMedia({ reducedMotion: 'reduce' })
-  await noticePage.click()
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
-  await page.mouse.move(0, 0)
-  await page.waitForTimeout(4800)
-  await expect(noticePage).toHaveAttribute('aria-pressed', 'true')
-  await page.waitForTimeout(900)
-  await expect(supportPage).toHaveAttribute('aria-pressed', 'true')
-})
-
-test('shows Favorites after Useful Links and before the dynamic widget, and opens the existing profile', async ({ page }) => {
+test('shows Favorites after Useful Links and before the support card, and opens the existing profile', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.route('**/api/profile/favorites', (route) => route.fulfill({ json: { items: [
     { courseId: 'course-1', path: '/1 sem/Математика', type: 'dir', name: 'Математика', createdAt: 2 },
@@ -388,15 +274,15 @@ test('shows Favorites after Useful Links and before the dynamic widget, and open
   const courses = page.locator('.home-courses')
   const favorites = page.getByRole('region', { name: 'Избранное' })
   const usefulLinks = page.getByRole('region', { name: 'Полезные ссылки' })
-  const statusCarousel = page.getByRole('region', { name: 'Поддержка и уведомления' })
+  const support = page.getByRole('region', { name: 'Нужен материал или помощь?' })
   await expect(favorites).toBeVisible()
   await expect(favorites.locator('.home-favorites__count')).toHaveText('2')
   await expect(favorites).toContainText('Сохранённые папки и файлы')
-  const [coursesBounds, favoritesBounds, linksBounds, carouselBounds] = await Promise.all([courses.boundingBox(), favorites.boundingBox(), usefulLinks.boundingBox(), statusCarousel.boundingBox()])
-  expect(coursesBounds && favoritesBounds && linksBounds && carouselBounds).toBeTruthy()
+  const [coursesBounds, favoritesBounds, linksBounds, supportBounds] = await Promise.all([courses.boundingBox(), favorites.boundingBox(), usefulLinks.boundingBox(), support.boundingBox()])
+  expect(coursesBounds && favoritesBounds && linksBounds && supportBounds).toBeTruthy()
   expect(linksBounds!.y - coursesBounds!.y - coursesBounds!.height).toBeCloseTo(12, 0)
   expect(favoritesBounds!.y - linksBounds!.y - linksBounds!.height).toBeCloseTo(12, 0)
-  expect(carouselBounds!.y - favoritesBounds!.y - favoritesBounds!.height).toBeCloseTo(12, 0)
+  expect(supportBounds!.y - favoritesBounds!.y - favoritesBounds!.height).toBeCloseTo(12, 0)
 
   await favorites.getByRole('link', { name: /Избранное/ }).click()
   await expect(page.getByRole('heading', { name: 'Избранное' })).toBeVisible()
@@ -421,19 +307,19 @@ test('keeps the same 12px Home section rhythm on phone and desktop with or witho
         const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
         const courses = box('.home-courses')
         const links = box('.home-links')
-        const carousel = box('.home-status-carousel')
+        const support = box('.home-support')
         const favorites = document.querySelector('.home-favorites')?.getBoundingClientRect()
         return {
           coursesToLinks: links.top - courses.bottom,
-          linksToNext: (favorites ?? carousel).top - links.bottom,
-          favoritesToCarousel: favorites ? carousel.top - favorites.bottom : null,
+          linksToNext: (favorites ?? support).top - links.bottom,
+          favoritesToSupport: favorites ? support.top - favorites.bottom : null,
         }
       })
       const label = `${width}×${height}, Favorites ${hasFavorites ? 'shown' : 'hidden'}`
       expect(gaps.coursesToLinks, `${label}: courses → useful links`).toBeCloseTo(12, 0)
       expect(gaps.linksToNext, `${label}: useful links → next block`).toBeCloseTo(12, 0)
-      if (hasFavorites) expect(gaps.favoritesToCarousel, `${label}: Favorites → dynamic widget`).toBeCloseTo(12, 0)
-      else expect(gaps.favoritesToCarousel).toBeNull()
+      if (hasFavorites) expect(gaps.favoritesToSupport, `${label}: Favorites → support card`).toBeCloseTo(12, 0)
+      else expect(gaps.favoritesToSupport).toBeNull()
     }
   }
 })
@@ -458,20 +344,19 @@ test('keeps Home blocks compact and consistently spaced on a tall phone', async 
       introToCourses: box('.home-courses').top - box('.home-intro-row').bottom,
       coursesToLinks: box('.home-links').top - box('.home-courses').bottom,
       linksToFavorites: box('.home-favorites').top - box('.home-links').bottom,
-      favoritesToCarousel: box('.home-status-carousel').top - box('.home-favorites').bottom,
+      favoritesToSupport: box('.home-support').top - box('.home-favorites').bottom,
       mainScrollHeight: main.scrollHeight,
       mainClientHeight: main.clientHeight,
-      noticeHeight: box('.home-notice').height,
       width: document.documentElement.scrollWidth,
       viewportWidth: innerWidth,
     }
   })
   expect(Math.abs(geometry.stackTop - geometry.contentTop)).toBeLessThanOrEqual(1)
-  for (const gap of [geometry.headerToGreeting, geometry.introToCourses, geometry.coursesToLinks, geometry.linksToFavorites, geometry.favoritesToCarousel]) {
+  for (const gap of [geometry.headerToGreeting, geometry.introToCourses, geometry.coursesToLinks, geometry.linksToFavorites, geometry.favoritesToSupport]) {
     expect(gap).toBeGreaterThanOrEqual(11.95)
     expect(gap).toBeLessThanOrEqual(16)
   }
-  expect(geometry.mainScrollHeight).toBeLessThanOrEqual(geometry.mainClientHeight + geometry.noticeHeight + 1)
+  expect(geometry.mainScrollHeight).toBeLessThanOrEqual(geometry.mainClientHeight + 1)
   expect(geometry.width).toBeLessThanOrEqual(geometry.viewportWidth)
   await page.screenshot({ path: testInfo.outputPath('home-compact-390x844-with-favorites.png') })
 })
@@ -480,7 +365,7 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
   await page.route('**/api/profile/favorites', route => route.fulfill({ json: { items: [
     { courseId: 'course-1', path: '1 семестр', type: 'dir', name: '1 семестр', createdAt: 1 },
   ] } }))
-  for (const [height, top] of [[844, 24], [844, 92], [853, 92], [720, 92]]) {
+  for (const [height, top] of [[844, 24], [844, 92], [853, 92], [520, 92]]) {
     await page.setViewportSize({ width: 393, height })
     await page.goto('/#/')
     await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
@@ -501,9 +386,8 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
         introToCourses: box('.home-courses').top - box('.home-intro-row').bottom,
         coursesToLinks: box('.home-links').top - box('.home-courses').bottom,
         linksToFavorites: box('.home-favorites').top - box('.home-links').bottom,
-        favoritesToCarousel: box('.home-status-carousel').top - box('.home-favorites').bottom,
-        noticeHeight: box('.home-notice').height,
-        noticeBottom: box('.home-notice').bottom,
+        favoritesToSupport: box('.home-support').top - box('.home-favorites').bottom,
+        supportBottom: box('.home-support').bottom,
         links: box('.home-links').bottom, footer: box('footer').top, footerBottom: box('footer').bottom, nav: box('.bottom-nav').top }
     })
     expect(geometry.doc).toBeLessThanOrEqual(height + 1)
@@ -515,18 +399,15 @@ test('fits Home with a saved item and Telegram fullscreen insets without hiding 
         expect(geometry.greeting - geometry.header).toBeGreaterThanOrEqual(11.95)
         expect(geometry.greeting - geometry.header).toBeLessThanOrEqual(16)
       }
-      for (const gap of [geometry.introToCourses, geometry.coursesToLinks, geometry.linksToFavorites, geometry.favoritesToCarousel]) {
+      for (const gap of [geometry.introToCourses, geometry.coursesToLinks, geometry.linksToFavorites, geometry.favoritesToSupport]) {
         expect(gap).toBeGreaterThanOrEqual(11.95)
         expect(gap).toBeLessThanOrEqual(16)
       }
-      expect(geometry.main, `${height}px viewport, ${top}px top inset`).toBeLessThanOrEqual(geometry.client + geometry.noticeHeight + 1)
-      if (top === 24) {
-        expect(geometry.main, `${height}px viewport, ${top}px top inset should not scroll`).toBeLessThanOrEqual(geometry.client + 1)
-        expect(geometry.noticeBottom).toBeLessThanOrEqual(geometry.footer + 1)
-      }
+      expect(geometry.main, `${height}px viewport, ${top}px top inset`).toBeLessThanOrEqual(geometry.client + 1)
+      expect(geometry.supportBottom).toBeLessThanOrEqual(geometry.footer + 1)
       expect(geometry.links).toBeLessThanOrEqual(geometry.footer + 1)
       await page.locator('main').evaluate(element => element.scrollTo(0, 100))
-      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(geometry.noticeHeight + 1)
+      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(1)
     } else {
       expect(geometry.main).toBeGreaterThan(geometry.client)
       await page.locator('main').evaluate(element => element.scrollTo(0, element.scrollHeight))
@@ -541,7 +422,7 @@ test('uses the visible CSS viewport when Telegram reports stale Home heights', a
   await page.route('**/api/profile/favorites', route => route.fulfill({ json: { items: [
     { courseId: 'course-1', path: '1 семестр', type: 'dir', name: '1 семестр', createdAt: 1 },
   ] } }))
-  for (const [height, reported] of [[852, 1100], [852, 700], [568, 1100]]) {
+  for (const [height, reported] of [[852, 1100], [852, 700], [460, 1100]]) {
     await page.setViewportSize({ width: 393, height })
     await page.goto('/#/')
     await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = 0 })
@@ -558,7 +439,7 @@ test('uses the visible CSS viewport when Telegram reports stale Home heights', a
       const main = document.querySelector('main')!
       const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
       return { viewport: innerHeight, appHeight: box('.app').height, html: document.documentElement.scrollHeight, body: document.body.scrollHeight,
-        mainScroll: main.scrollHeight, mainClient: main.clientHeight, noticeHeight: box('.home-notice').height, headerBottom: box('header').bottom, greetingTop: box('.user-greeting').top,
+        mainScroll: main.scrollHeight, mainClient: main.clientHeight, headerBottom: box('header').bottom, greetingTop: box('.user-greeting').top,
         linksBottom: box('.home-links').bottom, footerTop: box('footer').top, footerBottom: box('footer').bottom, navTop: box('.bottom-nav').top }
     })
     expect(metrics.appHeight).toBeCloseTo(metrics.viewport, 0)
@@ -566,11 +447,11 @@ test('uses the visible CSS viewport when Telegram reports stale Home heights', a
     expect(metrics.body).toBeLessThanOrEqual(height + 1)
     expect(metrics.footerBottom).toBeLessThanOrEqual(metrics.navTop - 4)
     if (height === 852) {
-      expect(metrics.mainScroll, `${height}px CSS viewport with Telegram reporting ${reported}px`).toBeLessThanOrEqual(metrics.mainClient + metrics.noticeHeight + 1)
+      expect(metrics.mainScroll, `${height}px CSS viewport with Telegram reporting ${reported}px`).toBeLessThanOrEqual(metrics.mainClient + 1)
       expect(metrics.greetingTop).toBeGreaterThanOrEqual(metrics.headerBottom)
       expect(metrics.linksBottom).toBeLessThanOrEqual(metrics.footerTop)
       await page.locator('main').evaluate(element => element.scrollTo(0, 100))
-      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(metrics.noticeHeight + 1)
+      expect(await page.locator('main').evaluate(element => element.scrollTop)).toBeLessThanOrEqual(1)
       await page.screenshot({ path: testInfo.outputPath(`home-393x852-telegram-reports-${reported}.png`) })
     } else {
       expect(metrics.mainScroll).toBeGreaterThan(metrics.mainClient)
@@ -603,9 +484,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
         width: document.documentElement.scrollWidth,
         main: main.scrollHeight,
         mainClient: main.clientHeight,
-        noticeHeight: box('.home-notice').height,
-        carousel: box('.home-status-carousel'),
-        noticeBottom: box('.home-notice').bottom,
+        support: box('.home-support'),
         header: box('header'), greeting: box('.user-greeting'), content: box('main'), intro: box('.home-intro-row'), hero: box('.hero'), heroTitle: box('.hero h1'), heroDescription: box('.hero > p:not(.eyebrow)'), courses: box('.home-courses'), courseGrid: box('.course-grid'), favorites: document.querySelector('.home-favorites')?.getBoundingClientRect().toJSON() ?? null, links: box('.home-links'), footer: box('footer'), nav: box('.bottom-nav'),
         cards: [...document.querySelectorAll('.course-grid a')].map((card) => ({ box: card.getBoundingClientRect().toJSON(), scroll: card.scrollHeight, client: card.clientHeight })),
       }
@@ -613,7 +492,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     expect(metrics.html, `${width}×${height} document`).toBeLessThanOrEqual(height + 1)
     expect(metrics.body, `${width}×${height} body`).toBeLessThanOrEqual(height + 1)
     expect(metrics.width, `${width}×${height} horizontal`).toBeLessThanOrEqual(width)
-    expect(metrics.main, `${width}×${height} main scroll overflow should fit within the notice`).toBeLessThanOrEqual(metrics.mainClient + metrics.noticeHeight + 9)
+    expect(metrics.main, `${width}×${height} Home should fit inside main`).toBeLessThanOrEqual(metrics.mainClient + 9)
     if ([390, 393, 430].includes(width) && height >= 844) expect(metrics.main, `${width}×${height} complete Home should not scroll`).toBeLessThanOrEqual(metrics.mainClient + 1)
     if ([390, 393, 430].includes(width) && height >= 844) {
       expect(metrics.greeting.top - metrics.header.bottom, `${width}×${height} should keep a compact gap after the header`).toBeGreaterThanOrEqual(11.95)
@@ -634,14 +513,14 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     if (metrics.favorites) {
       expect(metrics.links.top - metrics.courses.bottom, `${width}×${height} courses → useful links`).toBeGreaterThanOrEqual(homeSectionGap)
       expect(metrics.favorites.top - metrics.links.bottom, `${width}×${height} useful links → favorites`).toBeGreaterThanOrEqual(homeSectionGap)
-      expect(metrics.carousel.top - metrics.favorites.bottom, `${width}×${height} favorites → dynamic widget`).toBeGreaterThanOrEqual(11.95)
+      expect(metrics.support.top - metrics.favorites.bottom, `${width}×${height} favorites → support card`).toBeGreaterThanOrEqual(11.95)
     } else {
       expect(metrics.links.top - metrics.courses.bottom, `${width}×${height} courses → useful links`).toBeGreaterThanOrEqual(homeSectionGap - 0.05)
-      expect(metrics.carousel.top - metrics.links.bottom, `${width}×${height} useful links → dynamic widget`).toBeGreaterThanOrEqual(11.95)
+      expect(metrics.support.top - metrics.links.bottom, `${width}×${height} useful links → support card`).toBeGreaterThanOrEqual(11.95)
     }
     expect(metrics.footer.top).toBeGreaterThanOrEqual(metrics.links.bottom)
     expect(metrics.footer.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
-    if (height >= 741) expect(metrics.noticeBottom).toBeLessThanOrEqual(metrics.nav.top - 4)
+    if (height >= 741) expect(metrics.support.bottom).toBeLessThanOrEqual(metrics.nav.top - 4)
     expect(metrics.nav.bottom).toBeLessThanOrEqual(height - 24)
     await expect(page.getByText('Учебные материалы', { exact: true })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Материалы на Яндекс.Диске' })).toHaveCount(0)
@@ -651,7 +530,7 @@ test('fits the complete home screen without page or main scrolling on Telegram p
     const scrollOffsets = await page.evaluate(() => ({ page: scrollY, main: document.querySelector('main')!.scrollTop, body: document.body.scrollTop }))
     expect(scrollOffsets.page).toBe(0)
     expect(scrollOffsets.body).toBe(0)
-    expect(scrollOffsets.main, `${width}×${height} scroll should stay within the compact notice flow`).toBeLessThanOrEqual(metrics.noticeHeight + 32)
+    expect(scrollOffsets.main, `${width}×${height} main scroll offset`).toBeLessThanOrEqual(9)
     await page.screenshot({ path: testInfo.outputPath(`home-${width}x${height}.png`) })
   }
 })
@@ -671,17 +550,17 @@ test('keeps the support hint inside Home on a compact phone with Favorites', asy
     ;(window as Window & { __telegramEmit: (event: string) => void }).__telegramEmit('viewportChanged')
   })
 
-  await expect(page.locator('.home-notice:not([inert])')).toContainText('Временные неполадки')
+  await expect(page.getByRole('region', { name: 'Нужен материал или помощь?' })).toBeVisible()
   await page.locator('main').evaluate((main: HTMLElement) => { main.scrollTop = main.scrollHeight })
-  await expect(page.locator('.home-notice:not([inert]) p')).toBeInViewport()
+  await expect(page.locator('.home-support p')).toBeInViewport()
   const geometry = await page.evaluate(() => {
     const main = document.querySelector('main')!
     const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
-    const title = document.querySelector('.home-notice:not([inert]) h2')!
-    return { mainHeight: main.clientHeight, mainContentHeight: main.scrollHeight, noticeHeight: rect('.home-notice:not([inert])').height, supportBottom: rect('.home-notice:not([inert])').bottom, mainBottom: rect('main').bottom,
+    const title = document.querySelector('.home-support h2')!
+    return { mainHeight: main.clientHeight, mainContentHeight: main.scrollHeight, supportBottom: rect('.home-support').bottom, mainBottom: rect('main').bottom,
       titleHeight: title.getBoundingClientRect().height, titleLineHeight: parseFloat(getComputedStyle(title).lineHeight) }
   })
-  expect(geometry.mainContentHeight).toBeLessThanOrEqual(geometry.mainHeight + geometry.noticeHeight + 1)
+  expect(geometry.mainContentHeight).toBeLessThanOrEqual(geometry.mainHeight + 1)
   expect(geometry.supportBottom).toBeLessThanOrEqual(geometry.mainBottom + 1)
   expect(geometry.titleHeight).toBeLessThanOrEqual(geometry.titleLineHeight + 1)
 })
@@ -709,17 +588,16 @@ test('keeps home sections separated in the compact Telegram tablet window', asyn
       const courses = box('.home-courses')
       const favorites = box('.home-favorites')
       const links = box('.home-links')
-      const carousel = box('.home-status-carousel')
+      const support = box('.home-support')
       const main = document.querySelector('main')!
       const footer = box('footer')
       const nav = box('.bottom-nav')
       return {
         coursesToLinks: links.top - courses.bottom,
         linksToFavorites: favorites.top - links.bottom,
-        favoritesToCarousel: carousel.top - favorites.bottom,
+        favoritesToSupport: support.top - favorites.bottom,
         mainScrollHeight: main.scrollHeight,
         mainClientHeight: main.clientHeight,
-        noticeHeight: document.querySelector('.home-notice')!.getBoundingClientRect().height,
         footerToNav: nav.top - footer.bottom,
         documentWidth: document.documentElement.scrollWidth,
       }
@@ -727,8 +605,8 @@ test('keeps home sections separated in the compact Telegram tablet window', asyn
 
     expect(geometry.coursesToLinks, `${width}×${height}: courses to Useful Links`).toBeGreaterThanOrEqual(7.95)
     expect(geometry.linksToFavorites, `${width}×${height}: Useful Links to Favorites`).toBeGreaterThanOrEqual(7.95)
-    expect(geometry.favoritesToCarousel, `${width}×${height}: Favorites to dynamic widget`).toBeGreaterThanOrEqual(11.95)
-    expect(geometry.mainScrollHeight, `${width}×${height}: scroll overflow should fit within the notice`).toBeLessThanOrEqual(geometry.mainClientHeight + geometry.noticeHeight + 1)
+    expect(geometry.favoritesToSupport, `${width}×${height}: Favorites to support card`).toBeGreaterThanOrEqual(11.95)
+    expect(geometry.mainScrollHeight, `${width}×${height}: Home should fit inside main`).toBeLessThanOrEqual(geometry.mainClientHeight + 1)
     expect(geometry.footerToNav, `${width}×${height}: footer should clear bottom bar`).toBeGreaterThanOrEqual(4)
     expect(geometry.documentWidth, `${width}×${height}: no horizontal overflow`).toBeLessThanOrEqual(width)
     if (width === 520 && height === 730) await page.screenshot({ path: testInfo.outputPath('home-ipad-telegram-520x730.png') })

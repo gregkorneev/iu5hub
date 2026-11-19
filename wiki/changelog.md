@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-19 — Temporary Yandex Disk notice removed
+
+- Removed «Временные неполадки» from Home. The support card «Нужен материал или помощь?» is visible directly below Useful Links or Favorites.
+
 ## 2026-11-10 — Telegram Schedule Widget (production Worker)
 
 - Released the private-chat Bot API 10.4 schedule widget to production commit `3f7eb83`. `/schedule` reads the existing D1 group preference and published Pages JSON; taps update only the widget, with no new chat messages and `disable_notification: true` on explicit request responses. Added environment-specific static origins, production D1 migration `0007_telegram_update_receipts.sql`, UTF-8/zlib size checks, and pagination for long days. No schedule notifications, subscriptions, broadcasts or new Cron Trigger were added. Full `npm run qa` passed (328 Playwright, 95 Node/Worker, 34 Vitest; 12 skips). Production Pages and unauthenticated Worker smoke checks passed. A live Telegram desktop test received no reply to `/schedule` or `/stats`, so webhook delivery and Widget rendering remain unverified; the existing Mini App menu button remained visible. See `schedule.md`, `telegram.md`, `security.md`, `testing.md` and `deployment.md`.

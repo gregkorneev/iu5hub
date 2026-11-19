@@ -1,5 +1,9 @@
 # Deployment
 
+## Temporary Yandex Disk notice removal — 2026-11-19
+
+Cloudflare Pages publishes the frontend change from `main` after Beta verification. Home shows the support card directly. The release scope is the static frontend.
+
 ### Liquid Glass 2.1 — Quiet Glass — 2026-10-17
 
 Release commit `9e1b37d` was fast-forwarded from `beta` to production `main`. Cloudflare Pages served HTTP 200 with CSS `index-ClD2EOdI.css`; production Chromium smoke confirmed four-tab selection, the quiet-glass computed filter (`blur(14px) saturate(1.2)`) and no horizontal overflow at 390×844. Production CI [39001908631](https://github.com/gregkorneev/iu5hub/actions/runs/39001908631) passed. This is a static frontend styling/test/documentation release: no Worker deployment, production migration, D1 change, API or bot configuration change was needed. Unauthenticated guest calls to admin, favorites and launch analytics endpoints returned 401 as expected. Physical Telegram WebView and render-time/FPS measurements remain unverified.
