@@ -12,9 +12,9 @@
 
 `category`: `lecture`, `lab`, `practice`, `methodical`, `presentation`, `video`, `book`, `additional`, `other`.
 
-## Search metadata (preparation stage)
+## Search metadata
 
-Ручные теги будущего интеллектуального поиска хранятся в version-controlled CSV (`data/search/search-tags.csv` и `search-synonyms.csv`), а не в production D1. Объект каталога идентифицируется `object_key`; текущая стратегия использует стабильный ID только если публичный Yandex Disk API его подтверждает как пригодный для rename/move, иначе — детерминированный ключ от `course_id + path`. Поэтому rename/move может потребовать ручного переноса тегов. См. [search.md](search.md).
+Ручные теги текущего поиска папок хранятся в version-controlled CSV (`data/search/search-tags.csv` и `search-synonyms.csv`), а не в production D1. Объект каталога идентифицируется `object_key`; текущая стратегия использует стабильный ID только если публичный Yandex Disk API его подтверждает как пригодный для rename/move, иначе — детерминированный ключ от `course_id + path`. Поэтому rename/move может потребовать ручного переноса тегов. См. [search.md](search.md).
 
 Будущая D1 mapping: `search_metadata(object_key, course_id, type, path, name, aliases, keywords, teacher, priority, enabled, inherit, notes, source_status)` и отдельная `search_synonyms(term, synonyms, enabled, notes)`. Поле `teacher` хранит имя или имена преподавателей как поисковую метаинформацию. Это схема-план; миграции и поисковой D1 сейчас нет.
 
@@ -26,11 +26,11 @@
 
 ## Repository contract
 
-`MaterialsRepository` предоставляет асинхронное чтение курсов, каталога, предметов и материалов и поиск. UI не импортирует JSON напрямую. MVP-реализация читает локальные данные; будущий Yandex Disk/API repository сохраняет тот же контракт. Ошибка одной папки не должна скрывать остальные три курса: repository возвращает понятное состояние загрузки/ошибки для затронутого узла.
+`MaterialsRepository` предоставляет асинхронное чтение курсов, каталога, предметов и материалов и поиск. Каталог курсов использует публичный Yandex Disk repository, а подготовленный индекс тегов читается локально. В репозитории также сохранена статическая реализация для других доменных сущностей. Ошибка одной папки не должна скрывать остальные три курса: repository возвращает понятное состояние загрузки/ошибки для затронутого узла.
 
 ## Source and credential boundary
 
-Если все четыре папки опубликованы для чтения, repository может получать их метаданные через публичный интерфейс Яндекс.Диска без секретов, но открывать пользователю разрешается только проверенные `https:` ссылки Яндекс.Диска. Публичные ключи/URL не дают права записи и могут быть включены в frontend как контентная конфигурация.
+Если папки опубликованы для чтения, repository может получать их метаданные через публичный интерфейс Яндекс.Диска без секретов, но открывать пользователю разрешается только проверенные `https:` ссылки Яндекс.Диска. Публичные ключи/URL не дают права записи и могут быть включены в frontend как контентная конфигурация.
 
 Для непубличных папок, персональных прав доступа, OAuth-токена, записи или надёжной live-синхронизации нужен backend. Он хранит токен Яндекс.Диска вне Git и frontend bundle, получает дерево по API, при необходимости кэширует/нормализует его и отдаёт клиенту только разрешённый каталог и ссылки. Если backend использует Telegram identity или доступы, он сначала валидирует `initData` на сервере; клиентские `initData` и `user` не являются авторизацией.
 
@@ -40,7 +40,7 @@
 
 ## Private analytics data (D1)
 
-Analytics D1 is independent of the read-only materials repository and contains no Telegram profile record.
+Analytics D1 is independent of the read-only materials repository. Verified usernames are stored separately as admin-only analytics labels; see [analytics.md](analytics.md).
 
 | Table | Fields | Purpose |
 | --- | --- | --- |
